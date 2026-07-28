@@ -40,18 +40,37 @@ public sealed class UpdateInstaller
             throw new InvalidOperationException("This release has no SHA-256 digest. Upload the release ZIP through GitHub Releases so GitHub provides an asset digest.");
         }
 
-        // Verify that this is really a Hub update before we close the running application.
-        using (var archive = ZipFile.OpenRead(archivePath))
-        {
-            if (!archive.Entries.Any(entry => Path.GetFileName(entry.FullName).Equals("Casualties Hub.exe", StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException("The release ZIP does not contain Casualties Hub.exe.");
-        }
+        VerifyHubArchive(archivePath);
+        return StartReplacement(archivePath, stagingDirectory);
+    }
 
+    /// <summary>Installs a release ZIP the player previously downloaded locally.</summary>
+    public Task<string> InstallLocalArchiveAndStartAsync(string archivePath)
+    {
+        if (string.IsNullOrWhiteSpace(archivePath) || !File.Exists(archivePath))
+            throw new FileNotFoundException("The selected Hub release ZIP could not be found.", archivePath);
+
+        VerifyHubArchive(archivePath);
+        var stagingDirectory = Path.Combine(Path.GetTempPath(), "CasualtiesHub", "LocalUpdates", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(stagingDirectory);
+        DebugLogService.Activity("Updater", $"Preparing local Hub release package: {Path.GetFileName(archivePath)}.");
+        return Task.FromResult(StartReplacement(archivePath, stagingDirectory));
+    }
+
+    private static void VerifyHubArchive(string archivePath)
+    {
+        using var archive = ZipFile.OpenRead(archivePath);
+        if (!archive.Entries.Any(entry => Path.GetFileName(entry.FullName).Equals("Casualties Hub.exe", StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("The selected ZIP does not contain Casualties Hub.exe.");
+    }
+
+    private static string StartReplacement(string archivePath, string stagingDirectory)
+    {
         var targetDirectory = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var scriptPath = Path.Combine(stagingDirectory, "Apply-CasualtiesHub-Update.cmd");
         File.WriteAllText(scriptPath, BuildUpdateScript(archivePath, stagingDirectory, targetDirectory, Environment.ProcessId));
         Process.Start(new ProcessStartInfo("cmd.exe", $"/c \"{scriptPath}\"") { UseShellExecute = true, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
-        DebugLogService.Activity("Updater", $"Verified update {update.Version}; replacement helper started.");
+        DebugLogService.Activity("Updater", "Verified Hub release package; replacement helper started.");
         return stagingDirectory;
     }
 

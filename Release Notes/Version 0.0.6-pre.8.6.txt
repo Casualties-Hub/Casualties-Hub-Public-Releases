@@ -1,0 +1,10 @@
+Version 0.0.6-pre.8.6
+
+What changed
+- Compacted the Settings UI colour controls into four smaller panels. Each keeps a visible HEX input and folds RGB sliders into an expandable section.
+- Compacted Local Mods actions and moved Share Code controls into a smaller right-side strip above the optional third column.
+- Dashboard descriptions are now directly scrollable inside each mod card.
+- Removed Dashboard-card hover popups/tooltips so hovering a mod no longer opens a white information box.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

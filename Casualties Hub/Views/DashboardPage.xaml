@@ -2,6 +2,13 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="#2B2D31">
+    <Page.Resources>
+        <!-- Dashboard cards intentionally do not use the global hover-tooltip rule. -->
+        <Style TargetType="TextBlock">
+            <Setter Property="ToolTip" Value="{x:Null}"/>
+            <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+        </Style>
+    </Page.Resources>
     <ScrollViewer x:Name="DashboardScrollViewer" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="32">
             <Border x:Name="GameFolderCard" Background="#36393F" Padding="20" CornerRadius="6">
@@ -54,15 +61,15 @@
                             <Grid>
                                 <Grid.RowDefinitions><RowDefinition Height="130"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <Border Background="#202225" CornerRadius="4"><Image Source="{Binding ImageUrl}" Stretch="UniformToFill"/></Border>
-                                <TextBlock Grid.Row="1" Text="{Binding Name}" ToolTip="{Binding Name}" Foreground="White" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                                <TextBlock Grid.Row="2" Text="{Binding Author}" ToolTip="{Binding Author}" Foreground="#C9CDD3" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                                <TextBlock Grid.Row="3" Text="{Binding TotalDownloadsLabel}" ToolTip="{Binding TotalDownloadsLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
-                                <TextBlock Grid.Row="4" Text="{Binding UniqueDownloadsLabel}" ToolTip="{Binding UniqueDownloadsLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
-                                <TextBlock Grid.Row="5" Text="{Binding EndorsementsLabel}" ToolTip="{Binding EndorsementsLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
-                                <TextBlock Grid.Row="6" Text="{Binding Version, StringFormat=Version {0}}" ToolTip="{Binding Version, StringFormat=Version {0}}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
-                                <TextBlock Grid.Row="7" Text="{Binding FileSizeLabel}" ToolTip="{Binding FileSizeLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
-                                <TextBlock Grid.Row="8" Text="{Binding DependenciesLabel}" ToolTip="{Binding DependenciesLabel}" Foreground="#5DB8FF" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
-                                <TextBlock Grid.Row="9" Text="{Binding LocalStatusLabel}" ToolTip="{Binding LocalStatusLabel}" Foreground="#C9CDD3" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="1" Text="{Binding Name}" Foreground="White" FontWeight="SemiBold" Margin="0,10,0,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Row="2" Text="{Binding Author}" Foreground="#C9CDD3" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Row="3" Text="{Binding TotalDownloadsLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="4" Text="{Binding UniqueDownloadsLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="5" Text="{Binding EndorsementsLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="6" Text="{Binding Version, StringFormat=Version {0}}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="7" Text="{Binding FileSizeLabel}" Foreground="#A9AFB8" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="8" Text="{Binding DependenciesLabel}" Foreground="#5DB8FF" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="9" Text="{Binding LocalStatusLabel}" Foreground="#C9CDD3" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
                                 <StackPanel Grid.Row="11">
                                     <Button Content="{Binding DashboardActionLabel}" Tag="{Binding}" Click="DownloadOrOpenNexusFiles_Click" Height="30"/>
                                     <Button Content="View Modpage" Tag="{Binding}" Click="ViewNexusModPage_Click" Height="30" Margin="0,6,0,0"/>
@@ -82,7 +89,7 @@
                                         <ScrollViewer Height="340" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                             <TextBlock Text="{Binding RenderedDescription}" Foreground="#E0E3E8" TextWrapping="Wrap" LineHeight="18"/>
                                         </ScrollViewer>
-                                        <TextBlock Text="Scroll the description with the mouse wheel. Click the card again to close." Foreground="#A9AFB8" FontSize="11" Margin="0,8,0,0"/>
+                                        <TextBlock Text="Click the card again to return to the mod details." Foreground="#A9AFB8" FontSize="11" Margin="0,8,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </Grid>

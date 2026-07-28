@@ -1,0 +1,11 @@
+Version 0.0.6-pre.8.3
+
+What changed
+- Changed the default page text colour to Casualties Hub crimson (#C21F32).
+- Kept the top-left Casualties Hub wordmark permanently white and crimson, regardless of personalised page colours.
+- Reorganized release publishing so the release root stays clean and editable data lives in Data\Catalogs and Data\Release Notes.
+- Prepared Release publishing as a self-contained single-file Windows executable.
+- Updated Hub Center's What Changed summary for this build.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

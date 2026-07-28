@@ -1,0 +1,9 @@
+Version 0.0.6-pre.10
+
+What changed
+- Removed the global text-tooltip rule across Casualties Hub.
+- Text, including long mod descriptions, no longer creates white hover popups.
+- Button tooltips remain available for hints and explanations.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

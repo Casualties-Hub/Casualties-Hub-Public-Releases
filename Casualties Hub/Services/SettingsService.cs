@@ -23,7 +23,8 @@ public class SettingsService
             }
             try
             {
-                var settings = JsonSerializer.Deserialize<Settings>(File.ReadAllText(_settingsPath)) ?? new Settings();
+                var rawSettings = File.ReadAllText(_settingsPath);
+                var settings = JsonSerializer.Deserialize<Settings>(rawSettings) ?? new Settings();
                 var normalizedSize = Math.Clamp(settings.TextSize, 10, 20);
                 var changed = false;
                 if (Math.Abs(settings.TextSize - normalizedSize) > double.Epsilon)
@@ -32,13 +33,23 @@ public class SettingsService
                     changed = true;
                 }
 
+                // Builds released before the first-launch consent prompt did
+                // not store this property. Treat those saved preferences as a
+                // completed choice instead of surprising an existing player.
+                using var document = JsonDocument.Parse(rawSettings);
+                if (!document.RootElement.TryGetProperty(nameof(Settings.OnlineServicesChoiceMade), out _))
+                {
+                    settings.OnlineServicesChoiceMade = true;
+                    changed = true;
+                }
+
                 // Older builds stored only one white text colour. Move them to
                 // the four-part theme once, while preserving all newer choices.
                 if (!settings.ThemeColoursInitialized)
                 {
-                    settings.PrimaryTextRed = 232;
-                    settings.PrimaryTextGreen = 234;
-                    settings.PrimaryTextBlue = 237;
+                    settings.PrimaryTextRed = 194;
+                    settings.PrimaryTextGreen = 31;
+                    settings.PrimaryTextBlue = 50;
                     settings.ButtonTextRed = 20;
                     settings.ButtonTextGreen = 20;
                     settings.ButtonTextBlue = 20;

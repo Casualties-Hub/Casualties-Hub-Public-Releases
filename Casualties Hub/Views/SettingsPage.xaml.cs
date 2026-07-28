@@ -110,9 +110,9 @@ public partial class SettingsPage : Page
     private void RestoreDefaultColours_Click(object sender, RoutedEventArgs e)
     {
         var settings = _settingsService.Load();
-        settings.PrimaryTextRed = 232;
-        settings.PrimaryTextGreen = 234;
-        settings.PrimaryTextBlue = 237;
+        settings.PrimaryTextRed = 194;
+        settings.PrimaryTextGreen = 31;
+        settings.PrimaryTextBlue = 50;
         settings.ButtonTextRed = 20;
         settings.ButtonTextGreen = 20;
         settings.ButtonTextBlue = 20;

@@ -1,0 +1,9 @@
+Version 0.0.6-pre.10.1
+
+What changed
+- Removed automatic button-label tooltips.
+- Tooltips now appear only where a button has a written explanation of its action.
+- Shortened button tooltip duration to keep hints quick and unobtrusive.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

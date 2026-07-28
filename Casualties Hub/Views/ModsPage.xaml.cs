@@ -223,7 +223,10 @@ public partial class ModsPage : Page
         var show = settings.LocalModsShareColumnVisible;
         ShareColumnDefinition.Width = show ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
         ShareColumnHost.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        ShareColumnToggleButton.Content = show ? "Hide share-code column" : "Show share-code column";
+        ShareColumnToggleButton.Content = show ? "<" : ">";
+        ShareColumnToggleButton.ToolTip = show
+            ? "Hide the third Local Mods column."
+            : "Show the third Local Mods column.";
     }
 
     private void ToggleShareColumn_Click(object sender, RoutedEventArgs e)
@@ -308,8 +311,16 @@ public partial class ModsPage : Page
 
         var code = _modlistService.CreateShareCode(_allDisplayMods.Where(mod => !mod.IsMissingFromModlist && !mod.IsDisabled));
         ModlistCodeBox.Text = code;
-        try { Clipboard.SetText(code); }
-        catch (Exception exception) { DebugLogService.Error("Could not copy modlist code to clipboard", exception); }
+        try
+        {
+            Clipboard.SetText(code);
+            MessageBox.Show("Your Modlist Share Code was copied to the clipboard.", "Modlist Share Code", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception exception)
+        {
+            DebugLogService.Error("Could not copy modlist code to clipboard", exception);
+            MessageBox.Show("The share code was created, but Windows could not copy it to the clipboard. You can still copy it from the box.", "Modlist Share Code", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
         _setStatus("Modlist share code created and copied to the clipboard.");
     }
 

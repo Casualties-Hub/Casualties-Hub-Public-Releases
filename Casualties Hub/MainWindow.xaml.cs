@@ -54,7 +54,11 @@ public partial class MainWindow : Window
         _cloudStatusTimer.Tick += async (_, _) => await CheckSupabaseStatusAsync();
         ModService.PluginFilesChanged += PluginFilesChanged;
         ApplyOnlineServicesPreference();
-        Loaded += async (_, _) => await InitializeCloudFeaturesAsync();
+        Loaded += async (_, _) =>
+        {
+            PromptForOnlineServicesOnFirstLaunch();
+            await InitializeCloudFeaturesAsync();
+        };
         NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, Environment.GetCommandLineArgs().Contains("--refresh-metadata", StringComparer.OrdinalIgnoreCase)), DashboardNavButton);
     }
 
@@ -101,6 +105,34 @@ public partial class MainWindow : Window
         if (!_settingsService.Load().HubOnlineServicesEnabled) return;
         await CheckSupabaseStatusAsync();
         await CheckForUpdateAsync();
+    }
+
+    /// <summary>
+    /// New installs start offline. Metadata browsing remains available, but
+    /// announcements and Hub/GitHub update checks require explicit consent.
+    /// </summary>
+    private void PromptForOnlineServicesOnFirstLaunch()
+    {
+        var settings = _settingsService.Load();
+        if (settings.OnlineServicesChoiceMade) return;
+
+        var dialog = new OnlineServicesChoiceDialog { Owner = this };
+        var enableOnlineServices = dialog.ShowDialog() == true;
+        settings.HubOnlineServicesEnabled = enableOnlineServices;
+        settings.OnlineServicesChoiceMade = true;
+        _settingsService.Save(settings);
+        ApplyOnlineServicesPreference();
+
+        if (enableOnlineServices)
+        {
+            SetStatus("Online services enabled. Announcements and Hub update checks are available.");
+            DebugLogService.Activity("Online services", "Player enabled online services during first-launch setup.");
+        }
+        else
+        {
+            SetStatus("Online services remain off. You can enable them later in Hub Center.");
+            DebugLogService.Activity("Online services", "Player kept online services disabled during first-launch setup.");
+        }
     }
 
     /// <summary>Called by Settings immediately; disabling means no Hub server or GitHub update request is sent.</summary>
@@ -158,6 +190,7 @@ public partial class MainWindow : Window
         SetHubOnlineServicesEnabledAsync,
         RefreshHubCenterServiceAsync,
         InstallAvailableUpdateAsync,
+        InstallLocalUpdateAsync,
         OpenReleaseHistory,
         ConfirmOpenDiscord);
 
@@ -566,6 +599,36 @@ public partial class MainWindow : Window
             DebugLogService.Error("Automatic update failed", exception);
             MessageBox.Show($"The update was not installed.\n\n{exception.Message}\n\nYou can download it manually from GitHub.", "Update failed", MessageBoxButton.OK, MessageBoxImage.Warning);
             Process.Start(new ProcessStartInfo(update.ReleaseUrl) { UseShellExecute = true });
+        }
+    }
+
+    private async Task InstallLocalUpdateAsync()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Casualties Hub release ZIP (*.zip)|*.zip",
+            Title = "Choose a downloaded Casualties Hub release ZIP"
+        };
+        if (dialog.ShowDialog(this) != true) return;
+
+        var response = MessageBox.Show(
+            "Install this local Casualties Hub release?\n\nThe Hub will close, replace only its own files, and restart. Your game, mods, and protected assets will not be changed.",
+            "Install local Hub release",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        if (response != MessageBoxResult.Yes) return;
+
+        try
+        {
+            SetStatus("Preparing the local Casualties Hub release.");
+            await _updateInstaller.InstallLocalArchiveAndStartAsync(dialog.FileName);
+            SetStatus("Local release verified. Casualties Hub will restart shortly.");
+            Application.Current.Shutdown();
+        }
+        catch (Exception exception)
+        {
+            DebugLogService.Error("Local Hub release installation failed", exception);
+            MessageBox.Show($"The local release was not installed.\n\n{exception.Message}", "Install local Hub release", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 

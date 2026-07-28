@@ -11,6 +11,7 @@ public partial class HubCenterPage : Page
     private readonly Func<bool, Task> _setOnlineServicesEnabled;
     private readonly Func<Task> _checkServiceNow;
     private readonly Func<Task> _installUpdate;
+    private readonly Func<Task> _installLocalZip;
     private readonly Action _openReleaseHistory;
     private readonly Action _openDiscord;
 
@@ -19,6 +20,7 @@ public partial class HubCenterPage : Page
         Func<bool, Task> setOnlineServicesEnabled,
         Func<Task> checkServiceNow,
         Func<Task> installUpdate,
+        Func<Task> installLocalZip,
         Action openReleaseHistory,
         Action openDiscord)
     {
@@ -26,6 +28,7 @@ public partial class HubCenterPage : Page
         _setOnlineServicesEnabled = setOnlineServicesEnabled;
         _checkServiceNow = checkServiceNow;
         _installUpdate = installUpdate;
+        _installLocalZip = installLocalZip;
         _openReleaseHistory = openReleaseHistory;
         _openDiscord = openDiscord;
         InitializeComponent();
@@ -110,6 +113,12 @@ public partial class HubCenterPage : Page
     private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
     {
         await _installUpdate();
+        RefreshView();
+    }
+
+    private async void InstallLocalZip_Click(object sender, RoutedEventArgs e)
+    {
+        await _installLocalZip();
         RefreshView();
     }
 

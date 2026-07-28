@@ -1,0 +1,10 @@
+Version 0.0.6-pre.9
+
+What changed
+- Restored the Dashboard card-description flow: click a card to replace that card with its description, then click again to return.
+- Removed Dashboard card TextBlock tooltips that produced a large white popup on hover.
+- Wrapped Local Mods actions and search in a compact control box matching the Share Code box.
+- Replaced the long share-column button text with a compact > / < column toggle.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

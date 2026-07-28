@@ -8,10 +8,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\CasualtiesHub.ico</ApplicationIcon>
-    <Version>0.0.6-pre.8.2</Version>
-    <AssemblyVersion>0.0.6.82</AssemblyVersion>
-    <FileVersion>0.0.6.82</FileVersion>
-    <InformationalVersion>0.0.6-pre.8.2</InformationalVersion>
+    <Version>0.0.6-pre.10.1</Version>
+    <AssemblyVersion>0.0.6.101</AssemblyVersion>
+    <FileVersion>0.0.6.101</FileVersion>
+    <InformationalVersion>0.0.6-pre.10.1</InformationalVersion>
+  </PropertyGroup>
+
+  <!-- Release publishing intentionally produces one self-contained EXE. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,74 +38,21 @@
     <Resource Include="Assets\CreditYou1Are0Ic.png" />
     <Resource Include="Assets\CreditMarly.png" />
     <Content Include="Services\DependencyCatalog.json">
+      <Link>Data\Catalogs\DependencyCatalog.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Services\IncompatibilityCatalog.json">
+      <Link>Data\Catalogs\IncompatibilityCatalog.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Developer Console.cmd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Help.txt">
+    <Content Include="00 - READ ME FIRST.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Installation.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.4.txt">
-      <Link>Version 0.0.4.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.4.1.txt">
-      <Link>Version 0.0.4.1.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.5.txt">
-      <Link>Version 0.0.5.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.5-pre.1.txt">
-      <Link>Version 0.0.5-pre.1.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.1.txt">
-      <Link>Version 0.0.6-pre.1.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.2.txt">
-      <Link>Version 0.0.6-pre.2.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.3.txt">
-      <Link>Version 0.0.6-pre.3.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.4.txt">
-      <Link>Version 0.0.6-pre.4.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.5.txt">
-      <Link>Version 0.0.6-pre.5.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.6.txt">
-      <Link>Version 0.0.6-pre.6.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.7.txt">
-      <Link>Version 0.0.6-pre.7.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.8.txt">
-      <Link>Version 0.0.6-pre.8.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.8.1.txt">
-      <Link>Version 0.0.6-pre.8.1.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Release Notes\Version 0.0.6-pre.8.2.txt">
-      <Link>Version 0.0.6-pre.8.2.txt</Link>
+    <Content Include="..\Release Notes\*.txt">
+      <Link>Data\Release Notes\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

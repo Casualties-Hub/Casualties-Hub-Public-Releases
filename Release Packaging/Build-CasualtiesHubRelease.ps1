@@ -1,9 +1,9 @@
 <#
-Builds a clean GitHub-release ZIP without changing the Hub source project.
+Builds a clean, unzipped GitHub-release folder without changing the Hub source
+project. The publisher can ZIP this one folder afterwards if desired.
 
-The resulting archive always has one top-level folder. The Hub and the
-emergency uninstaller remain immediately visible at its root. The standalone
-installer is intentionally published separately by Publish-CHInstaller.ps1.
+The root stays intentionally small: the Hub EXE, two helper CMD files, the
+read-me, and a Data folder for editable catalogs and local release notes.
 #>
 
 [CmdletBinding()]
@@ -13,7 +13,7 @@ param(
     [string]$HubPublishDirectory,
 
     [Parameter(Mandatory)]
-    [ValidatePattern('^v?\d+\.\d+\.\d+(-pre\.\d+)?$')]
+    [ValidatePattern('^v?\d+\.\d+\.\d+(-pre\.\d+(\.\d+)?)?$')]
     [string]$Version,
 
     [Parameter(Mandatory)]
@@ -39,33 +39,28 @@ if (-not (Test-Path -LiteralPath (Join-Path $resolvedHubPublish 'Casualties Hub.
 
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $outputDirectory = (Resolve-Path -LiteralPath $OutputDirectory).Path
-$stagingDirectory = Join-Path $outputDirectory "$releaseName - staging"
-$releaseDirectory = Join-Path $stagingDirectory $releaseName
-$zipPath = Join-Path $outputDirectory "$releaseName.zip"
+$releaseDirectory = Join-Path $outputDirectory $releaseName
 
-if ((Test-Path -LiteralPath $stagingDirectory) -or (Test-Path -LiteralPath $zipPath)) {
-    throw "Release output already exists. Choose a new output folder or remove the old staging/ZIP: $releaseName"
+if (Test-Path -LiteralPath $releaseDirectory) {
+    throw "Release output already exists. Choose a new output folder or remove the old release folder: $releaseName"
 }
 
-try {
-    New-Item -ItemType Directory -Path $releaseDirectory | Out-Null
-    Get-ChildItem -LiteralPath $resolvedHubPublish -Force | ForEach-Object {
-        Copy-Item -LiteralPath $_.FullName -Destination $releaseDirectory -Recurse -Force
+New-Item -ItemType Directory -Path $releaseDirectory | Out-Null
+
+$requiredRootFiles = @('Casualties Hub.exe', 'Developer Console.cmd', '00 - READ ME FIRST.txt')
+foreach ($file in $requiredRootFiles) {
+    $source = Join-Path $resolvedHubPublish $file
+    if (-not (Test-Path -LiteralPath $source)) {
+        throw "The published Hub folder is missing required release file: $file"
     }
-    Copy-Item -LiteralPath $uninstaller -Destination (Join-Path $releaseDirectory 'CH Uninstaller.cmd') -Force
-
-    @(
-        'Unpack this ZIP anywhere outside Program Files.',
-        'Run Casualties Hub.exe to use the mod manager.',
-        'The standalone Casualties Hub Installer is distributed separately from this Hub ZIP.',
-        'CH Uninstaller.cmd is available if you need to remove the Hub later.'
-    ) | Set-Content -LiteralPath (Join-Path $releaseDirectory 'INSTALLATION.txt') -Encoding utf8
-
-    Compress-Archive -LiteralPath $releaseDirectory -DestinationPath $zipPath -CompressionLevel Optimal
-    Write-Host "Release ZIP created: $zipPath" -ForegroundColor Green
+    Copy-Item -LiteralPath $source -Destination (Join-Path $releaseDirectory $file) -Force
 }
-finally {
-    if (Test-Path -LiteralPath $stagingDirectory) {
-        Remove-Item -LiteralPath $stagingDirectory -Recurse -Force
-    }
+
+$dataSource = Join-Path $resolvedHubPublish 'Data'
+if (-not (Test-Path -LiteralPath $dataSource)) {
+    throw 'The published Hub folder is missing Data. Publish the Release configuration before packaging.'
 }
+Copy-Item -LiteralPath $dataSource -Destination (Join-Path $releaseDirectory 'Data') -Recurse -Force
+Copy-Item -LiteralPath $uninstaller -Destination (Join-Path $releaseDirectory 'CH Uninstaller.cmd') -Force
+
+Write-Host "Release folder created: $releaseDirectory" -ForegroundColor Green

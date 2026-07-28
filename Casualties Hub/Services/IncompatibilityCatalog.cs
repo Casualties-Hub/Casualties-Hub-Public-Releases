@@ -24,7 +24,9 @@ public static class IncompatibilityCatalog
 
     private static IReadOnlyList<IncompatibilityEntry> Load()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Services", "IncompatibilityCatalog.json");
+        var path = Path.Combine(AppContext.BaseDirectory, "Data", "Catalogs", "IncompatibilityCatalog.json");
+        if (!File.Exists(path))
+            path = Path.Combine(AppContext.BaseDirectory, "Services", "IncompatibilityCatalog.json"); // legacy builds
         if (!File.Exists(path)) return _entries;
         var modified = File.GetLastWriteTimeUtc(path);
         lock (Sync)

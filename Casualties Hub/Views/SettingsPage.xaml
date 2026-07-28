@@ -44,57 +44,59 @@
                         <ComboBoxItem Content="Maximum (20)" Tag="20"/>
                     </ComboBox>
                     <TextBlock Text="UI colours" Foreground="#C9CDD3" Margin="0,16,0,4" FontWeight="SemiBold"/>
-                    <TextBlock Text="Each colour is saved immediately. Paste a #RRGGBB value to set its three RGB sliders automatically." Foreground="#A9AFB8" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                    <WrapPanel MaxWidth="780">
-                        <Border Width="370" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="12" Margin="0,0,12,12">
+                    <TextBlock Text="Paste a #RRGGBB value for a quick change. Expand RGB only when you need fine control." Foreground="#A9AFB8" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <Grid MaxWidth="780">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Border Grid.Row="0" Grid.Column="0" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Page text" Foreground="White" FontWeight="SemiBold"/>
-                                <TextBlock Text="Headings and normal text on dark pages." Foreground="#A9AFB8" Margin="0,3,0,8"/>
-                                <TextBox x:Name="PrimaryTextHexBox" Tag="PrimaryText" MaxLength="7" Width="105" HorizontalAlignment="Left" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #E8EAED"/>
-                                <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="PrimaryTextRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="PrimaryTextRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="PrimaryTextGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="PrimaryTextGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="PrimaryTextBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="PrimaryTextBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                </Grid>
+                                <DockPanel><TextBlock Text="Page text" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBox x:Name="PrimaryTextHexBox" Tag="PrimaryText" MaxLength="7" Width="95" HorizontalAlignment="Right" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #E8EAED"/></DockPanel>
+                                <Expander Header="RGB sliders" Foreground="White" Margin="0,6,0,0">
+                                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="PrimaryTextRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="PrimaryTextRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="PrimaryTextGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="PrimaryTextGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="PrimaryTextBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="PrimaryTextBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                    </Grid>
+                                </Expander>
                             </StackPanel>
                         </Border>
-                        <Border Width="370" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="12" Margin="0,0,12,12">
+                        <Border Grid.Row="0" Grid.Column="2" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Button text" Foreground="White" FontWeight="SemiBold"/>
-                                <TextBlock Text="Labels on normal light buttons. Defaults to black for readability." Foreground="#A9AFB8" Margin="0,3,0,8" TextWrapping="Wrap"/>
-                                <TextBox x:Name="ButtonTextHexBox" Tag="ButtonText" MaxLength="7" Width="105" HorizontalAlignment="Left" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #141414"/>
-                                <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="ButtonTextRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonTextRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="ButtonTextGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonTextGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="ButtonTextBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonTextBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                </Grid>
+                                <DockPanel><TextBlock Text="Button text" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBox x:Name="ButtonTextHexBox" Tag="ButtonText" MaxLength="7" Width="95" HorizontalAlignment="Right" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #141414"/></DockPanel>
+                                <Expander Header="RGB sliders" Foreground="White" Margin="0,6,0,0">
+                                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="ButtonTextRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonTextRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="ButtonTextGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonTextGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="ButtonTextBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonTextBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                    </Grid>
+                                </Expander>
                             </StackPanel>
                         </Border>
-                        <Border Width="370" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="12" Margin="0,0,12,12">
+                        <Border Grid.Row="1" Grid.Column="0" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Button background" Foreground="White" FontWeight="SemiBold"/>
-                                <TextBlock Text="The standard navigation and action-button surface." Foreground="#A9AFB8" Margin="0,3,0,8"/>
-                                <TextBox x:Name="ButtonSurfaceHexBox" Tag="ButtonSurface" MaxLength="7" Width="105" HorizontalAlignment="Left" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #F5F5F5"/>
-                                <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="ButtonSurfaceRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonSurfaceRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="ButtonSurfaceGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonSurfaceGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="ButtonSurfaceBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonSurfaceBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                </Grid>
+                                <DockPanel><TextBlock Text="Button background" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBox x:Name="ButtonSurfaceHexBox" Tag="ButtonSurface" MaxLength="7" Width="95" HorizontalAlignment="Right" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #F5F5F5"/></DockPanel>
+                                <Expander Header="RGB sliders" Foreground="White" Margin="0,6,0,0">
+                                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="ButtonSurfaceRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonSurfaceRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="ButtonSurfaceGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonSurfaceGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="ButtonSurfaceBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="ButtonSurfaceBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                    </Grid>
+                                </Expander>
                             </StackPanel>
                         </Border>
-                        <Border Width="370" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="12" Margin="0,0,12,12">
+                        <Border Grid.Row="1" Grid.Column="2" Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="Accent" Foreground="White" FontWeight="SemiBold"/>
-                                <TextBlock Text="The Hub wordmark, Launch Game button, and selected navigation tab." Foreground="#A9AFB8" Margin="0,3,0,8" TextWrapping="Wrap"/>
-                                <TextBox x:Name="AccentHexBox" Tag="Accent" MaxLength="7" Width="105" HorizontalAlignment="Left" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #C21F32"/>
-                                <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="AccentRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="AccentRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="AccentGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="AccentGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                    <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="AccentBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="AccentBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
-                                </Grid>
+                                <DockPanel><TextBlock Text="Accent" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBox x:Name="AccentHexBox" Tag="Accent" MaxLength="7" Width="95" HorizontalAlignment="Right" TextChanged="ThemeHexBox_TextChanged" ToolTip="Paste a hex colour such as #C21F32"/></DockPanel>
+                                <Expander Header="RGB sliders" Foreground="White" Margin="0,6,0,0">
+                                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0"><TextBlock Text="Red" Foreground="#C9CDD3"/><Slider x:Name="AccentRedSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="AccentRedValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Green" Foreground="#C9CDD3"/><Slider x:Name="AccentGreenSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="AccentGreenValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Blue" Foreground="#C9CDD3"/><Slider x:Name="AccentBlueSlider" Minimum="0" Maximum="255" ValueChanged="ThemeColourSlider_Changed"/><TextBlock x:Name="AccentBlueValue" Foreground="#A9AFB8" HorizontalAlignment="Center"/></StackPanel>
+                                    </Grid>
+                                </Expander>
                             </StackPanel>
                         </Border>
-                    </WrapPanel>
+                    </Grid>
                     <Button Content="Restore default colours" Width="185" HorizontalAlignment="Left" Click="RestoreDefaultColours_Click" ToolTip="Restore the standard Casualties Hub colour set"/>
                 </StackPanel>
             </Border>

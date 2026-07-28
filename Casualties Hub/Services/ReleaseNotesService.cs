@@ -7,7 +7,9 @@ public sealed class ReleaseNotesService
 {
     public string GetWhatChanged(string version)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, $"Version {version}.txt");
+        var path = Path.Combine(AppContext.BaseDirectory, "Data", "Release Notes", $"Version {version}.txt");
+        if (!File.Exists(path))
+            path = Path.Combine(AppContext.BaseDirectory, $"Version {version}.txt"); // legacy builds
         if (!File.Exists(path))
             return "What changed notes are not available for this build.";
 

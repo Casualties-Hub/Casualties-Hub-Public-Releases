@@ -12,9 +12,11 @@ public class Settings
     // Theme colours are intentionally split by role so light navigation buttons
     // stay readable without making the dark pages use black text.
     public bool ThemeColoursInitialized { get; set; }
-    public byte PrimaryTextRed { get; set; } = 232;
-    public byte PrimaryTextGreen { get; set; } = 234;
-    public byte PrimaryTextBlue { get; set; } = 237;
+    // The normal page-text default matches the crimson used by the Hub wordmark.
+    // The wordmark itself is deliberately not driven by this setting.
+    public byte PrimaryTextRed { get; set; } = 194;
+    public byte PrimaryTextGreen { get; set; } = 31;
+    public byte PrimaryTextBlue { get; set; } = 50;
     public byte ButtonTextRed { get; set; } = 20;
     public byte ButtonTextGreen { get; set; } = 20;
     public byte ButtonTextBlue { get; set; } = 20;
@@ -41,7 +43,11 @@ public class Settings
     // Local guard in addition to the Supabase/IP-side limit. A forced developer
     // check is still one outgoing request and cannot spam the public endpoint.
     public List<DateTimeOffset> SupabaseRequestHistoryUtc { get; set; } = [];
-    public bool HubOnlineServicesEnabled { get; set; } = true;
+    // Online services are an opt-in feature for new installs. Legacy settings
+    // are marked as already answered during loading so an update never changes
+    // an existing player's preference or shows an unexpected prompt.
+    public bool HubOnlineServicesEnabled { get; set; }
+    public bool OnlineServicesChoiceMade { get; set; }
     public DateTimeOffset? NextGitHubUpdateCheckUtc { get; set; }
     public string? CachedCompatibilityRules { get; set; }
     public string? CachedCompatibilityVersion { get; set; }

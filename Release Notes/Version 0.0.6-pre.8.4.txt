@@ -1,0 +1,10 @@
+Version 0.0.6-pre.8.4
+
+What changed
+- Added a first-launch Online Services choice with online services disabled by default.
+- Players can explicitly enable announcements, maintenance status, and Hub update checks, or keep those services off.
+- Nexus metadata browsing remains available as a separate required online feature when the player refreshes or browses metadata.
+- Existing users keep their saved online-services preference and are not prompted again.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

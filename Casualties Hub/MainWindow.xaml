@@ -30,7 +30,8 @@
         <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Background="#202225" Panel.ZIndex="30">
             <StackPanel Margin="15">
                 <TextBlock FontSize="22" FontWeight="Bold" Margin="0,0,0,30">
-                    <Run Text="Casualties" Foreground="{DynamicResource PrimaryTextBrush}"/><Run Text=" " Foreground="{DynamicResource PrimaryTextBrush}"/><Run Text="Hub" Foreground="{DynamicResource AccentBrush}"/>
+                    <!-- The product wordmark intentionally stays white/crimson even when page text is personalized. -->
+                    <Run Text="Casualties" Foreground="White"/><Run Text=" " Foreground="White"/><Run Text="Hub" Foreground="#FFC21F32"/>
                 </TextBlock>
                 <Button x:Name="DashboardNavButton" Content="Nexus Dashboard" Height="40" Margin="0,0,0,10" Click="Dashboard_Click" ToolTip="The Nexus mods for the game; here you can download and auto-install mods using Casualties Hub"/>
                 <Button x:Name="ModsNavButton" Content="Local Mods" Height="40" Margin="0,0,0,10" Click="Mods_Click" ToolTip="Your localized mods are inside your BepInEx/Plugins folder; also a share code to send your friends your installed mods!"/>
@@ -46,7 +47,7 @@
         <Border x:Name="StatusBarHost" Grid.Row="2" Grid.ColumnSpan="2" Background="#18191C" Panel.ZIndex="20" ClipToBounds="True">
             <Grid ClipToBounds="True">
                 <TextBlock x:Name="StatusText" Text="Ready" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="10,0,180,0" TextTrimming="CharacterEllipsis"/>
-                <TextBlock Text="Pre Alpha v0.0.6-pre.8.2" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
+                <TextBlock Text="Pre Alpha v0.0.6-pre.10.1" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
             </Grid>
         </Border>
 

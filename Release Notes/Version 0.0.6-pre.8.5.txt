@@ -1,0 +1,10 @@
+Version 0.0.6-pre.8.5
+
+What changed
+- Collapsed RGB controls behind Show RGB sliders dropdowns; hex colour input remains visible for quick use.
+- Added a clear Modlist Share Code copied-to-clipboard confirmation.
+- Added Hub Center support for choosing and installing a locally downloaded Casualties Hub release ZIP.
+- Kept the existing GitHub update-available card and automatic GitHub update option.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

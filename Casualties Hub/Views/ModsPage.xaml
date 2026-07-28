@@ -71,23 +71,28 @@
     </Page.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <Border Grid.Row="0" Background="#36393F" CornerRadius="6" Padding="12" Margin="0,0,0,16">
-            <StackPanel>
-            <WrapPanel>
-                <Button Content="Install mod" Width="130" Margin="0,0,10,8" Click="InstallArchive_Click" ToolTip="Select ZIP files of mods"/>
-                <Button Content="Refresh" Width="100" Margin="0,0,10,8" Click="Refresh_Click"/>
-                <Button Content="Delete all mods" Width="150" Margin="0,0,14,8" Click="DeleteAllMods_Click"/>
-                <Button Content="Disable all" Width="100" Margin="0,0,8,8" Click="DisableAll_Click"/>
-                <Button Content="Enable all" Width="100" Margin="0,0,14,8" Click="EnableAll_Click"/>
-                <Grid Width="210" Height="28" Margin="0,0,0,8"><TextBox x:Name="LocalSearchBox" VerticalContentAlignment="Center" TextChanged="LocalSearchBox_TextChanged"/><TextBlock Text="Search Mods" Foreground="#7F8791" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=LocalSearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
-            </WrapPanel>
-            <WrapPanel HorizontalAlignment="Right" Margin="0,4,0,0">
-                <Button Content="Modlist Share Code" Width="145" Margin="0,0,8,0" Click="ExportModlist_Click"/>
-                <Grid Width="250" Height="28"><TextBox x:Name="ModlistCodeBox" VerticalContentAlignment="Center"/><TextBlock Text="Paste sharecode here" Foreground="#7F8791" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=ModlistCodeBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
-                <Button Content="Import Share Code" Width="120" Margin="8,0,8,0" Click="PasteImportModlist_Click"/>
-                <Button x:Name="ShareColumnToggleButton" Content="Show share-code column" Click="ToggleShareColumn_Click"/>
-            </WrapPanel>
-            </StackPanel>
+        <Border Grid.Row="0" Background="#36393F" CornerRadius="6" Padding="10" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Background="#292B30" BorderBrush="#4B5058" BorderThickness="1" CornerRadius="4" Padding="6" Margin="0,0,0,0">
+                    <WrapPanel VerticalAlignment="Center">
+                        <Button Content="Install mod" Width="112" Margin="0,0,7,0" Click="InstallArchive_Click" ToolTip="Select ZIP files of mods"/>
+                        <Button Content="Refresh" Width="82" Margin="0,0,7,0" Click="Refresh_Click"/>
+                        <Button Content="Delete all" Width="90" Margin="0,0,7,0" Click="DeleteAllMods_Click" ToolTip="Delete all mod files from BepInEx\Plugins."/>
+                        <Button Content="Disable all" Width="88" Margin="0,0,7,0" Click="DisableAll_Click"/>
+                        <Button Content="Enable all" Width="88" Margin="0,0,9,0" Click="EnableAll_Click"/>
+                        <Grid Width="190" Height="28"><TextBox x:Name="LocalSearchBox" VerticalContentAlignment="Center" TextChanged="LocalSearchBox_TextChanged"/><TextBlock Text="Search Mods" Foreground="#7F8791" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=LocalSearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
+                    </WrapPanel>
+                </Border>
+                <Border Grid.Column="1" Background="#292B30" BorderBrush="#4B5058" BorderThickness="1" CornerRadius="4" Padding="6" Margin="10,0,0,0" ToolTip="Create or import a compact list of enabled mods.">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Share code" Width="92" Height="28" Margin="0,0,6,0" Click="ExportModlist_Click" ToolTip="Copy your enabled mods and versions to the clipboard."/>
+                        <Grid Width="190" Height="28"><TextBox x:Name="ModlistCodeBox" VerticalContentAlignment="Center"/><TextBlock Text="Paste share code" Foreground="#7F8791" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=ModlistCodeBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
+                        <Button Content="Import" Width="72" Height="28" Margin="6,0,6,0" Click="PasteImportModlist_Click" ToolTip="Import the pasted share code."/>
+                        <Button x:Name="ShareColumnToggleButton" Width="30" Height="28" Content=">" Click="ToggleShareColumn_Click" ToolTip="Show the third Local Mods column."/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Border>
         <Grid Grid.Row="1" x:Name="ColumnsGrid">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition x:Name="ShareColumnDefinition" Width="0"/></Grid.ColumnDefinitions>

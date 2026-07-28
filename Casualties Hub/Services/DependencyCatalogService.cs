@@ -35,7 +35,9 @@ public static class DependencyCatalog
 
     private static IReadOnlyDictionary<string, IReadOnlyList<DependencyRequirement>> Load()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Services", "DependencyCatalog.json");
+        var path = Path.Combine(AppContext.BaseDirectory, "Data", "Catalogs", "DependencyCatalog.json");
+        if (!File.Exists(path))
+            path = Path.Combine(AppContext.BaseDirectory, "Services", "DependencyCatalog.json"); // legacy builds
         if (!File.Exists(path))
         {
             DebugLogService.Info("DependencyCatalog.json was not found; dependency prompts will ask players to check Nexus.");
