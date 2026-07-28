@@ -5,6 +5,7 @@ What changed
 - Easter Eggs are now a compact toggle under Accessibility and are off by default.
 - Existing settings migrate safely to the new default without changing game or mod files.
 - Updated in-app version details, local release notes, and the public README.
+- Refreshed the in-app CH Discord invite link.
 
 Current features
 - Nexus Dashboard, Local Mods, Protected Assets, Hub Center, settings, share codes, diagnostics, and optional online services remain available.

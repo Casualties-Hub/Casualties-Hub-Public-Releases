@@ -15,7 +15,7 @@ namespace Casualties_Hub;
 
 public partial class MainWindow : Window
 {
-    private const string DiscordInviteUrl = "https://discord.gg/386M6zZEK";
+    private const string DiscordInviteUrl = "https://discord.gg/bzZkjAyu76";
     private const string ReportIssuesInviteUrl = "https://discord.gg/NnJNb7wkc";
     private readonly Services.DownloadImportService _downloadImportService = new();
     private readonly SettingsService _settingsService = new();
