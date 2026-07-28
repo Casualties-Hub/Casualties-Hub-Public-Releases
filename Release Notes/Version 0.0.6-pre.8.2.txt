@@ -1,0 +1,10 @@
+Casualties Hub v0.0.6-pre.8.2
+Released: July 28, 2026
+
+Fixed
+- Fixed the Text size selector using a light text colour on a light background.
+- Fixed imported Share Code mod actions to use normal readable button text.
+- Improved Share Code matching: a requested DLL name can now match metadata DLL names and open that mod's exact Nexus Files page.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

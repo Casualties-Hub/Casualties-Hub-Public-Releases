@@ -1,0 +1,17 @@
+Casualties Hub v0.0.6-pre.8
+Release date: July 27, 2026
+
+What changed
+- Simplified page layouts by removing duplicate page headers and reducing unused text.
+- Reworked the Credits page into square name, role, description, and image cards.
+- Added updated contributor roles and tester credits.
+- Added a primary text colour setting with saved RGB controls.
+- Expanded text-size accessibility support up to size 20.
+- Moved share-code controls to the right side of Local Mods and made the optional third column manually show or hide.
+- Purple share-code requests now use Open Download when an exact Nexus download page is available, otherwise Search Nexus.
+- New share codes preserve the metadata identifier needed to open an exact Nexus Files page; older codes still import normally.
+- Renamed the download-inbox preservation option to Keep imported downloads.
+- Added an Open logs folder button alongside crash-report and diagnostic-log tools.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

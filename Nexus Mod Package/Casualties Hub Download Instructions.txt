@@ -1,0 +1,18 @@
+==================================================
+Where do I download Casualties Hub?
+==================================================
+
+Because Casualties Hub includes executable (.exe) files, Nexus Mods is unable to host the launcher directly.
+
+To download it:
+
+• Open the GitHub repository.
+• Look on the RIGHT side of the page for "Releases."
+• Click the newest release (the highest version number).
+• Download the ZIP file under "Assets."
+• Extract the ZIP and launch CasualtiesHub.exe.
+
+GitHub:
+https://github.com/MarlyZ89/Casualties-Hub-Public-Release
+
+Thank you for downloading Casualties Hub!

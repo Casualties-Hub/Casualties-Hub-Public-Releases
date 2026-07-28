@@ -1,0 +1,38 @@
+Casualties Hub - Pre-Alpha Help
+
+What this app does
+- Browses Casualties Unknown mod metadata from the community metadata list.
+- Opens Nexus pages or uses your optional Nexus Premium API key to download files.
+- Watches the configured download inbox and asks before installing a detected ZIP, 7z, or RAR archive.
+- Lists local BepInEx Plugins, checks known dependencies, and compares installed versions with metadata.
+- Lets you disable a DLL without deleting it by renaming it to .dll.disabled.
+- Protects personal assets such as custom sprites so Restore All can put them back after a mod update or reinstall.
+
+Recommended first-time setup
+1. Open Settings.
+2. Set your Casualties Unknown game folder, BepInEx folder, or BepInEx\Plugins folder.
+3. Set a download inbox. Use a dedicated folder if you do not want every archive in Downloads offered for install.
+4. Use Nexus Dashboard to browse mods. Without a Premium API key, Open Download opens the author’s Nexus files page.
+5. Leave Casualties Hub open while downloading so it can detect the finished archive and offer installation.
+6. Refresh page reloads only the open page. Master Refresh restarts the Hub and refreshes live metadata.
+
+Local Mods
+- Install mod imports a ZIP, 7z, or RAR you select.
+- Local Mods automatically refreshes after plugin files change.
+- Disabled mods must be re-enabled before they are checked for updates.
+- Delete all mods removes BepInEx\Plugins content. Protect personal assets first if you need to keep them.
+
+Support logs
+- Settings has Open crash logs and Create Log buttons.
+- Crash reports stay on this PC and the latest five crash reports are retained.
+- Create Log writes a diagnostic file containing the last ten minutes of Hub activity, plus the Hub version, PC runtime details, configured paths, and the current top-level Plugins contents.
+- The normal session log records meaningful Hub operations too: startup/shutdown, game detection, metadata loading, Nexus actions, archive installs, local mod changes, protected asset actions, share codes, settings changes, and errors. API-key values are never written to logs.
+
+Developer Console.cmd
+- This is an optional developer/admin CMD control panel.
+- Start Casualties Hub first, then run Developer Console.cmd from the same folder.
+- It can trigger safe failure tests, refresh live Hub pages, open Settings, and create a diagnostic log.
+- It does not directly modify game files.
+
+Pre-Alpha notice
+This is a work in progress. Report issues and feedback through the CH Discord.

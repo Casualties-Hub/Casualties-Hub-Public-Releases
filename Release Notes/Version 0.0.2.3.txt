@@ -1,0 +1,10 @@
+Casualties Hub Pre-Alpha v0.0.2.3
+
+Added
+- Separate Casualties Hub Developer Console.exe for diagnostics.
+- The separate console watches the Hub's live launcher logs in %LocalAppData%\CasualtiesHub\Logs.
+- Console controls to refresh, copy, open the current log, and open the log folder.
+
+Changed
+- Removed the embedded Developer Console navigation page from the main Hub so diagnostics are a separate executable as intended.
+- Existing launcher logs and crash reports remain available and are still retained locally.

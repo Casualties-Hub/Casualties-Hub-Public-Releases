@@ -1,0 +1,7 @@
+<Page x:Class="Casualties_Hub.Views.ProtectedFilesPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="#2B2D31">
+ <Grid Margin="32"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <TextBlock Text="Choose the files or folders you want to keep. For character skins, select the entire st# folder to preserve its contents. Restore All puts saved copies back in their original locations after a mod is updated or reinstalled." Foreground="#C9CDD3" TextWrapping="Wrap"/>
+  <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,20,0,16"><Button Content="Protect Files" Width="120" Margin="0,0,10,0" Click="ProtectFiles_Click"/><Button Content="Protect Folder" Width="120" Margin="0,0,10,0" Click="ProtectFolder_Click"/><Button Content="Restore All" Width="120" Margin="0,0,10,0" Click="Restore_Click"/><Button Content="Remove selected" Width="130" Margin="0,0,10,0" Click="RemoveSelected_Click"/><Button Content="Open protected folder" Width="155" Click="OpenProtectedFolder_Click"/></StackPanel>
+  <Border Grid.Row="2" Background="#36393F" Padding="12" CornerRadius="6"><ListBox x:Name="ProtectedList" Background="#2B2D31" Foreground="White" BorderThickness="0"/></Border>
+ </Grid>
+</Page>

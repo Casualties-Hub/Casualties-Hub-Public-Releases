@@ -1,0 +1,58 @@
+<Window x:Class="Casualties_Hub.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Casualties Hub - 100% Vibe coded by MarlyZ89"
+        Width="1200" Height="700" MinWidth="1200" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        >
+    <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="220"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="78"/><RowDefinition Height="*"/><RowDefinition Height="28"/></Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#18191C" Panel.ZIndex="20">
+            <Grid>
+                <Button x:Name="LaunchGameButton" Content="Launch game" Width="220" Height="44"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource AccentTextBrush}" FontSize="16" FontWeight="Bold"
+                        ToolTip="Launch Casualties Unknown through Steam" Click="LaunchGame_Click"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <Button Content="Report issues" Width="120" Height="30" Margin="0,0,10,0"
+                            ToolTip="Open the Casualties Hub report and issue forum" Click="ReportIssues_Click"/>
+                    <Button x:Name="PageRefreshButton" Content="Refresh page" Width="120" Height="30" Margin="0,0,10,0"
+                            ToolTip="Reload only the page currently open" Click="RefreshCurrentPage_Click"/>
+                    <Button x:Name="MasterRefreshButton" Content="Master Refresh" Width="120" Height="30"
+                            ToolTip="Restart the entire Hub and refresh metadata (Ctrl+R)" Click="MasterRefresh_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Background="#202225" Panel.ZIndex="30">
+            <StackPanel Margin="15">
+                <TextBlock FontSize="22" FontWeight="Bold" Margin="0,0,0,30">
+                    <Run Text="Casualties" Foreground="{DynamicResource PrimaryTextBrush}"/><Run Text=" " Foreground="{DynamicResource PrimaryTextBrush}"/><Run Text="Hub" Foreground="{DynamicResource AccentBrush}"/>
+                </TextBlock>
+                <Button x:Name="DashboardNavButton" Content="Nexus Dashboard" Height="40" Margin="0,0,0,10" Click="Dashboard_Click" ToolTip="The Nexus mods for the game; here you can download and auto-install mods using Casualties Hub"/>
+                <Button x:Name="ModsNavButton" Content="Local Mods" Height="40" Margin="0,0,0,10" Click="Mods_Click" ToolTip="Your localized mods are inside your BepInEx/Plugins folder; also a share code to send your friends your installed mods!"/>
+                <Button x:Name="ProtectedAssetsNavButton" Content="Protected Assets" Height="40" Margin="0,0,0,10" Click="ProtectedFiles_Click" ToolTip="Put your character skins in here; just select their folder- the easiest way to do it"/>
+                <Button x:Name="HubCenterNavButton" Content="Hub Center" Height="40" Margin="0,0,0,10" Click="HubCenter_Click" ToolTip="Hub status, announcements, updates, and the Casualties Hub Discord"/>
+                <Button x:Name="SettingsNavButton" Content="Settings" Height="40" Click="Settings_Click" ToolTip="File paths can be accessed here; for your downloads and your game folder, you can also disable the auto-delete imported files from downloads"/>
+                <Button x:Name="CreditsNavButton" Content="Credits" Height="32" Margin="0,12,0,0" Click="Credits_Click" ToolTip="Casualties Hub contributors"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="1" Background="#2B2D31"><Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Background="#2B2D31"/></Border>
+
+        <Border x:Name="StatusBarHost" Grid.Row="2" Grid.ColumnSpan="2" Background="#18191C" Panel.ZIndex="20" ClipToBounds="True">
+            <Grid ClipToBounds="True">
+                <TextBlock x:Name="StatusText" Text="Ready" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="10,0,180,0" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="Pre Alpha v0.0.6-pre.8.2" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
+            </Grid>
+        </Border>
+
+        <Grid x:Name="PapaZuck" Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" Panel.ZIndex="40" Width="200" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom" Cursor="Hand" ToolTip="PapaZuck, unofficial/official Casualties Hub mascot. Click 3 times to pop; 5 times for a surprise." MouseLeftButtonUp="PapaZuck_Click" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform><ScaleTransform x:Name="PapaZuckScale" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+            <Canvas><Image Source="pack://application:,,,/Assets/PapaZuck.png" Width="200" Height="200" Stretch="Uniform"/></Canvas>
+        </Grid>
+    </Grid>
+</Window>

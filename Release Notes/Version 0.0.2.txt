@@ -1,0 +1,9 @@
+Casualties Hub — Pre Alpha v0.0.2
+===================================
+
+Public pre-alpha release
+- Promoted the Hub from the private tester build sequence to Pre Alpha v0.0.2 for wider availability.
+- Added a visible toolbar reminder asking players to report issues and feedback through the CH Discord.
+
+Notes
+- This remains a pre-alpha release. Expect rough edges, and please include useful reproduction details and logs when reporting a problem.

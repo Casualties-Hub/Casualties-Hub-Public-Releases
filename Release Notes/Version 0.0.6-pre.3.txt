@@ -1,0 +1,18 @@
+Casualties Hub v0.0.6-pre.3
+
+New
+- Local Mods can be organized into responsive enabled, disabled, and share-code columns.
+- Added filters for missing dependencies, update available, incompatibility, known bugs, and needs attention.
+- Added cached server compatibility and known-bug feed support.
+- Added a Settings switch to disable Hub Online Services.
+- Added Hide installed mods on the Nexus Dashboard.
+- Missing Dependencies now lists the actual required library, with Download/Open Download and Ignore actions.
+
+Changes
+- Simplified the Nexus Dashboard toolbar and reduced persistent page text.
+- Disabled mods no longer appear as updateable or actively incompatible.
+- Hub online announcement, status, and auto-update UI are hidden when online services are disabled.
+
+Fixes
+- A changed Supabase announcement or compatibility feed now automatically refreshes the current Hub page after the next allowed server check.
+- Added a local four-requests-per-hour guard for Supabase status checks, including Developer Console requests.

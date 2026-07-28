@@ -1,0 +1,18 @@
+Casualties Hub v0.0.6-pre.4
+Release date: July 26, 2026
+
+Hub Center update
+- Replaced the left-side CH Discord button with a new Hub Center page.
+- Added a clear online-service status panel and an enable/disable control.
+- Added the current announcement plus a locally saved history of the newest three announcements.
+- Added update availability and GitHub release-history/rollback entry points.
+- Moved the Discord invite into Hub Center.
+- Hub Center reads the existing local service cache and does not add extra Supabase requests merely by opening the page.
+- Added yellow maintenance status support. Use an announcement ID beginning with "maintenance-" to enable it.
+
+Notes
+- When online services are disabled, the Hub hides the header service widgets and does not send Supabase or GitHub update requests.
+- Announcement history remains on the user's PC and automatically keeps only the newest three entries.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

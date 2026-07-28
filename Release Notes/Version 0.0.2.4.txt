@@ -1,0 +1,10 @@
+Casualties Hub Pre-Alpha v0.0.2.4
+
+Added
+- The separate Developer Console can now control a running Casualties Hub for safe failure testing.
+- Test buttons for missing game install, missing Plugins folder, metadata failure, import failure, and test crash report creation.
+
+Safety
+- Test commands are sent through the current user's local AppData and are deleted after the Hub receives them.
+- These failure tests do not delete, move, or modify game/mod files.
+- Test crash reports are generated without deliberately crashing the Hub.

@@ -1,0 +1,6 @@
+Casualties Hub Pre-Alpha v0.0.3.1
+
+Fixed
+- Nexus Dashboard pagination now returns the view to the top of the mod-card list after moving to the previous or next page.
+- Text-size selection is now reapplied whenever a page is opened or refreshed, before Master Refresh, and when the Hub starts.
+- Loading Settings no longer triggers the text-size selection handler, preventing an accidental reset to the default size.

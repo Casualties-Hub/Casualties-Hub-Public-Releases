@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Casualties Hub Developer Console</AssemblyName>
+    <RootNamespace>Casualties_Hub_Developer_Console</RootNamespace>
+    <Version>0.0.2.5</Version>
+    <AssemblyVersion>0.0.2.5</AssemblyVersion>
+    <FileVersion>0.0.2.5</FileVersion>
+    <InformationalVersion>0.0.2.5</InformationalVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Open Developer Console.cmd" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

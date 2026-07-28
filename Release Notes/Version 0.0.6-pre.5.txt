@@ -1,0 +1,18 @@
+Casualties Hub v0.0.6-pre.5
+Release date: July 27, 2026
+
+Online services and activity update
+- Automatic Hub service checks remain every 30 minutes.
+- Check Now now has a separate 15-minute cooldown.
+- Check Now becomes dimmed while unavailable and shows the next available time on hover.
+- Raised the local emergency status-request ceiling from four to eight requests per rolling hour.
+- Added a random anonymous UUID installation ID for aggregate activity counts.
+- Hub Center now displays active installations for the last 2 hours, 24 hours, and 7 days.
+- Added the Pre.5 Supabase migration and setup guide for the matching server-side controls.
+
+Privacy
+- The activity service sends only a random installation UUID and its last-seen time when Online Services checks for updates.
+- It does not send a player name, email address, game path, installed mod list, or protected assets.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

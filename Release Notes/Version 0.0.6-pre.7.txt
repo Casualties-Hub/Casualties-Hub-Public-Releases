@@ -1,0 +1,12 @@
+Casualties Hub v0.0.6-pre.7
+Release date: July 27, 2026
+
+What changed
+- Rebuilt the Credits page with square contributor cards, a clear name and role section, and photo space below.
+- Added MarlyZ89 as the first contributor card and added cards for the current testers.
+- Added a local What Changed panel to Hub Center that explains this build without making an extra server request.
+- Cleaned up Settings into grouped sections for paths, appearance, online services, Nexus Premium, and support logs.
+- Grouped Local Mods actions and share-code controls into a cleaner toolbar.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

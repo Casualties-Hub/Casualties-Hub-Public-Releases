@@ -1,0 +1,17 @@
+Casualties Hub Pre-Alpha v0.0.3
+
+Added
+- Developer Console is now a plain Developer Console.cmd control panel; no Developer Console executable is included.
+- Developer Console can safely trigger test failures, reload Nexus Dashboard, reload Local Mods, open Settings, and create diagnostic logs.
+- Settings now includes Open crash logs and Create Log.
+- Crash reports are stored separately and the latest five crash reports are retained.
+- Create Log records the last 10 minutes of Hub activity for troubleshooting.
+- Help.txt and Installation.txt are included with the release.
+
+Improved
+- Added a Refresh page button that reloads only the currently selected Hub page without restarting the application.
+- Dashboard cards and Local Mods refresh after plugin file changes, including successful archive installs.
+- Download-detected installation prompts bring Casualties Hub to the front so they are visible after browser downloads.
+- Master Refresh blinks briefly when local plugin data changes.
+- CH Discord now asks for confirmation before opening the browser.
+- CUCoreLib.dll matching now prefers the actual CUCoreLib metadata entry instead of a bundled dependency listing such as Monster Energy.

@@ -1,0 +1,5 @@
+Casualties Hub — Pre Alpha v0.0.5
+
+Release
+- Promotes the current tested feature set to Pre Alpha v0.0.5.
+- Includes the v0.0.4 operational-log improvements, text-size persistence fix, and v0.0.4.1 share-code Install button fix.

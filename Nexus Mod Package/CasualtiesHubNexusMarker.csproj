@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>CasualtiesHub.NexusMarker</AssemblyName>
+    <RootNamespace>CasualtiesHub.NexusMarker</RootNamespace>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>0.0.6</Version>
+  </PropertyGroup>
+</Project>

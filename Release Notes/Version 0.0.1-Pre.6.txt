@@ -1,0 +1,11 @@
+Casualties Hub — Pre Alpha v0.0.1-pre.6
+================================================
+
+Fixes
+- Clarified dependency direction across Local Mods.
+- Every mod with catalogued requirements now displays “Requires: [library]”.
+- Only unavailable requirements display a separate “Missing: [library]. Please install before launching.” warning.
+- The DependencyCatalog loader documentation now explicitly defines the JSON relationship as: mod → requires libraries.
+
+Example
+- Gunsaw Genetics correctly displays: Requires: CUCoreLib 1.5.0+.

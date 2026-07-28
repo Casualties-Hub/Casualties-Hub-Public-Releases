@@ -1,0 +1,15 @@
+Casualties Hub - Pre Alpha v0.0.6-pre.2
+
+Added
+- Announcement checks now use a protected Supabase RPC route instead of a directly readable table.
+- Supabase limits one IP address to four announcement requests in a rolling hour.
+- Normal Hub checks are locally throttled to once every 30 minutes and use the last saved announcement in between.
+- Announcement replies are capped to 500 characters to protect outbound bandwidth.
+- Developer Console options for a live Supabase request, a simulated rate-limit fallback, and eligible GitHub update discovery.
+
+Fixed
+- Launch Game is centered dynamically in the main content toolbar instead of using a fixed pixel position.
+- Announcement, update, and launch controls are spaced to avoid normal-window overlap.
+
+Required owner action
+- Run `04 - Pre.2 Rate Limited Announcement Migration.sql` in Supabase SQL Editor before distributing this build.

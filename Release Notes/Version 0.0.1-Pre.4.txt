@@ -1,0 +1,14 @@
+Casualties Hub — Pre Alpha v0.0.1-pre.4
+================================================
+
+Features
+- Disabled local mods now clearly state that they must be re-enabled before updates can be checked or installed.
+- The Nexus Dashboard action changes to “Re-enable in Local Mods” for an installed disabled mod.
+
+Fixes
+- Disabled mods no longer appear as out of date and no longer show an Out of date update button.
+- The Hub now refuses an attempted Nexus update for a disabled local mod, even if the button is triggered indirectly.
+- Installing a newer DLL removes its matching old .dll.disabled copy first, preventing the old disabled version from being left beside the new file.
+
+Notes
+- This release starts the project’s version-notes convention. Each future build receives a matching text file in the Release Notes folder.

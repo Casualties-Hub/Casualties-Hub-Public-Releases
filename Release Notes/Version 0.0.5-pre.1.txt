@@ -1,0 +1,10 @@
+Casualties Hub — Pre Alpha v0.0.5-pre.1
+
+Pre-test reliability pass
+- Fixed Steam launch detection to find app manifests in the actual steamapps folder for standard and custom Steam libraries.
+- Disabled unsafe automatic GitHub repository-name searching. Update checks will resume only after the official repository is explicitly configured.
+- Added diagnostics for Local Mods and download-inbox file watcher failures.
+- Hardened Settings.json loading so a locked or malformed settings file uses safe session defaults instead of crashing or overwriting the file.
+
+Not included yet
+- Supabase presence, announcements, and live update-service UI will be added after the server is created and the UI location is marked.

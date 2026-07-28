@@ -1,0 +1,13 @@
+Casualties Hub — Pre Alpha v0.0.2.2
+=====================================
+
+Features
+- Replaced the Debug Console label with Developer Console.
+- The Developer Console now displays live Hub activity while open and can auto-scroll new activity.
+- Added Copy Log for easy Discord support reports.
+- Added Open Current Log to open the active saved launcher log directly in Notepad.
+
+Support and logging
+- Logs continue recording even when the Developer Console page is closed.
+- The self-contained trimmed release continues to store logs in %LocalAppData%\CasualtiesHub\Logs.
+- BepInEx crash-log access, Hub log-folder access, and crash-report creation remain available.

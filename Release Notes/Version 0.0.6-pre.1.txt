@@ -1,0 +1,15 @@
+Casualties Hub - Pre Alpha v0.0.6-pre.1
+
+Added
+- Supabase-backed announcements with a one-item local cache. The latest announcement is saved locally and replaces the old saved announcement.
+- A green/red service indicator: green means the Hub reached the Supabase status service; red means it is using the last saved announcement or has no connection.
+- Automatic update checking from the official MarlyZ89/Casualties-Hub-Public-Release GitHub Releases feed.
+- An Update button that downloads a verified eligible ZIP release, checks its SHA-256 digest, replaces the Hub program files, and restarts the Hub.
+- Stable/prerelease safety rules: stable builds never install prerelease builds. Prerelease builds may install newer prereleases or a final stable release.
+
+Required setup
+- Run the SQL file in the separate Supabase Setup folder once.
+- Publish Hub builds as GitHub Releases with a ZIP asset. The automatic updater only accepts a ZIP asset with GitHub's SHA-256 digest.
+
+Notes
+- The desktop app contains only the Supabase publishable key. It never contains a Supabase service-role key and cannot write to your database.

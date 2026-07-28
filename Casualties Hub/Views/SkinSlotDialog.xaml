@@ -1,0 +1,17 @@
+<Window x:Class="Casualties_Hub.Views.SkinSlotDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Choose CustomSprites slot" Width="360" Height="190"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <StackPanel Margin="20">
+        <TextBlock Text="experimentCrus.png was found. Choose the CustomSprites slot to replace." TextWrapping="Wrap"/>
+        <ComboBox x:Name="SlotBox" Margin="0,14,0,14" SelectedIndex="0">
+            <ComboBoxItem Content="st0"/><ComboBoxItem Content="st1"/><ComboBoxItem Content="st2"/><ComboBoxItem Content="st3"/><ComboBoxItem Content="st4"/>
+            <ComboBoxItem Content="st5"/><ComboBoxItem Content="st6"/><ComboBoxItem Content="st7"/><ComboBoxItem Content="st8"/><ComboBoxItem Content="st9"/>
+        </ComboBox>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Width="80" Margin="0,0,8,0" IsCancel="True"/>
+            <Button Content="Replace slot" Width="100" IsDefault="True" Click="Replace_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

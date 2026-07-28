@@ -1,0 +1,13 @@
+Casualties Hub — Pre Alpha v0.0.4
+
+Added
+- Expanded persistent operational logging across the launcher.
+- Diagnostic logs now include launcher/runtime information and the current Plugins snapshot.
+
+Improved
+- Logs record meaningful actions from game detection, metadata requests, Nexus browsing and Premium downloads, archive inspection/install, local mod changes, protected assets, settings, share codes, update checks, navigation, and launcher restarts.
+- Sensitive Nexus API-key values are not recorded in logs.
+- Text-size settings are now written atomically and reapplied after page refreshes, master refreshes, and full relaunches.
+
+Tester notes
+- Use Settings > Create Log after reproducing a problem, then share the generated diagnostic log with the support team.

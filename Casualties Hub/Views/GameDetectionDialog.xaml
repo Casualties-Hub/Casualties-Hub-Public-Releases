@@ -1,0 +1,20 @@
+<Window x:Class="Casualties_Hub.Views.GameDetectionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Casualties Hub" Width="480" Height="220" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" Background="#2B2D31">
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Cannot detect Casualties Unknown" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+        <TextBlock Grid.Row="1" Text="Please manually set your game folder in Settings. You can select the game folder, BepInEx, or BepInEx\Plugins."
+                   Foreground="#C9CDD3" TextWrapping="Wrap" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Ignore" Width="100" Margin="0,0,10,0" Click="Ignore_Click"/>
+            <Button Content="Open Settings" Width="120" Background="#B71C2A" Foreground="White" Click="OpenSettings_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

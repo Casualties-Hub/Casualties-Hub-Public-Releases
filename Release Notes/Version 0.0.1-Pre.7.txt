@@ -1,0 +1,5 @@
+Casualties Hub — Pre Alpha v0.0.1-pre.7
+================================================
+
+Credits
+- Added “Original Bug Tester” to EXP-3238’s contributor credit.

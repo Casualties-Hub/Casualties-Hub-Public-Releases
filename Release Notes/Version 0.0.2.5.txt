@@ -1,0 +1,10 @@
+Casualties Hub Pre-Alpha v0.0.2.5
+
+Changed
+- Replaced the silent window-style Developer Console with a real terminal Developer Console.
+- Added Open Developer Console.cmd for an obvious double-click launcher.
+
+Added
+- The terminal checks whether Casualties Hub is actually running before sending a test.
+- Every command now waits for a confirmation from the Hub and clearly reports success or failure.
+- Test controls remain safe: missing install, missing Plugins folder, metadata failure, import failure, and crash-report creation.

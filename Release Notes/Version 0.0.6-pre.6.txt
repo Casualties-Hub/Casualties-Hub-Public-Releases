@@ -1,0 +1,16 @@
+Casualties Hub v0.0.6-pre.6
+Release date: July 27, 2026
+
+Hub Center and reporting cleanup
+- Removed Supabase announcement, online-status, and update widgets from the top bar.
+- Launch game remains centered in the cleaner top bar.
+- Added a Report issues button beside the page refresh controls.
+- Updated the normal Casualties Hub Discord invite.
+- Hub Center status now explains its green, yellow, red, and gray status colors on hover.
+- Keeps the Pre.5 service schedule: 30-minute automatic checks, 15-minute Check Now cooldown, UUID 7.5-minute server limit, and 8 IP requests per hour.
+
+Supabase setup
+- Added a complete Pre.6 Supabase setup pack that can configure a new or older Hub database in one run.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

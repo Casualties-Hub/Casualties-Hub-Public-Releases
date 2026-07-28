@@ -1,0 +1,15 @@
+Casualties Hub v0.0.6-pre.8.1
+Released: July 28, 2026
+
+Added
+- Added four saved UI colour controls: page text, button text, button background, and accent.
+- Added RGB sliders and a pasteable #RRGGBB hex field for every UI colour.
+- Added a Restore default colours button.
+
+Improved
+- Button labels now use their own colour setting instead of the normal page-text colour.
+- Default button labels are black on light buttons for clearer navigation.
+- The selected navigation tab and Launch Game button now use the saved accent colour.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

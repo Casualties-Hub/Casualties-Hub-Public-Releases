@@ -1,0 +1,9 @@
+Casualties Hub — Pre Alpha v0.0.4.1
+
+Fixed
+- Purple mods requested by an imported share code now show an Install button.
+- The button opens that mod's direct Nexus files page when the community metadata includes its BepInEx GUID.
+- For older metadata that has no GUID mapping, the button opens a Nexus search for the requested GUID rather than doing nothing.
+
+Improved
+- The Hub now understands optional GUID fields from the community metadata, improving share-code matching as metadata is expanded.

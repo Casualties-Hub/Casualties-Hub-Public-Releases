@@ -1,0 +1,10 @@
+Casualties Hub — Pre Alpha v0.0.2.1
+=====================================
+
+Fixes
+- Added SteamLibrary detection, including paths such as F:\SteamLibrary\steamapps\common\Casualties Unknown Demo.
+- The auto-detector now checks SteamLibrary locations on every scanned drive.
+- If detection fails after the ten-second scan, the Hub shows a clear dialog with Open Settings and Ignore options.
+
+Notes
+- The game folder can still be manually set to the game root, BepInEx, or BepInEx\Plugins.

@@ -1,0 +1,27 @@
+# Visual Studio and local editor state
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET build output
+**/bin/
+**/obj/
+Published/
+**/Published/
+.buildverify/
+
+# Locally produced release archives and packages
+*.zip
+
+# External/decompiled game and mod references; these are not Casualties Hub source
+Assembly-CSharp/
+CU CSharp
+KrokoshaCasualtiesMP.sln
+QoL Unknown.sln
+KrokoshaCasualtiesMP/
+QoL Unknown/
+
+# Local release copies
+Release Packaging/Pre.6 Complete Setup/

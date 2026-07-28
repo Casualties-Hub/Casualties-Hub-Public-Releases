@@ -1,0 +1,9 @@
+Casualties Hub — Pre Alpha v0.0.1-pre.5
+================================================
+
+Fixes
+- Corrected the Local Mods dependency warning wording.
+- Dependency warnings now say “Requires dependency: [library]” rather than implying the installed mod is a dependency of the library.
+
+Validation
+- The editable DependencyCatalog.json entry for Gunsaw Genetics remains correct: it requires CUCoreLib 1.5.0 or newer.
