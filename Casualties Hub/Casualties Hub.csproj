@@ -8,10 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\CasualtiesHub.ico</ApplicationIcon>
-    <Version>0.0.6-pre.10.1</Version>
-    <AssemblyVersion>0.0.6.101</AssemblyVersion>
-    <FileVersion>0.0.6.101</FileVersion>
-    <InformationalVersion>0.0.6-pre.10.1</InformationalVersion>
+    <Version>0.0.6-pre.10.2</Version>
+    <AssemblyVersion>0.0.6.102</AssemblyVersion>
+    <FileVersion>0.0.6.102</FileVersion>
+    <InformationalVersion>0.0.6-pre.10.2</InformationalVersion>
   </PropertyGroup>
 
   <!-- Release publishing intentionally produces one self-contained EXE. -->

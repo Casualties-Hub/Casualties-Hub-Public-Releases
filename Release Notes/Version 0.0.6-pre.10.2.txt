@@ -1,0 +1,10 @@
+Version 0.0.6-pre.10.2
+
+What changed
+- Added an Enable Easter eggs setting.
+- Disabling Easter eggs immediately hides PapaZuck and prevents the related click actions.
+- Removed the per-page Refresh page button; Master Refresh remains available with Ctrl+R.
+- Removed tooltips from the left navigation buttons.
+
+Known issue
+- Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.

@@ -43,6 +43,7 @@ public partial class MainWindow : Window
         Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/CasualtiesHub.png"));
         ApplySavedTextSize();
         ApplySavedTextColor();
+        ApplyEasterEggsPreference();
         ContentRendered += (_, _) => { ApplySavedTextSize(); ApplySavedTextColor(); };
         MainFrame.Navigated += (_, _) => Dispatcher.BeginInvoke(ApplySavedTextColor);
         Services.DebugLogService.Activity("Launcher", $"Started Casualties Hub {GetType().Assembly.GetName().Version}.");
@@ -148,6 +149,25 @@ public partial class MainWindow : Window
         }
         _cloudStatusTimer.Start();
         RefreshHubCenterIfOpen();
+    }
+
+    /// <summary>Applies the persisted preference for optional Easter eggs.</summary>
+    public void ApplyEasterEggsPreference()
+    {
+        var enabled = _settingsService.Load().EasterEggsEnabled;
+        if (!enabled)
+        {
+            _faceClickTimer.Stop();
+            _faceClickCount = 0;
+            _papaZuckLinkOpenedThisBurst = false;
+            PapaZuck.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        PapaZuckScale.ScaleX = 1;
+        PapaZuckScale.ScaleY = 1;
+        PapaZuck.Opacity = 1;
+        PapaZuck.Visibility = Visibility.Visible;
     }
 
     private async Task CheckSupabaseStatusAsync()
@@ -441,12 +461,6 @@ public partial class MainWindow : Window
 
     private void MasterRefresh_Click(object sender, RoutedEventArgs e) => RestartHub(true);
 
-    private void RefreshCurrentPage_Click(object sender, RoutedEventArgs e)
-    {
-        DebugLogService.Activity("Navigation", "Refreshing the current page.");
-        RefreshCurrentPage("Current page refreshed.");
-    }
-
     /// <summary>
     /// Reloads visible data after a user request or after an allowed server poll
     /// changes the locally cached announcement/compatibility feed. This does not
@@ -678,6 +692,7 @@ public partial class MainWindow : Window
 
     private void PapaZuck_Click(object sender, MouseButtonEventArgs e)
     {
+        if (!_settingsService.Load().EasterEggsEnabled) return;
         if (e.OriginalSource is System.Windows.Controls.Button) return;
         if (_papaZuckLinkOpenedThisBurst) return;
         _faceClickCount++;

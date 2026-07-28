@@ -19,8 +19,6 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
                     <Button Content="Report issues" Width="120" Height="30" Margin="0,0,10,0"
                             ToolTip="Open the Casualties Hub report and issue forum" Click="ReportIssues_Click"/>
-                    <Button x:Name="PageRefreshButton" Content="Refresh page" Width="120" Height="30" Margin="0,0,10,0"
-                            ToolTip="Reload only the page currently open" Click="RefreshCurrentPage_Click"/>
                     <Button x:Name="MasterRefreshButton" Content="Master Refresh" Width="120" Height="30"
                             ToolTip="Restart the entire Hub and refresh metadata (Ctrl+R)" Click="MasterRefresh_Click"/>
                 </StackPanel>
@@ -33,12 +31,12 @@
                     <!-- The product wordmark intentionally stays white/crimson even when page text is personalized. -->
                     <Run Text="Casualties" Foreground="White"/><Run Text=" " Foreground="White"/><Run Text="Hub" Foreground="#FFC21F32"/>
                 </TextBlock>
-                <Button x:Name="DashboardNavButton" Content="Nexus Dashboard" Height="40" Margin="0,0,0,10" Click="Dashboard_Click" ToolTip="The Nexus mods for the game; here you can download and auto-install mods using Casualties Hub"/>
-                <Button x:Name="ModsNavButton" Content="Local Mods" Height="40" Margin="0,0,0,10" Click="Mods_Click" ToolTip="Your localized mods are inside your BepInEx/Plugins folder; also a share code to send your friends your installed mods!"/>
-                <Button x:Name="ProtectedAssetsNavButton" Content="Protected Assets" Height="40" Margin="0,0,0,10" Click="ProtectedFiles_Click" ToolTip="Put your character skins in here; just select their folder- the easiest way to do it"/>
-                <Button x:Name="HubCenterNavButton" Content="Hub Center" Height="40" Margin="0,0,0,10" Click="HubCenter_Click" ToolTip="Hub status, announcements, updates, and the Casualties Hub Discord"/>
-                <Button x:Name="SettingsNavButton" Content="Settings" Height="40" Click="Settings_Click" ToolTip="File paths can be accessed here; for your downloads and your game folder, you can also disable the auto-delete imported files from downloads"/>
-                <Button x:Name="CreditsNavButton" Content="Credits" Height="32" Margin="0,12,0,0" Click="Credits_Click" ToolTip="Casualties Hub contributors"/>
+                <Button x:Name="DashboardNavButton" Content="Nexus Dashboard" Height="40" Margin="0,0,0,10" Click="Dashboard_Click"/>
+                <Button x:Name="ModsNavButton" Content="Local Mods" Height="40" Margin="0,0,0,10" Click="Mods_Click"/>
+                <Button x:Name="ProtectedAssetsNavButton" Content="Protected Assets" Height="40" Margin="0,0,0,10" Click="ProtectedFiles_Click"/>
+                <Button x:Name="HubCenterNavButton" Content="Hub Center" Height="40" Margin="0,0,0,10" Click="HubCenter_Click"/>
+                <Button x:Name="SettingsNavButton" Content="Settings" Height="40" Click="Settings_Click"/>
+                <Button x:Name="CreditsNavButton" Content="Credits" Height="32" Margin="0,12,0,0" Click="Credits_Click"/>
             </StackPanel>
         </Border>
 
@@ -47,7 +45,7 @@
         <Border x:Name="StatusBarHost" Grid.Row="2" Grid.ColumnSpan="2" Background="#18191C" Panel.ZIndex="20" ClipToBounds="True">
             <Grid ClipToBounds="True">
                 <TextBlock x:Name="StatusText" Text="Ready" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="10,0,180,0" TextTrimming="CharacterEllipsis"/>
-                <TextBlock Text="Pre Alpha v0.0.6-pre.10.1" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
+                <TextBlock Text="Pre Alpha v0.0.6-pre.10.2" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
             </Grid>
         </Border>
 

@@ -48,6 +48,9 @@ public class Settings
     // an existing player's preference or shows an unexpected prompt.
     public bool HubOnlineServicesEnabled { get; set; }
     public bool OnlineServicesChoiceMade { get; set; }
+    // Fun visual/clickable extras are optional. Players who prefer a strictly
+    // utilitarian launcher can turn PapaZuck and future Easter eggs off.
+    public bool EasterEggsEnabled { get; set; } = true;
     public DateTimeOffset? NextGitHubUpdateCheckUtc { get; set; }
     public string? CachedCompatibilityRules { get; set; }
     public string? CachedCompatibilityVersion { get; set; }
