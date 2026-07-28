@@ -15,14 +15,6 @@
 
             <Border Background="#36393F" CornerRadius="7" Padding="18" Margin="0,0,0,14">
                 <StackPanel>
-                    <TextBlock Text="Optional extras" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
-                    <TextBlock Text="Turn off PapaZuck and any future optional Easter eggs without changing normal mod-manager features." Foreground="#C9CDD3" Margin="0,6,0,10" TextWrapping="Wrap"/>
-                    <CheckBox x:Name="EasterEggsBox" Content="Enable Easter eggs" Foreground="White" Checked="EasterEggsBox_Changed" Unchecked="EasterEggsBox_Changed"/>
-                </StackPanel>
-            </Border>
-
-            <Border Background="#36393F" CornerRadius="7" Padding="18" Margin="0,0,0,14">
-                <StackPanel>
                     <TextBlock Text="Download inbox" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
                     <TextBlock Text="New mod archives in this folder can be detected and offered for installation." Foreground="#C9CDD3" Margin="0,6,0,12" TextWrapping="Wrap"/>
                     <TextBox x:Name="DownloadPathBox" IsReadOnly="True" Background="#292B30" Foreground="White" BorderBrush="#555A63" Padding="8"/>
@@ -51,6 +43,22 @@
                         <ComboBoxItem Content="Extra Large (18)" Tag="18"/>
                         <ComboBoxItem Content="Maximum (20)" Tag="20"/>
                     </ComboBox>
+                    <ToggleButton x:Name="EasterEggsToggle" Content="Easter Eggs" Width="115" Height="28" HorizontalAlignment="Left" Margin="0,12,0,0" Checked="EasterEggsToggle_Changed" Unchecked="EasterEggsToggle_Changed">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Background" Value="{DynamicResource ControlSurfaceBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource ControlTextBrush}"/>
+                                <Setter Property="BorderBrush" Value="#555A63"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
                     <TextBlock Text="UI colours" Foreground="#C9CDD3" Margin="0,16,0,4" FontWeight="SemiBold"/>
                     <TextBlock Text="Paste a #RRGGBB value for a quick change. Expand RGB only when you need fine control." Foreground="#A9AFB8" TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <Grid MaxWidth="780">

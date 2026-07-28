@@ -1,94 +1,105 @@
 # Casualties Hub Mod Manager
 
-> A Pre-Alpha mod manager and launcher for **Casualties Unknown**.
+Casualties Hub is a Windows launcher and mod manager for **Casualties Unknown**. It helps players browse community mod metadata, manage local BepInEx plugins, preserve custom assets, share mod setups, and identify common dependency or compatibility problems.
 
-Casualties Hub helps players browse mod metadata, manage local BepInEx plugins, protect custom assets, share mod setups, and identify common dependency or compatibility issues.
+**Current public build:** `v0.0.7`
+**Project status:** early public release; actively developed.
 
-## Pre-Alpha Status
-
-Casualties Hub is functional but still under active development.
-
-Expect unfinished features, bugs, and UI changes. Please back up important custom assets and mods before testing new builds.
-
-The newest stable public release and available Pre-Release builds can be found on the [Releases page](../../releases).
-
-## Download and Installation
+## Download and install
 
 1. Open the [Releases page](../../releases).
-2. Download the version you want under **Assets**.
-3. Extract the ZIP somewhere outside `Program Files`.
+2. Download the version you want from **Assets**.
+3. Extract the downloaded ZIP somewhere outside `Program Files`.
 4. Run `Casualties Hub.exe`.
-5. On first launch, configure the Casualties Unknown game folder in **Settings** if it is not detected automatically.
+5. On first launch, choose your Casualties Unknown, BepInEx, or Plugins folder in **Settings** if the Hub cannot locate it automatically.
 
-Older builds remain available for rollback and testing.
+Keep the included `Data` folder beside the executable. It contains editable dependency/compatibility catalog data and release notes used by the Hub.
 
-## Current Features
+Older releases remain available on GitHub for testing and rollback.
 
-- Browse Casualties Unknown mod metadata.
-- Open Nexus mod and download pages.
-- Install supported mod archives.
-- Manage local BepInEx plugins.
-- Enable, disable, and delete installed mods.
-- Detect common dependency issues.
-- Display available mod update information.
-- Create and import Modlist Share Codes.
-- Track Share Code mods that still need to be installed.
-- Protect custom sprites, skins, sounds, and other personal mod assets.
-- Create diagnostic logs and crash reports.
+## What the Hub can do
+
+- Browse Casualties Unknown community metadata in the **Nexus Dashboard**.
+- Filter, search, sort, hide installed mods, and show adult-tagged mods only when the 18+ option is enabled.
+- Open a mod’s Nexus Files/download page, or use direct downloads with a player’s own Nexus Premium API key.
+- Detect and install supported archives from a chosen download inbox.
+- Manage local BepInEx plugins: enable, disable, delete, refresh, and check version information.
+- Highlight known dependency, update, incompatibility, and known-bug information where metadata is available.
+- Create and import concise **Modlist Share Codes** for enabled local mods.
+- Show missing share-code mods with an **Open Download** action for their specific Nexus Files page.
+- Protect custom sprites, skins, sounds, character folders, and other assets locally, then restore them after a mod reinstall.
 - Launch Casualties Unknown through Steam.
-- Receive Hub announcements and compatibility information through optional Online Services.
-- Check GitHub for eligible launcher updates.
+- Create local diagnostic logs and retain recent crash reports for troubleshooting.
+- Use the **Hub Center** for announcements, Community Activity, compatibility notices, and eligible GitHub update information.
+- Adjust text size, theme colours, file paths, and other local preferences in **Settings**.
+
+## Nexus and mod installation
+
+Casualties Hub is designed to send ordinary Nexus users to the original Nexus download page rather than bypassing Nexus downloads. Players who have their own Nexus Premium API key can save it in Settings to use direct-download actions where supported.
+
+Some archives use custom layouts or have author-specific installation steps. Read the original mod page whenever the Hub marks an archive as requiring special instructions.
 
 ## Protected Assets
 
-Protected Assets are files or folders that Casualties Hub saves separately so they can be restored after reinstalling or replacing mods.
+Protected Assets are saved **only on your PC**. Use them for things you do not want overwritten by a mod update, such as custom character `st#` folders, skins, sprite replacements, or sounds.
 
-This is useful for custom sprites, character folders, skins, sounds, and similar personal files.
+Choose either a file or the complete folder you want to preserve. **Restore All** puts the saved copies back into their remembered locations after a mod is installed or replaced.
 
-> Protected Assets are kept locally on your PC. They are not uploaded by Casualties Hub.
+## Online Services and Community Activity
 
-## Online Services
+Hub Online Services are **optional** and are disabled by default on a fresh install. They are controlled from **Hub Center**; local mod management, Protected Assets, and most launcher functions still work when they are off.
 
-Online Services are optional.
+When enabled, the Hub may retrieve:
 
-When enabled, Casualties Hub can retrieve:
+- Announcements and the last three locally saved announcements.
+- Community compatibility and known-bug notices.
+- Eligible GitHub update information.
+- Aggregate Community Activity counts shown in Hub Center.
 
-- Hub announcements.
-- Compatibility and known-bug information.
-- Launcher update availability.
+### What is sent
 
-When disabled, local mod management and Protected Assets continue to work. Saved announcements and local files remain available.
+On the first successful Online Services check, Casualties Hub creates a random UUID (a long anonymous installation ID) and saves it locally in the Hub’s settings. The Hub sends that UUID to the status service when it checks for Hub updates and announcements. It is used only to count unique recent installations for Community Activity, such as active installations in the last two hours, day, or week.
 
-## Known Issues
+**No IP address is used for Community Activity metrics.** Casualties Hub does not collect, store, display, or send your IP address as part of its activity-count data. The application sends the anonymous UUID and requests only the public Hub status data. Normal checks occur at most once every 30 minutes; manual checks are limited to once every 15 minutes, with additional local and server-side safeguards to prevent abuse.
 
-- Some Share Code requested mods may not yet provide an install option.
-- Some Nexus links may open a mod's main page rather than its specific download page.
-- Certain mod archives use custom layouts and may still require manual installation.
+The service response is cached locally. A new announcement, compatibility list, or status update replaces the stored current data while the announcement history retains only the latest three messages.
+
+> Like any internet request, your network and hosting providers may process normal connection traffic independently. Casualties Hub’s own Community Activity system does not use IP addresses as its identifier or metric data.
+
+## Relevant build history
+
+| Version range | Notable additions |
+| --- | --- |
+| `v0.0.7` | Official public release; compact Accessibility-based Easter Eggs preference, refreshed documentation, and current packaging. |
+| `v0.0.6-pre` series | Hub Center, optional Online Services, announcements, Community Activity, compatibility feed, local-mod column views, UI colour controls, credits, and diagnostic improvements. |
+| `v0.0.5` and earlier | Core Nexus metadata browser, archive/import workflows, Protected Assets, local BepInEx scanning, dependency checks, version checks, and Modlist Share Codes. |
+
+## Known limitations
+
+- Dependency and compatibility data is community-maintained and may be incomplete or temporarily out of date.
+- Some mods use custom DLL names or archive structures that cannot be matched automatically.
+- Certain mod archives require manual installation because their author has special instructions.
 - Opera GX may not automatically open or come to the foreground when Casualties Hub opens a browser link.
-- Dependency and compatibility information is community-maintained and may be incomplete.
 
-## Feedback and Support
+## Feedback and support
 
-For downloads, updates, feature discussion, and bug reports, join the Casualties Hub Discord:
+For feature discussion, downloads, and support, join the Casualties Hub Discord:
 
-https://discord.gg/uVCumG43p
+https://discord.gg/386M6zZEK
 
-When reporting a bug, include:
+For bug reports, include:
 
 - Casualties Hub version.
 - What you were doing.
-- Expected result.
-- Actual result.
+- Expected result and actual result.
 - Installed mods or a Modlist Share Code.
-- Diagnostic log or BepInEx `LogOutput.log` when relevant.
+- A diagnostic log or BepInEx `LogOutput.log` when relevant.
 
-## Development and Credits
+## Credits
 
-Casualties Hub is a passion project currently developed and maintained by **MarlyZ89**.
+Casualties Hub is a passion project created and maintained by **MarlyZ89**.
 
-JimmyKing has contributed ideas and granted permission for certain files/resources used by the project. The current coding, implementation, maintenance, and overall development work are handled by MarlyZ89.
-
-Additional contributors and ideas are credited inside the application.
+The application’s Credits page recognises community contributors, testers, metadata support, and resource permissions. JimmyKing has contributed ideas and granted permission for certain project resources; the current coding, implementation, maintenance, and overall project direction are handled by MarlyZ89.
 
 ## License
 
@@ -96,4 +107,4 @@ Casualties Hub is licensed under the [GNU Affero General Public License v3.0](LI
 
 ## Disclaimer
 
-Casualties Hub is an independent community project and is not affiliated with or endorsed by the developers of Casualties Unknown, Steam, Nexus Mods, or BepInEx.
+Casualties Hub is an independent community project. It is not affiliated with or endorsed by the developers of Casualties Unknown, Steam, Nexus Mods, BepInEx, GitHub, or Supabase.

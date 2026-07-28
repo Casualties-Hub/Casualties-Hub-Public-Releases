@@ -32,7 +32,7 @@ public partial class SettingsPage : Page
         GamePathBox.Text = settings.GamePath;
         DownloadPathBox.Text = settings.DownloadPath;
         DadipfBox.IsChecked = settings.DisableAutoDeleteImportedParentFiles;
-        EasterEggsBox.IsChecked = settings.EasterEggsEnabled;
+        EasterEggsToggle.IsChecked = settings.EasterEggsEnabled;
         SetThemeControls(settings);
         var selectedSize = settings.TextSize.ToString("0");
         TextSizeBox.SelectedItem = TextSizeBox.Items.OfType<ComboBoxItem>()
@@ -79,12 +79,13 @@ public partial class SettingsPage : Page
             : "DADIPF disabled: imported archives are moved to Hub storage after installation.");
     }
 
-    private void EasterEggsBox_Changed(object sender, RoutedEventArgs e)
+    private void EasterEggsToggle_Changed(object sender, RoutedEventArgs e)
     {
         if (_isLoadingSettings) return;
 
         var settings = _settingsService.Load();
-        settings.EasterEggsEnabled = EasterEggsBox.IsChecked == true;
+        settings.EasterEggsEnabled = EasterEggsToggle.IsChecked == true;
+        settings.EasterEggsPreferenceInitialized = true;
         _settingsService.Save(settings);
 
         if (Application.Current.MainWindow is MainWindow window)

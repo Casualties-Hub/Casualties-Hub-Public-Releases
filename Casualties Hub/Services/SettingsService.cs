@@ -43,6 +43,16 @@ public class SettingsService
                     changed = true;
                 }
 
+                // Easter eggs became an opt-in preference in v0.0.7. Settings
+                // from earlier builds did not contain this field, so make the
+                // safe default explicit the first time they are loaded.
+                if (!document.RootElement.TryGetProperty(nameof(Settings.EasterEggsPreferenceInitialized), out _))
+                {
+                    settings.EasterEggsEnabled = false;
+                    settings.EasterEggsPreferenceInitialized = true;
+                    changed = true;
+                }
+
                 // Older builds stored only one white text colour. Move them to
                 // the four-part theme once, while preserving all newer choices.
                 if (!settings.ThemeColoursInitialized)
