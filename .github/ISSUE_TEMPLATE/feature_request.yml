@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest an improvement to Casualties Hub
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: policy
+    attributes:
+      label: Nexus Mods policy
+      options:
+        - label: This does not request bypassing Nexus authentication, Premium requirements, download pages, advertising, rate limits, or other access controls.
+          required: true

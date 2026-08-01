@@ -6,6 +6,10 @@ machine.
 Casualties Hub is licensed under AGPL-3.0. Contributions are accepted under the same
 licence.
 
+Before making changes, read [`PROJECT_RULES.md`](PROJECT_RULES.md),
+[`ARCHITECTURE.md`](ARCHITECTURE.md), and [`SECURITY.md`](SECURITY.md). AI-assisted
+changes must also follow [`AGENTS.md`](AGENTS.md).
+
 ## Prerequisites
 
 | Requirement | Notes |
@@ -73,6 +77,10 @@ again.
 3. Check `%LOCALAPPDATA%\CasualtiesHub\Logs` for new errors.
 4. Test mod install, enable, disable, and delete against a disposable copy of the game
    folder if you changed anything under `Services/`.
+5. Confirm that no API keys, credentials, personal data, game files, decompiled game
+   code, third-party mods, local builds, or release archives are included.
+6. Nexus, credentials, downloads, updates, installers, archive extraction, telemetry,
+   process launching, and deletion changes require focused maintainer review.
 
 ## Testing your changes
 

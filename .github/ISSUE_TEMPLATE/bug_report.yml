@@ -1,0 +1,43 @@
+name: Bug report
+description: Report reproducible Casualties Hub behavior
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not post API keys, passwords, private data, or dangerous security details.
+  - type: input
+    id: version
+    attributes:
+      label: Casualties Hub version
+      placeholder: v0.0.7
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Remove names, local paths, credentials, and other private information.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed credentials and private information.
+          required: true
+        - label: This report does not request a Nexus download or access-control bypass.
+          required: true

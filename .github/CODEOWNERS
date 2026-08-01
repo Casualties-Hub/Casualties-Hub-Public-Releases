@@ -1,0 +1,10 @@
+# Require maintainer review for all changes.
+* @MarlyZ89
+
+# Explicitly identify security- and policy-sensitive areas.
+/Casualties\ Hub/Services/ @MarlyZ89
+/Casualties\ Hub\ Installer/ @MarlyZ89
+/Release\ Packaging/ @MarlyZ89
+/Supabase\ Setup/ @MarlyZ89
+/PROJECT_RULES.md @MarlyZ89
+/SECURITY.md @MarlyZ89

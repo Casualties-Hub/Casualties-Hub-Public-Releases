@@ -95,6 +95,14 @@ For bug reports, include:
 - Installed mods or a Modlist Share Code.
 - A diagnostic log or BepInEx `LogOutput.log` when relevant.
 
+## Development and project policy
+
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to build and test the project.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) describes the repository and sensitive boundaries.
+- [`PROJECT_RULES.md`](PROJECT_RULES.md) defines official project and Nexus compliance rules.
+- [`SECURITY.md`](SECURITY.md) explains responsible vulnerability reporting.
+- [`AGENTS.md`](AGENTS.md) provides safety instructions for AI-assisted development.
+
 ## Credits
 
 Casualties Hub is a passion project created and maintained by **MarlyZ89**.
