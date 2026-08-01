@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "updatedAtUtc": "2026-08-01T00:00:00Z",
+  "currentAnnouncement": {
+    "id": "v0.0.8-pre.1",
+    "publishedAtUtc": "2026-08-01T00:00:00Z",
+    "message": "Casualties Hub v0.0.8-pre.1 is now in testing. Hub announcements and update information are moving from Supabase to a privacy-friendly GitHub-hosted feed."
+  },
+  "previousAnnouncements": [
+    {
+      "id": "v0.0.7",
+      "publishedAtUtc": "2026-07-28T00:00:00Z",
+      "message": "Casualties Hub v0.0.7 is the current public release."
+    }
+  ],
+  "whatChanged": "Removed Supabase and anonymous activity metrics. Added a cached GitHub announcement feed with conditional refreshes and a 30-minute automatic check interval.",
+  "releaseInformation": "This is a pre-release testing build toward v0.0.8."
+}
