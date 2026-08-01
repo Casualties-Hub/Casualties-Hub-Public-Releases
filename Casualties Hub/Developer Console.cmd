@@ -20,9 +20,8 @@ echo  6  Reload Nexus Dashboard and metadata
 echo  7  Reload Local Mods
 echo  8  Open Settings in the Hub
 echo  9  Create a 10-minute diagnostic log
-echo 10  Test: Request Supabase status now
-echo 11  Test: Simulate Supabase one-hour rate limit
-echo 12  Check the eligible GitHub update feed
+echo 10  Check GitHub announcements and updates
+echo 11  Check the eligible GitHub update feed
 echo.
 echo  L  Show latest Hub log
 echo  O  Open Hub log folder
@@ -38,9 +37,8 @@ if /i "%option%"=="6" call :send ReloadDashboard
 if /i "%option%"=="7" call :send ReloadLocalMods
 if /i "%option%"=="8" call :send OpenSettings
 if /i "%option%"=="9" call :send CreateDiagnosticLog
-if /i "%option%"=="10" call :send CheckSupabaseNow
-if /i "%option%"=="11" call :send SimulateSupabaseRateLimit
-if /i "%option%"=="12" call :send CheckUpdateFeed
+if /i "%option%"=="10" call :send CheckGitHubNow
+if /i "%option%"=="11" call :send CheckUpdateFeed
 if /i "%option%"=="L" call :showlog
 if /i "%option%"=="O" start "Casualties Hub Logs" "%LOCALAPPDATA%\CasualtiesHub\Logs"
 if /i "%option%"=="Q" exit /b 0

@@ -45,32 +45,28 @@ Protected Assets are saved **only on your PC**. Use them for things you do not w
 
 Choose either a file or the complete folder you want to preserve. **Restore All** puts the saved copies back into their remembered locations after a mod is installed or replaced.
 
-## Online Services and Community Activity
+## Online Services
 
 Hub Online Services are **optional** and are disabled by default on a fresh install. They are controlled from **Hub Center**; local mod management, Protected Assets, and most launcher functions still work when they are off.
 
 When enabled, the Hub may retrieve:
 
-- Announcements and the last three locally saved announcements.
+- GitHub-hosted announcements and the three previous announcements.
 - Community compatibility and known-bug notices.
 - Eligible GitHub update information.
-- Aggregate Community Activity counts shown in Hub Center.
 
 ### What is sent
 
-On the first successful Online Services check, Casualties Hub creates a random UUID (a long anonymous installation ID) and saves it locally in the Hub’s settings. The Hub sends that UUID to the status service when it checks for Hub updates and announcements. It is used only to count unique recent installations for Community Activity, such as active installations in the last two hours, day, or week.
+Casualties Hub does not create or send an installation ID and does not collect community activity metrics. It requests public JSON and release information from GitHub and community metadata from its documented source. Like any internet request, network and hosting providers process normal connection information independently.
 
-**No IP address is used for Community Activity metrics.** Casualties Hub does not collect, store, display, or send your IP address as part of its activity-count data. The application sends the anonymous UUID and requests only the public Hub status data. Normal checks occur at most once every 30 minutes; manual checks are limited to once every 15 minutes, with additional local and server-side safeguards to prevent abuse.
-
-The service response is cached locally. A new announcement, compatibility list, or status update replaces the stored current data while the announcement history retains only the latest three messages.
-
-> Like any internet request, your network and hosting providers may process normal connection traffic independently. Casualties Hub’s own Community Activity system does not use IP addresses as its identifier or metric data.
+Automatic checks occur no more than once every 30 minutes and are deferred while the Hub is focused. Responses are cached locally and use HTTP change validators, so unchanged files are not downloaded again.
 
 ## Relevant build history
 
 | Version range | Notable additions |
 | --- | --- |
 | `v0.0.7` | Official public release; compact Accessibility-based Easter Eggs preference, refreshed documentation, and current packaging. |
+| `v0.0.8-pre` | Replaces Supabase and anonymous activity metrics with cached GitHub-hosted announcements and coordinated conditional refreshes. |
 | `v0.0.6-pre` series | Hub Center, optional Online Services, announcements, Community Activity, compatibility feed, local-mod column views, UI colour controls, credits, and diagnostic improvements. |
 | `v0.0.5` and earlier | Core Nexus metadata browser, archive/import workflows, Protected Assets, local BepInEx scanning, dependency checks, version checks, and Modlist Share Codes. |
 

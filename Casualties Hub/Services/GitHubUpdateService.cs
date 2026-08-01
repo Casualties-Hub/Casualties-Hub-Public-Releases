@@ -1,6 +1,8 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.IO;
+using System.Net;
 using Casualties_Hub.Models;
 
 namespace Casualties_Hub.Services;
@@ -8,19 +10,43 @@ namespace Casualties_Hub.Services;
 /// <summary>Finds the newest channel-eligible ZIP release from the official public repository.</summary>
 public sealed class GitHubUpdateService
 {
-    private const string OfficialRepository = "MarlyZ89/Casualties-Hub-Public-Release";
+    private const string OfficialRepository = "MarlyZ89/Casualties-Hub-Public-Releases";
     private readonly HttpClient _client = new() { Timeout = TimeSpan.FromSeconds(12) };
+    private readonly string _cachePath;
+    private readonly string _statePath;
+
+    public GitHubUpdateService(SettingsService settingsService)
+    {
+        _cachePath = Path.Combine(settingsService.AppDataPath, "GitHubReleasesCache.json");
+        _statePath = Path.Combine(settingsService.AppDataPath, "GitHubReleasesHttpState.json");
+    }
 
     public async Task<GitHubUpdate?> CheckForUpdateAsync(HubVersion currentVersion, CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{OfficialRepository}/releases?per_page=100");
         request.Headers.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", currentVersion.ToString()));
         request.Headers.Accept.ParseAdd("application/vnd.github+json");
+        var state = LoadState();
+        if (!string.IsNullOrWhiteSpace(state.ETag)) request.Headers.TryAddWithoutValidation("If-None-Match", state.ETag);
+        if (state.LastModifiedUtc is { } modified) request.Headers.IfModifiedSince = modified;
         using var response = await _client.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-            return null;
+        string json;
+        if (response.StatusCode == HttpStatusCode.NotModified && File.Exists(_cachePath))
+        {
+            json = await File.ReadAllTextAsync(_cachePath, cancellationToken);
+            DebugLogService.Activity("Update check", "GitHub releases are unchanged; used the local release cache.");
+        }
+        else
+        {
+            if (!response.IsSuccessStatusCode) return null;
+            json = await response.Content.ReadAsStringAsync(cancellationToken);
+            await File.WriteAllTextAsync(_cachePath, json, cancellationToken);
+            state.ETag = response.Headers.ETag?.ToString();
+            state.LastModifiedUtc = response.Content.Headers.LastModified;
+            SaveState(state);
+        }
 
-        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+        using var document = JsonDocument.Parse(json);
         if (document.RootElement.ValueKind != JsonValueKind.Array)
             return null;
 
@@ -92,6 +118,20 @@ public sealed class GitHubUpdateService
             if (match.Success) return match.Value;
         }
         return null;
+    }
+
+    private CacheState LoadState()
+    {
+        try { return File.Exists(_statePath) ? JsonSerializer.Deserialize<CacheState>(File.ReadAllText(_statePath)) ?? new() : new(); }
+        catch { return new(); }
+    }
+
+    private void SaveState(CacheState state) => File.WriteAllText(_statePath, JsonSerializer.Serialize(state));
+
+    private sealed class CacheState
+    {
+        public string? ETag { get; set; }
+        public DateTimeOffset? LastModifiedUtc { get; set; }
     }
 }
 

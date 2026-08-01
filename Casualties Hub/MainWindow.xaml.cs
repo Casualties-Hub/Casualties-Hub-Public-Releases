@@ -20,13 +20,13 @@ public partial class MainWindow : Window
     private readonly Services.DownloadImportService _downloadImportService = new();
     private readonly SettingsService _settingsService = new();
     private readonly GameLaunchService _gameLaunchService = new();
-    private readonly GitHubUpdateService _gitHubUpdateService = new();
-    private readonly SupabaseStatusService _supabaseStatusService = new();
+    private readonly GitHubUpdateService _gitHubUpdateService;
+    private readonly GitHubHubContentService _hubContentService;
     private readonly UpdateInstaller _updateInstaller = new();
     private readonly DispatcherTimer _faceClickTimer = new() { Interval = TimeSpan.FromMilliseconds(700) };
     private readonly DispatcherTimer _developerCommandTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer _refreshBlinkTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
-    private readonly DispatcherTimer _cloudStatusTimer = new() { Interval = TimeSpan.FromMinutes(5) };
+    private readonly DispatcherTimer _cloudStatusTimer = new() { Interval = TimeSpan.FromMinutes(1) };
     private readonly DeveloperCommandService _developerCommandService = new();
     private Color _previousPrimaryTextColor = Colors.White;
     private int _faceClickCount;
@@ -35,10 +35,14 @@ public partial class MainWindow : Window
     private int _refreshBlinkCycles;
     private Page? _currentPage;
     private Button? _activeNavigationButton;
+    private HubContentResult? _hubContentResult;
+    private bool _remoteRefreshInProgress;
 
     public MainWindow()
     {
         InitializeComponent();
+        _gitHubUpdateService = new GitHubUpdateService(_settingsService);
+        _hubContentService = new GitHubHubContentService(_settingsService);
         Title = "Casualties Hub — 100% Vibe coded by MarlyZ89";
         Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/CasualtiesHub.png"));
         ApplySavedTextSize();
@@ -52,7 +56,7 @@ public partial class MainWindow : Window
         _developerCommandTimer.Tick += (_, _) => CheckDeveloperConsoleCommands();
         _developerCommandTimer.Start();
         _refreshBlinkTimer.Tick += RefreshBlinkTimer_Tick;
-        _cloudStatusTimer.Tick += async (_, _) => await CheckSupabaseStatusAsync();
+        _cloudStatusTimer.Tick += async (_, _) => await RefreshRemoteDataIfEligibleAsync();
         ModService.PluginFilesChanged += PluginFilesChanged;
         ApplyOnlineServicesPreference();
         Loaded += async (_, _) =>
@@ -60,10 +64,11 @@ public partial class MainWindow : Window
             PromptForOnlineServicesOnFirstLaunch();
             await InitializeCloudFeaturesAsync();
         };
-        NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, Environment.GetCommandLineArgs().Contains("--refresh-metadata", StringComparer.OrdinalIgnoreCase)), DashboardNavButton);
+        Deactivated += async (_, _) => await RefreshRemoteDataIfEligibleAsync();
+        NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, Environment.GetCommandLineArgs().Contains("--refresh-metadata", StringComparer.OrdinalIgnoreCase), RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
     }
 
-    private void Dashboard_Click(object sender, RoutedEventArgs e) => NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage), DashboardNavButton);
+    private void Dashboard_Click(object sender, RoutedEventArgs e) => NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, false, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
     private void Mods_Click(object sender, RoutedEventArgs e) => NavigateTo(new ModsPage(SetStatus), ModsNavButton);
     private void ProtectedFiles_Click(object sender, RoutedEventArgs e) => NavigateTo(new ProtectedFilesPage(SetStatus), ProtectedAssetsNavButton);
     private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettingsPage();
@@ -104,8 +109,9 @@ public partial class MainWindow : Window
     private async Task InitializeCloudFeaturesAsync()
     {
         if (!_settingsService.Load().HubOnlineServicesEnabled) return;
-        await CheckSupabaseStatusAsync();
-        await CheckForUpdateAsync();
+        _hubContentResult = _hubContentService.LoadCached();
+        RefreshHubCenterIfOpen();
+        await RefreshRemoteDataIfEligibleAsync();
     }
 
     /// <summary>
@@ -126,7 +132,7 @@ public partial class MainWindow : Window
 
         if (enableOnlineServices)
         {
-            SetStatus("Online services enabled. Announcements and Hub update checks are available.");
+            SetStatus("Online services enabled. GitHub announcements and update checks are available.");
             DebugLogService.Activity("Online services", "Player enabled online services during first-launch setup.");
         }
         else
@@ -170,39 +176,36 @@ public partial class MainWindow : Window
         PapaZuck.Visibility = Visibility.Visible;
     }
 
-    private async Task CheckSupabaseStatusAsync()
+    private async Task RefreshRemoteDataIfEligibleAsync()
     {
-        if (!_settingsService.Load().HubOnlineServicesEnabled) return;
-        var status = await _supabaseStatusService.GetStatusAsync();
-        ApplySupabaseStatus(status);
+        if (IsActive || !_hubContentService.IsCheckDue()) return;
+        await RefreshAllRemoteDataAsync();
     }
 
-    private async Task CheckSupabaseStatusNowForDeveloperAsync()
+    private async Task RefreshAllRemoteDataAsync()
     {
-        if (!_settingsService.Load().HubOnlineServicesEnabled)
+        if (_remoteRefreshInProgress || !_settingsService.Load().HubOnlineServicesEnabled) return;
+        _remoteRefreshInProgress = true;
+        try
         {
-            SetStatus("Hub Online Services are disabled in Settings.");
-            return;
+            var metadataTask = new UniversalMetadataService(_settingsService).GetModsAsync(true);
+            var contentTask = _hubContentService.RefreshAsync();
+            var updateTask = CheckForUpdateAsync();
+            await Task.WhenAll(metadataTask, contentTask, updateTask);
+            _hubContentResult = await contentTask;
+            RefreshHubCenterIfOpen();
+            if (_hubContentResult.ContentChanged)
+                SetStatus("Updated GitHub announcements and community metadata were downloaded.");
         }
-        var status = await _supabaseStatusService.GetStatusAsync(true);
-        ApplySupabaseStatus(status);
-        SetStatus(status.IsOnline ? "Developer Console completed a live Supabase status request." : "Developer Console request used cached Supabase data.");
+        finally { _remoteRefreshInProgress = false; }
     }
 
-    private void ApplySupabaseStatus(SupabaseStatus status)
+    private async Task RefreshGitHubDataForMetadataPingAsync()
     {
-        ShowSupabaseStatus(status);
+        if (!_settingsService.Load().HubOnlineServicesEnabled || !_hubContentService.IsCheckDue()) return;
+        _hubContentResult = await _hubContentService.RefreshAsync();
+        await CheckForUpdateAsync();
         RefreshHubCenterIfOpen();
-        if (!status.ServerContentChanged) return;
-
-        RefreshCurrentPage("Server update received. Current page refreshed.");
-    }
-
-    private void ShowSupabaseStatus(SupabaseStatus status)
-    {
-        DebugLogService.Activity("Supabase", status.IsOnline
-            ? "Hub service status loaded."
-            : "Hub service status is using saved data.");
     }
 
     private HubCenterPage CreateHubCenterPage() => new(
@@ -217,8 +220,8 @@ public partial class MainWindow : Window
     private HubCenterState GetHubCenterState()
     {
         var settings = _settingsService.Load();
-        var status = _supabaseStatusService.LoadCached();
-        var manualCheckAvailable = _supabaseStatusService.CanMakeManualCheck(out var nextManualCheckUtc);
+        var status = _hubContentResult ?? _hubContentService.LoadCached();
+        var manualCheckAvailable = _hubContentService.IsCheckDue();
         var currentVersion = HubVersion.Current().ToString();
         var releaseNotes = new ReleaseNotesService().GetWhatChanged(currentVersion);
         return new HubCenterState
@@ -226,19 +229,17 @@ public partial class MainWindow : Window
             CurrentVersion = currentVersion,
             OnlineServicesEnabled = settings.HubOnlineServicesEnabled,
             ServiceOnline = status.IsOnline,
-            ServiceInMaintenance = status.IsMaintenance,
             ManualCheckAvailable = manualCheckAvailable,
-            NextManualCheckUtc = nextManualCheckUtc,
+            NextManualCheckUtc = status.NextCheckUtc,
             ShowingCachedServiceData = status.IsCached,
-            CurrentAnnouncement = status.Announcement,
+            CurrentAnnouncement = status.Content.CurrentAnnouncement.Message,
             NextServiceCheckUtc = status.NextCheckUtc,
             UpdateAvailable = _availableUpdate is not null,
             UpdateVersion = _availableUpdate?.Version.ToString(),
-            WhatChangedText = releaseNotes,
-            ActiveUsersLastTwoHours = status.ActiveUsersLastTwoHours,
-            ActiveUsersLastDay = status.ActiveUsersLastDay,
-            ActiveUsersLastWeek = status.ActiveUsersLastWeek,
-            AnnouncementHistory = (settings.AnnouncementHistory ?? [])
+            WhatChangedText = string.IsNullOrWhiteSpace(status.Content.WhatChanged) ? releaseNotes : status.Content.WhatChanged,
+            ReleaseInformation = status.Content.ReleaseInformation,
+            AnnouncementHistory = status.Content.PreviousAnnouncements
+                .Select(item => new AnnouncementHistoryItem { Id = item.Id, Message = item.Message, ReceivedAtUtc = item.PublishedAtUtc })
                 .OrderByDescending(item => item.ReceivedAtUtc)
                 .Take(3)
                 .ToList()
@@ -253,9 +254,8 @@ public partial class MainWindow : Window
         ApplyOnlineServicesPreference();
         if (enabled)
         {
-            await CheckSupabaseStatusAsync();
-            await CheckForUpdateAsync();
-            SetStatus("Online services enabled. The Hub is checking its saved service schedule.");
+            _hubContentResult = _hubContentService.LoadCached();
+            SetStatus("Online services enabled. Automatic GitHub checks run after the Hub leaves focus.");
         }
         else
         {
@@ -272,8 +272,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!_supabaseStatusService.CanMakeManualCheck(out var availableAtUtc))
+        if (!_hubContentService.IsCheckDue())
         {
+            var availableAtUtc = (_hubContentResult ?? _hubContentService.LoadCached()).NextCheckUtc;
             SetStatus(availableAtUtc is { } availableAt
                 ? $"Check now is available at {availableAt.LocalDateTime:t}."
                 : "Check now is temporarily unavailable.");
@@ -281,10 +282,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        var status = await _supabaseStatusService.GetManualStatusAsync();
-        ApplySupabaseStatus(status);
+        _hubContentResult = await _hubContentService.RefreshAsync();
         await CheckForUpdateAsync();
-        SetStatus("Manual Hub service check completed.");
+        SetStatus("GitHub announcement and update check completed.");
         RefreshHubCenterIfOpen();
     }
 
@@ -411,7 +411,7 @@ public partial class MainWindow : Window
                 break;
 
             case "ReloadDashboard":
-                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, true), DashboardNavButton);
+                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, true, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
                 SetStatus("Developer Console requested a dashboard refresh.");
                 break;
 
@@ -430,14 +430,9 @@ public partial class MainWindow : Window
                 SetStatus(string.IsNullOrWhiteSpace(diagnosticPath) ? "Diagnostic log could not be created." : "Diagnostic log created from the last 10 minutes.");
                 break;
 
-            case "CheckSupabaseNow":
-                _ = CheckSupabaseStatusNowForDeveloperAsync();
-                SetStatus("Developer Console is requesting Supabase status now.");
-                break;
-
-            case "SimulateSupabaseRateLimit":
-                ShowSupabaseStatus(_supabaseStatusService.CreateRateLimitTestStatus());
-                SetStatus("Developer Console simulated the one-hour Supabase rate-limit fallback.");
+            case "CheckGitHubNow":
+                _ = RefreshHubCenterServiceAsync();
+                SetStatus("Developer Console requested the scheduled GitHub content check.");
                 break;
 
             case "CheckUpdateFeed":
@@ -464,14 +459,14 @@ public partial class MainWindow : Window
     /// <summary>
     /// Reloads visible data after a user request or after an allowed server poll
     /// changes the locally cached announcement/compatibility feed. This does not
-    /// itself make another Supabase request.
+    /// itself make another network request.
     /// </summary>
     private void RefreshCurrentPage(string completionMessage)
     {
         switch (_currentPage)
         {
             case DashboardPage:
-                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage), DashboardNavButton);
+                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, false, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
                 break;
             case ModsPage:
                 NavigateTo(new ModsPage(SetStatus), ModsNavButton);
@@ -489,7 +484,7 @@ public partial class MainWindow : Window
                 hubCenter.RefreshView();
                 break;
             default:
-                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage), DashboardNavButton);
+                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, false, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
                 break;
         }
         SetStatus(completionMessage);
@@ -563,7 +558,7 @@ public partial class MainWindow : Window
             DebugLogService.Activity("Update check", "Checking the official GitHub release feed.");
             var current = HubVersion.Current();
             var update = await _gitHubUpdateService.CheckForUpdateAsync(current);
-            settings.NextGitHubUpdateCheckUtc = DateTimeOffset.UtcNow.AddHours(6);
+            settings.NextGitHubUpdateCheckUtc = DateTimeOffset.UtcNow.AddMinutes(30);
             _settingsService.Save(settings);
             if (update is null)
             {
@@ -664,7 +659,7 @@ public partial class MainWindow : Window
 
     private void OpenReleaseHistory()
     {
-        Process.Start(new ProcessStartInfo("https://github.com/MarlyZ89/Casualties-Hub-Public-Release/releases") { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo("https://github.com/MarlyZ89/Casualties-Hub-Public-Releases/releases") { UseShellExecute = true });
         DebugLogService.Activity("Hub Center", "Opened the GitHub release history.");
     }
 

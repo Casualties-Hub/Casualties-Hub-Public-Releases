@@ -20,7 +20,7 @@
 
                 <Border Background="#35383E" CornerRadius="7" Padding="18">
                     <StackPanel>
-                        <TextBlock Text="Online services" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
+                        <TextBlock Text="GitHub content" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
                         <StackPanel Orientation="Horizontal" Margin="0,13,0,4">
                             <Ellipse x:Name="ServiceStateDot" Width="18" Height="18" Fill="#B71C2A" VerticalAlignment="Center"/>
                             <TextBlock x:Name="ServiceStateText" Margin="9,0,0,0" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -29,7 +29,7 @@
                         <TextBlock x:Name="ActivitySummaryText" Foreground="#9BA3AF" TextWrapping="Wrap" Margin="0,10,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                             <Button x:Name="ToggleServicesButton" Width="174" Height="32" Click="ToggleServices_Click"/>
-                            <Button x:Name="CheckNowButton" Content="Check now" Width="100" Height="32" Margin="10,0,0,0" Click="CheckNow_Click" ToolTip="Uses the normal rate limit; it never bypasses the request cap."/>
+                            <Button x:Name="CheckNowButton" Content="Check now" Width="100" Height="32" Margin="10,0,0,0" Click="CheckNow_Click" ToolTip="Checks no more than once every 30 minutes and uses the saved cache when unchanged."/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
