@@ -23,16 +23,18 @@ public partial class DashboardPage : Page
     private readonly GameInstallDetector _gameInstallDetector = new();
     private readonly Action<string> _setStatus;
     private readonly Action? _openSettings;
+    private readonly Func<Task>? _refreshGitHubData;
     private static bool _missingGamePromptShown;
     private bool _forceMetadataRefresh;
     private IReadOnlyList<MetadataMod> _allMods = [];
     private int _currentPage = 1;
 
-    public DashboardPage(Action<string> setStatus, Action? openSettings = null, bool forceMetadataRefresh = false)
+    public DashboardPage(Action<string> setStatus, Action? openSettings = null, bool forceMetadataRefresh = false, Func<Task>? refreshGitHubData = null)
     {
         InitializeComponent();
         _setStatus = setStatus;
         _openSettings = openSettings;
+        _refreshGitHubData = refreshGitHubData;
         _forceMetadataRefresh = forceMetadataRefresh;
         _protectedFilesService = new(_settingsService, _modService);
         _metadataService = new(_settingsService);
@@ -140,7 +142,9 @@ public partial class DashboardPage : Page
         {
             DebugLogService.Activity("Nexus Dashboard", forceRefresh ? "Refreshing community metadata from the network." : "Loading community metadata.");
             MetadataStatusText.Text = "Requesting current community metadata…";
+            var githubTask = forceRefresh && _refreshGitHubData is not null ? _refreshGitHubData() : Task.CompletedTask;
             _allMods = await _metadataService.GetModsAsync(forceRefresh);
+            await githubTask;
             var premiumEnabled = _nexusApiKeyStore.HasKey;
             foreach (var mod in _allMods)
             {

@@ -1,0 +1,15 @@
+Casualties Hub v0.0.8-pre.1
+
+GitHub content and privacy update
+
+- Removed the Supabase announcement service and anonymous community activity metrics.
+- Added a public GitHub-hosted HubContent.json feed for announcements and release information.
+- Added a bundled HubContent.json so Hub Center remains useful before the first network check and while offline.
+- Automatic remote checks run no more than once every 30 minutes and defer while the Hub is focused.
+- Nexus metadata, Hub announcements, and GitHub release checks use saved caches and conditional HTTP requests so unchanged content is not downloaded again.
+- Manual metadata refreshes also check eligible GitHub announcements and updates when the 30-minute interval allows.
+- Corrected the official GitHub repository address used by update checks and release history.
+
+Testing note
+
+This is a pre-release build intended for testing toward Casualties Hub v0.0.8.

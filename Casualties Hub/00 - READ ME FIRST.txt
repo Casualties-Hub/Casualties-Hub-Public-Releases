@@ -10,5 +10,6 @@ FILES IN THIS FOLDER
 - CH Uninstaller.cmd: removes the Hub and offers to keep or delete Hub data.
 - Data\Catalogs: editable dependency and incompatibility catalog files.
 - Data\Release Notes: local summaries used by Hub Center's What Changed panel.
+- Data\HubContent.json: bundled offline announcements and release information. Updated public content is cached from the official GitHub repository.
 
 Keep this folder outside Program Files so the Hub can update its local data normally.

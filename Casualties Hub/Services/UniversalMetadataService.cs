@@ -1,6 +1,7 @@
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net;
 using System.Text.Json;
 using Casualties_Hub.Models;
 
@@ -15,6 +16,7 @@ public sealed class UniversalMetadataService
     public const string MetadataUrl = "https://github.com/jimmyking9999999/Metadata-generator/raw/refs/heads/main/nexusmods.json";
     private static readonly HttpClient HttpClient = CreateClient();
     private readonly string _cachePath;
+    private readonly string _statePath;
     private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
     private static IReadOnlyList<MetadataMod> _lastSuccessfulMods = [];
 
@@ -23,6 +25,7 @@ public sealed class UniversalMetadataService
     public UniversalMetadataService(SettingsService settingsService)
     {
         _cachePath = Path.Combine(settingsService.AppDataPath, "UniversalMetadataCache.json");
+        _statePath = Path.Combine(settingsService.AppDataPath, "UniversalMetadataHttpState.json");
     }
 
     public async Task<IReadOnlyList<MetadataMod>> GetModsAsync(bool forceRefresh = false)
@@ -43,11 +46,25 @@ public sealed class UniversalMetadataService
         }
         try
         {
-            using var response = await HttpClient.GetAsync(MetadataUrl);
+            var state = LoadState();
+            using var request = new HttpRequestMessage(HttpMethod.Get, MetadataUrl);
+            if (!string.IsNullOrWhiteSpace(state.ETag)) request.Headers.TryAddWithoutValidation("If-None-Match", state.ETag);
+            if (state.LastModifiedUtc is { } modified) request.Headers.IfModifiedSince = modified;
+            using var response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            if (response.StatusCode == HttpStatusCode.NotModified && File.Exists(_cachePath))
+            {
+                var unchanged = Deserialize(File.ReadAllText(_cachePath));
+                _lastSuccessfulMods = unchanged;
+                DebugLogService.Info($"Community metadata is unchanged; using {unchanged.Count} cached mods.");
+                return unchanged;
+            }
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
             var mods = Deserialize(json);
             File.WriteAllText(_cachePath, json);
+            state.ETag = response.Headers.ETag?.ToString();
+            state.LastModifiedUtc = response.Content.Headers.LastModified;
+            File.WriteAllText(_statePath, JsonSerializer.Serialize(state));
             _lastSuccessfulMods = mods;
             DebugLogService.Info($"Live universal metadata loaded: {mods.Count} mods.");
             return mods;
@@ -71,7 +88,19 @@ public sealed class UniversalMetadataService
     private static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.5-pre.1"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.8-pre.1"));
         return client;
+    }
+
+    private CacheState LoadState()
+    {
+        try { return File.Exists(_statePath) ? JsonSerializer.Deserialize<CacheState>(File.ReadAllText(_statePath)) ?? new() : new(); }
+        catch { return new(); }
+    }
+
+    private sealed class CacheState
+    {
+        public string? ETag { get; set; }
+        public DateTimeOffset? LastModifiedUtc { get; set; }
     }
 }

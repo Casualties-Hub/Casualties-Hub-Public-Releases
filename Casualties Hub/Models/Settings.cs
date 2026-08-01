@@ -27,22 +27,6 @@ public class Settings
     public byte AccentGreen { get; set; } = 31;
     public byte AccentBlue { get; set; } = 50;
     public string ProtectedFilesPath { get; set; } = "ProtectedFiles";
-    public string? CachedAnnouncement { get; set; }
-    public string? CachedAnnouncementId { get; set; }
-    public DateTimeOffset? CachedAnnouncementUpdatedAt { get; set; }
-    public int CachedActiveUsersLastTwoHours { get; set; }
-    public int CachedActiveUsersLastDay { get; set; }
-    public int CachedActiveUsersLastWeek { get; set; }
-    public List<AnnouncementHistoryItem> AnnouncementHistory { get; set; } = [];
-    public DateTimeOffset? LastSupabaseCheckUtc { get; set; }
-    public DateTimeOffset? NextSupabaseCheckUtc { get; set; }
-    public DateTimeOffset? NextManualSupabaseCheckUtc { get; set; }
-    // Random anonymous identifier created locally on first online-service use.
-    // It is only used for aggregate activity counts and is never shown in the UI.
-    public string? InstallationId { get; set; }
-    // Local guard in addition to the Supabase/IP-side limit. A forced developer
-    // check is still one outgoing request and cannot spam the public endpoint.
-    public List<DateTimeOffset> SupabaseRequestHistoryUtc { get; set; } = [];
     // Online services are an opt-in feature for new installs. Legacy settings
     // are marked as already answered during loading so an update never changes
     // an existing player's preference or shows an unexpected prompt.
