@@ -17,7 +17,7 @@ public class SettingsService
         {
             if (!File.Exists(_settingsPath))
             {
-                var settings = new Settings();
+                var settings = CreateDefaultSettings();
                 SaveUnsafe(settings);
                 return settings;
             }
@@ -72,6 +72,12 @@ public class SettingsService
                     settings.ThemeColoursInitialized = true;
                     changed = true;
                 }
+                // Presets arrived in v0.0.8-pre.2. Older settings have no slots,
+                // so top the list up to a fixed four and keep them addressable
+                // by position.
+                if (NormalizeCustomPresets(settings)) changed = true;
+                if (ReconcileActivePreset(settings)) changed = true;
+
                 if (changed) SaveUnsafe(settings);
                 return settings;
             }
@@ -80,7 +86,7 @@ public class SettingsService
                 DebugLogService.Error("Could not load Settings.json; using session defaults", exception);
                 // Do not overwrite an unreadable file. The user can still open
                 // Settings and choose paths while the underlying issue is fixed.
-                return new Settings();
+                return CreateDefaultSettings();
             }
         }
     }
@@ -91,8 +97,65 @@ public class SettingsService
         {
             settings.TextSize = Math.Clamp(settings.TextSize, 10, 20);
             settings.ThemeColoursInitialized = true;
+            NormalizeCustomPresets(settings);
             SaveUnsafe(settings);
         }
+    }
+
+    private static Settings CreateDefaultSettings()
+    {
+        var settings = new Settings();
+        NormalizeCustomPresets(settings);
+        return settings;
+    }
+
+    /// <summary>
+    /// Stops the preset label claiming "Default" over colours that are not the
+    /// stock set. Settings written before presets existed carry the default
+    /// label regardless of the colours a player had already chosen.
+    /// </summary>
+    private static bool ReconcileActivePreset(Settings settings)
+    {
+        if (!string.Equals(settings.ActiveUiPreset, UiPresetIds.Default, StringComparison.Ordinal)) return false;
+
+        var stock = UiPreset.Stock;
+        var matchesStock = settings.PrimaryTextRed == stock.PrimaryTextRed
+            && settings.PrimaryTextGreen == stock.PrimaryTextGreen
+            && settings.PrimaryTextBlue == stock.PrimaryTextBlue
+            && settings.ButtonTextRed == stock.ButtonTextRed
+            && settings.ButtonTextGreen == stock.ButtonTextGreen
+            && settings.ButtonTextBlue == stock.ButtonTextBlue
+            && settings.NavigationSurfaceRed == stock.NavigationSurfaceRed
+            && settings.NavigationSurfaceGreen == stock.NavigationSurfaceGreen
+            && settings.NavigationSurfaceBlue == stock.NavigationSurfaceBlue
+            && settings.AccentRed == stock.AccentRed
+            && settings.AccentGreen == stock.AccentGreen
+            && settings.AccentBlue == stock.AccentBlue;
+        if (matchesStock) return false;
+
+        settings.ActiveUiPreset = UiPresetIds.CustomColours;
+        return true;
+    }
+
+    /// <summary>
+    /// Keeps exactly four custom preset slots so each one can be addressed by
+    /// position, whether or not the player has saved anything into it yet.
+    /// </summary>
+    private static bool NormalizeCustomPresets(Settings settings)
+    {
+        settings.CustomUiPresets ??= [];
+        var changed = false;
+        while (settings.CustomUiPresets.Count > UiPresetIds.CustomSlotCount)
+        {
+            settings.CustomUiPresets.RemoveAt(settings.CustomUiPresets.Count - 1);
+            changed = true;
+        }
+        while (settings.CustomUiPresets.Count < UiPresetIds.CustomSlotCount)
+        {
+            settings.CustomUiPresets.Add(new UiPreset { Name = $"Preset {settings.CustomUiPresets.Count + 1}" });
+            changed = true;
+        }
+        return changed;
     }
 
     private void SaveUnsafe(Settings settings)

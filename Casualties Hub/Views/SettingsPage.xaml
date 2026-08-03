@@ -59,6 +59,43 @@
                             </Style>
                         </ToggleButton.Style>
                     </ToggleButton>
+                    <TextBlock Text="UI presets" Foreground="#C9CDD3" Margin="0,16,0,4" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="ActivePresetText" Foreground="#A9AFB8" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="Default" Tag="Default" Width="120" Height="30" Margin="0,0,8,0" Click="ApplyUiPreset_Click" ToolTip="Replace the current colours with the stock Casualties Hub set."/>
+                        <Button x:Name="AnimatedRgbButton" Content="Animated RGB" Tag="AnimatedRgb" Width="150" Height="30" Click="ApplyUiPreset_Click" ToolTip="Cycles the page text and accent colour continuously. Press again to turn it off; your colours are kept and come straight back."/>
+                    </StackPanel>
+                    <TextBlock Text="Save stores the colours and text size you are using now. Apply puts a saved slot back." Foreground="#A9AFB8" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <UniformGrid Columns="4" MaxWidth="780" HorizontalAlignment="Left" Margin="0,0,0,12">
+                        <Border Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock x:Name="CustomPreset1Name" Foreground="White" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Apply" Tag="Custom1" Height="28" Margin="0,8,0,0" Click="ApplyUiPreset_Click"/>
+                                <Button Content="Save" Tag="1" Height="28" Margin="0,6,0,0" Click="SaveUiPreset_Click" ToolTip="Overwrite this slot with your current colours and text size."/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock x:Name="CustomPreset2Name" Foreground="White" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Apply" Tag="Custom2" Height="28" Margin="0,8,0,0" Click="ApplyUiPreset_Click"/>
+                                <Button Content="Save" Tag="2" Height="28" Margin="0,6,0,0" Click="SaveUiPreset_Click" ToolTip="Overwrite this slot with your current colours and text size."/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock x:Name="CustomPreset3Name" Foreground="White" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Apply" Tag="Custom3" Height="28" Margin="0,8,0,0" Click="ApplyUiPreset_Click"/>
+                                <Button Content="Save" Tag="3" Height="28" Margin="0,6,0,0" Click="SaveUiPreset_Click" ToolTip="Overwrite this slot with your current colours and text size."/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#292B30" BorderBrush="#555A63" BorderThickness="1" CornerRadius="5" Padding="10">
+                            <StackPanel>
+                                <TextBlock x:Name="CustomPreset4Name" Foreground="White" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Apply" Tag="Custom4" Height="28" Margin="0,8,0,0" Click="ApplyUiPreset_Click"/>
+                                <Button Content="Save" Tag="4" Height="28" Margin="0,6,0,0" Click="SaveUiPreset_Click" ToolTip="Overwrite this slot with your current colours and text size."/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
                     <TextBlock Text="UI colours" Foreground="#C9CDD3" Margin="0,16,0,4" FontWeight="SemiBold"/>
                     <TextBlock Text="Paste a #RRGGBB value for a quick change. Expand RGB only when you need fine control." Foreground="#A9AFB8" TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <Grid MaxWidth="780">

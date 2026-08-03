@@ -5,24 +5,26 @@ using Casualties_Hub.Models;
 
 namespace Casualties_Hub.Views;
 
-public partial class HubCenterPage : Page
+public partial class HubHomePage : Page
 {
-    private readonly Func<HubCenterState> _getState;
+    private readonly Func<HubHomeState> _getState;
     private readonly Func<bool, Task> _setOnlineServicesEnabled;
     private readonly Func<Task> _checkServiceNow;
     private readonly Func<Task> _installUpdate;
     private readonly Func<Task> _installLocalZip;
     private readonly Action _openReleaseHistory;
     private readonly Action _openDiscord;
+    private readonly Action _openCredits;
 
-    public HubCenterPage(
-        Func<HubCenterState> getState,
+    public HubHomePage(
+        Func<HubHomeState> getState,
         Func<bool, Task> setOnlineServicesEnabled,
         Func<Task> checkServiceNow,
         Func<Task> installUpdate,
         Func<Task> installLocalZip,
         Action openReleaseHistory,
-        Action openDiscord)
+        Action openDiscord,
+        Action openCredits)
     {
         _getState = getState;
         _setOnlineServicesEnabled = setOnlineServicesEnabled;
@@ -31,6 +33,7 @@ public partial class HubCenterPage : Page
         _installLocalZip = installLocalZip;
         _openReleaseHistory = openReleaseHistory;
         _openDiscord = openDiscord;
+        _openCredits = openCredits;
         InitializeComponent();
         Loaded += (_, _) => RefreshView();
     }
@@ -43,6 +46,7 @@ public partial class HubCenterPage : Page
             ? state.CurrentAnnouncement
             : "Online services are disabled. Enable them to receive announcements and update checks.";
         WhatChangedText.Text = state.WhatChangedText;
+        ReleaseInformationText.Text = state.ReleaseInformation;
         AnnouncementHistoryList.ItemsSource = state.AnnouncementHistory;
         NoHistoryText.Visibility = state.AnnouncementHistory.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         CheckNowButton.IsEnabled = state.OnlineServicesEnabled && state.ManualCheckAvailable;
@@ -118,6 +122,16 @@ public partial class HubCenterPage : Page
         RefreshView();
     }
 
+    private void PriorAnnouncements_Click(object sender, RoutedEventArgs e)
+        => AnnouncementHistoryCard.Visibility = Toggle(AnnouncementHistoryCard.Visibility);
+
+    private void ReleaseInformation_Click(object sender, RoutedEventArgs e)
+        => ReleaseInformationPanel.Visibility = Toggle(ReleaseInformationPanel.Visibility);
+
+    private static Visibility Toggle(Visibility visibility)
+        => visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+
     private void ReleaseHistory_Click(object sender, RoutedEventArgs e) => _openReleaseHistory();
     private void OpenDiscord_Click(object sender, RoutedEventArgs e) => _openDiscord();
+    private void OpenCredits_Click(object sender, RoutedEventArgs e) => _openCredits();
 }

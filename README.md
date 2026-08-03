@@ -30,8 +30,8 @@ Older releases remain available on GitHub for testing and rollback.
 - Protect custom sprites, skins, sounds, character folders, and other assets locally, then restore them after a mod reinstall.
 - Launch Casualties Unknown through Steam.
 - Create local diagnostic logs and retain recent crash reports for troubleshooting.
-- Use the **Hub Center** for announcements, Community Activity, compatibility notices, and eligible GitHub update information.
-- Adjust text size, theme colours, file paths, and other local preferences in **Settings**.
+- Use **Hub Home** for announcements, prior announcements, release and update information, credits, and eligible GitHub update information.
+- Adjust text size, theme colours, file paths, and other local preferences in **Settings**, including UI presets and four saveable custom looks.
 
 ## Nexus and mod installation
 
@@ -47,11 +47,11 @@ Choose either a file or the complete folder you want to preserve. **Restore All*
 
 ## Online Services
 
-Hub Online Services are **optional** and are disabled by default on a fresh install. They are controlled from **Hub Center**; local mod management, Protected Assets, and most launcher functions still work when they are off.
+Hub Online Services are **optional** and are disabled by default on a fresh install. They are controlled from **Hub Home**; local mod management, Protected Assets, and most launcher functions still work when they are off.
 
 When enabled, the Hub may retrieve:
 
-- GitHub-hosted announcements and the three previous announcements.
+- GitHub-hosted announcements. The three most recent announcements this PC has received are kept locally so they stay readable afterwards.
 - Community compatibility and known-bug notices.
 - Eligible GitHub update information.
 
@@ -103,7 +103,7 @@ For bug reports, include:
 
 Casualties Hub is a passion project created and maintained by **MarlyZ89**.
 
-The application’s Credits page recognises community contributors, testers, metadata support, and resource permissions. JimmyKing has contributed ideas and granted permission for certain project resources; the current coding, implementation, maintenance, and overall project direction are handled by MarlyZ89.
+The application’s Credits page, reached from **Hub Home**, recognises community contributors, testers, metadata support, and resource permissions. JimmyKing has contributed ideas and granted permission for certain project resources; the current coding, implementation, maintenance, and overall project direction are handled by MarlyZ89.
 
 ## License
 

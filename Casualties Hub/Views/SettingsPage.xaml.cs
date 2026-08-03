@@ -34,6 +34,7 @@ public partial class SettingsPage : Page
         DadipfBox.IsChecked = settings.DisableAutoDeleteImportedParentFiles;
         EasterEggsToggle.IsChecked = settings.EasterEggsEnabled;
         SetThemeControls(settings);
+        SetPresetControls(settings);
         var selectedSize = settings.TextSize.ToString("0");
         TextSizeBox.SelectedItem = TextSizeBox.Items.OfType<ComboBoxItem>()
             .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), selectedSize, StringComparison.Ordinal));
@@ -128,27 +129,107 @@ public partial class SettingsPage : Page
     private void RestoreDefaultColours_Click(object sender, RoutedEventArgs e)
     {
         var settings = _settingsService.Load();
-        settings.PrimaryTextRed = 194;
-        settings.PrimaryTextGreen = 31;
-        settings.PrimaryTextBlue = 50;
-        settings.ButtonTextRed = 20;
-        settings.ButtonTextGreen = 20;
-        settings.ButtonTextBlue = 20;
-        settings.NavigationSurfaceRed = 245;
-        settings.NavigationSurfaceGreen = 245;
-        settings.NavigationSurfaceBlue = 245;
-        settings.AccentRed = 194;
-        settings.AccentGreen = 31;
-        settings.AccentBlue = 50;
-        settings.ThemeColoursInitialized = true;
+        UiPreset.Stock.ApplyColoursTo(settings);
+        settings.ActiveUiPreset = UiPresetIds.Default;
+        settings.AnimatedRgbEnabled = false;
         _settingsService.Save(settings);
 
         _isUpdatingTheme = true;
         SetThemeControls(settings);
         _isUpdatingTheme = false;
-        ApplyTheme();
+        SetPresetControls(settings);
+        ApplyPreset();
         _setStatus("Default Casualties Hub colours restored.");
         DebugLogService.Activity("Settings", "Restored default Hub colours.");
+    }
+
+    private void ApplyUiPreset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string presetId }) return;
+        var settings = _settingsService.Load();
+        string message;
+
+        if (UiPresetIds.TryGetCustomSlot(presetId, out var slot))
+        {
+            var preset = settings.CustomUiPresets[slot - 1];
+            if (!preset.IsSaved)
+            {
+                _setStatus($"Preset {slot} is empty. Set up the look you want, then press Save on that slot.");
+                return;
+            }
+            preset.ApplyTo(settings);
+            settings.ActiveUiPreset = presetId;
+            settings.AnimatedRgbEnabled = false;
+            message = $"Applied {preset.Name}.";
+        }
+        else if (string.Equals(presetId, UiPresetIds.Default, StringComparison.Ordinal))
+        {
+            UiPreset.Stock.ApplyColoursTo(settings);
+            settings.ActiveUiPreset = UiPresetIds.Default;
+            settings.AnimatedRgbEnabled = false;
+            message = "Applied the Default colours.";
+        }
+        else
+        {
+            // Animated RGB is a switch over the loaded colours, never a
+            // replacement for them, so turning it off brings them straight back.
+            settings.AnimatedRgbEnabled = !settings.AnimatedRgbEnabled;
+            message = settings.AnimatedRgbEnabled
+                ? "Animated RGB is on. Turn it off to return to your saved colours."
+                : $"Animated RGB is off. Restored {PresetDisplayName(settings, settings.ActiveUiPreset)}.";
+        }
+
+        _settingsService.Save(settings);
+
+        _isUpdatingTheme = true;
+        SetThemeControls(settings);
+        _isUpdatingTheme = false;
+        SetPresetControls(settings);
+        ApplyPreset();
+        if (Application.Current.MainWindow is MainWindow window) window.ApplySavedTextSize();
+        _setStatus(message);
+        DebugLogService.Activity("Settings", $"UI preset action: {presetId}.");
+    }
+
+    private void SaveUiPreset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string rawSlot } || !int.TryParse(rawSlot, out var slot)) return;
+        if (slot < 1 || slot > UiPresetIds.CustomSlotCount) return;
+
+        var settings = _settingsService.Load();
+        settings.CustomUiPresets[slot - 1] = UiPreset.Capture(settings, $"Preset {slot}");
+        _settingsService.Save(settings);
+
+        SetPresetControls(settings);
+        _setStatus($"Saved your current colours and text size to preset {slot}.");
+        DebugLogService.Activity("Settings", $"Saved UI preset slot {slot}.");
+    }
+
+    private void SetPresetControls(Settings settings)
+    {
+        var names = new[] { CustomPreset1Name, CustomPreset2Name, CustomPreset3Name, CustomPreset4Name };
+        for (var index = 0; index < names.Length; index++)
+        {
+            var preset = settings.CustomUiPresets[index];
+            names[index].Text = preset.IsSaved ? preset.Name : $"Preset {index + 1} (empty)";
+        }
+        var colours = PresetDisplayName(settings, settings.ActiveUiPreset);
+        ActivePresetText.Text = settings.AnimatedRgbEnabled
+            ? $"Animated RGB is on, over your {colours} colours. Press it again to turn it off."
+            : $"Active colours: {colours}.";
+        AnimatedRgbButton.Content = settings.AnimatedRgbEnabled ? "Animated RGB: on" : "Animated RGB";
+    }
+
+    private static string PresetDisplayName(Settings settings, string presetId)
+    {
+        if (string.Equals(presetId, UiPresetIds.CustomColours, StringComparison.Ordinal)) return "custom";
+        if (UiPresetIds.TryGetCustomSlot(presetId, out var slot)) return settings.CustomUiPresets[slot - 1].Name;
+        return "Default";
+    }
+
+    private void ApplyPreset()
+    {
+        if (Application.Current.MainWindow is MainWindow window) window.ApplyActiveUiPreset();
     }
 
     private void SaveThemeFromControls()
@@ -167,12 +248,17 @@ public partial class SettingsPage : Page
         settings.AccentGreen = SliderByte(AccentGreenSlider);
         settings.AccentBlue = SliderByte(AccentBlueSlider);
         settings.ThemeColoursInitialized = true;
+        // These colours are no longer the preset that was loaded, and a hand-picked
+        // colour only shows up once the animation stops repainting over it.
+        settings.ActiveUiPreset = UiPresetIds.CustomColours;
+        settings.AnimatedRgbEnabled = false;
         _settingsService.Save(settings);
 
         _isUpdatingTheme = true;
         SetThemeControls(settings);
         _isUpdatingTheme = false;
-        ApplyTheme();
+        SetPresetControls(settings);
+        ApplyPreset();
         _setStatus("UI colours saved.");
         DebugLogService.Activity("Settings", "Saved UI colour preferences.");
     }

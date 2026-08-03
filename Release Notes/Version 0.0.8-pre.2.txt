@@ -1,0 +1,31 @@
+Casualties Hub v0.0.8-pre.2
+
+Interface and navigation update
+
+- Renamed Hub Center to Hub Home.
+- Moved Credits into Hub Home and removed it from the left-side navigation.
+- Compressed the left-side navigation so pages have more room.
+- Added a Prior announcements button to the far right of the announcement card.
+- Added a Release / update info button to the far right of the What Changed card.
+- Contributors without a photo now keep a same-size picture area marked Pending Picture.
+
+UI presets
+
+- Added a Default preset that loads the stock Casualties Hub colours.
+- Added Animated RGB, which continuously cycles the page text and accent colour. It is a switch over whatever colours you have loaded, not a replacement for them; press it again and your colours come straight back.
+- Added four custom preset slots. Save stores the colours and text size you are using now; Apply puts a saved slot back.
+- Changing a colour by hand turns Animated RGB off so the change is visible.
+
+Local Mods
+
+- Installed-mod cards now fill their whole column and keep the same width in windowed and fullscreen layouts.
+- Card actions use a fixed-width column, so every card keeps the same shape regardless of which buttons it shows.
+- Long status text truncates instead of widening its card.
+
+Announcements
+
+- Announcements are now saved on this PC as they arrive, and the newest three stay readable in Hub Home even after the published feed stops listing them.
+
+Testing note
+
+This is a pre-release build intended for testing toward Casualties Hub v0.0.8.

@@ -26,6 +26,12 @@ public class Settings
     public byte AccentRed { get; set; } = 194;
     public byte AccentGreen { get; set; } = 31;
     public byte AccentBlue { get; set; } = 50;
+    // Which colours are loaded: the stock set, a saved slot, or the player's own
+    // mix. Animated RGB is a separate switch that paints over whichever of those
+    // is loaded, so turning it off restores the colours untouched.
+    public string ActiveUiPreset { get; set; } = UiPresetIds.Default;
+    public bool AnimatedRgbEnabled { get; set; }
+    public List<UiPreset> CustomUiPresets { get; set; } = [];
     public string ProtectedFilesPath { get; set; } = "ProtectedFiles";
     // Online services are an opt-in feature for new installs. Legacy settings
     // are marked as already answered during loading so an update never changes

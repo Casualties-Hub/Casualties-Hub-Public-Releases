@@ -7,7 +7,7 @@ using Casualties_Hub.Models;
 
 namespace Casualties_Hub.Services;
 
-/// <summary>Loads public Hub Center content from GitHub with a local cache and HTTP validators.</summary>
+/// <summary>Loads public Hub Home content from GitHub with a local cache and HTTP validators.</summary>
 public sealed class GitHubHubContentService
 {
     public const string ContentUrl = "https://raw.githubusercontent.com/MarlyZ89/Casualties-Hub-Public-Releases/main/HubContent.json";
@@ -112,7 +112,7 @@ public sealed class GitHubHubContentService
     private static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.8-pre.1"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.8-pre.2"));
         return client;
     }
 

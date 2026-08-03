@@ -1,7 +1,7 @@
 namespace Casualties_Hub.Models;
 
-/// <summary>Read-only data shown by the Hub Center page.</summary>
-public sealed class HubCenterState
+/// <summary>Read-only data shown by the Hub Home page.</summary>
+public sealed class HubHomeState
 {
     public string CurrentVersion { get; init; } = "Unknown";
     public bool OnlineServicesEnabled { get; init; }

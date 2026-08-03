@@ -7,7 +7,7 @@
         PreviewKeyDown="Window_PreviewKeyDown"
         >
     <Grid>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="220"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="176"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Grid.RowDefinitions><RowDefinition Height="78"/><RowDefinition Height="*"/><RowDefinition Height="28"/></Grid.RowDefinitions>
 
         <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#18191C" Panel.ZIndex="20">
@@ -26,17 +26,18 @@
         </Border>
 
         <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Background="#202225" Panel.ZIndex="30">
-            <StackPanel Margin="15">
-                <TextBlock FontSize="22" FontWeight="Bold" Margin="0,0,0,30">
+            <!-- The sidebar is deliberately compact so pages keep the width. -->
+            <StackPanel Margin="10">
+                <TextBlock FontSize="19" FontWeight="Bold" Margin="0,0,0,16">
                     <!-- The product wordmark intentionally stays white/crimson even when page text is personalized. -->
                     <Run Text="Casualties" Foreground="White"/><Run Text=" " Foreground="White"/><Run Text="Hub" Foreground="#FFC21F32"/>
                 </TextBlock>
-                <Button x:Name="DashboardNavButton" Content="Nexus Dashboard" Height="40" Margin="0,0,0,10" Click="Dashboard_Click"/>
-                <Button x:Name="ModsNavButton" Content="Local Mods" Height="40" Margin="0,0,0,10" Click="Mods_Click"/>
-                <Button x:Name="ProtectedAssetsNavButton" Content="Protected Assets" Height="40" Margin="0,0,0,10" Click="ProtectedFiles_Click"/>
-                <Button x:Name="HubCenterNavButton" Content="Hub Center" Height="40" Margin="0,0,0,10" Click="HubCenter_Click"/>
-                <Button x:Name="SettingsNavButton" Content="Settings" Height="40" Click="Settings_Click"/>
-                <Button x:Name="CreditsNavButton" Content="Credits" Height="32" Margin="0,12,0,0" Click="Credits_Click"/>
+                <Button x:Name="DashboardNavButton" Content="Nexus Dashboard" Height="32" Margin="0,0,0,6" Click="Dashboard_Click"/>
+                <Button x:Name="ModsNavButton" Content="Local Mods" Height="32" Margin="0,0,0,6" Click="Mods_Click"/>
+                <Button x:Name="ProtectedAssetsNavButton" Content="Protected Assets" Height="32" Margin="0,0,0,6" Click="ProtectedFiles_Click"/>
+                <!-- Credits now lives inside Hub Home, keeping the sidebar to five entries. -->
+                <Button x:Name="HubHomeNavButton" Content="Hub Home" Height="32" Margin="0,0,0,6" Click="HubHome_Click"/>
+                <Button x:Name="SettingsNavButton" Content="Settings" Height="32" Click="Settings_Click"/>
             </StackPanel>
         </Border>
 
@@ -45,13 +46,13 @@
         <Border x:Name="StatusBarHost" Grid.Row="2" Grid.ColumnSpan="2" Background="#18191C" Panel.ZIndex="20" ClipToBounds="True">
             <Grid ClipToBounds="True">
                 <TextBlock x:Name="StatusText" Text="Ready" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="10,0,180,0" TextTrimming="CharacterEllipsis"/>
-                <TextBlock Text="v0.0.8-pre.1" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
+                <TextBlock Text="v0.0.8-pre.2" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
             </Grid>
         </Border>
 
-        <Grid x:Name="PapaZuck" Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" Panel.ZIndex="40" Width="200" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom" Cursor="Hand" ToolTip="PapaZuck, unofficial/official Casualties Hub mascot. Click 3 times to pop; 5 times for a surprise." MouseLeftButtonUp="PapaZuck_Click" RenderTransformOrigin="0.5,0.5">
+        <Grid x:Name="PapaZuck" Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" Panel.ZIndex="40" Width="160" Height="160" HorizontalAlignment="Center" VerticalAlignment="Bottom" Cursor="Hand" ToolTip="PapaZuck, unofficial/official Casualties Hub mascot. Click 3 times to pop; 5 times for a surprise." MouseLeftButtonUp="PapaZuck_Click" RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform><ScaleTransform x:Name="PapaZuckScale" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
-            <Canvas><Image Source="pack://application:,,,/Assets/PapaZuck.png" Width="200" Height="200" Stretch="Uniform"/></Canvas>
+            <Canvas><Image Source="pack://application:,,,/Assets/PapaZuck.png" Width="160" Height="160" Stretch="Uniform"/></Canvas>
         </Grid>
     </Grid>
 </Window>

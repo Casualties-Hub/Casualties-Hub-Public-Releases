@@ -2,7 +2,7 @@ using System.IO;
 
 namespace Casualties_Hub.Services;
 
-/// <summary>Reads the short, local release summary shown in Hub Center.</summary>
+/// <summary>Reads the short, local release summary shown in Hub Home.</summary>
 public sealed class ReleaseNotesService
 {
     public string GetWhatChanged(string version)
