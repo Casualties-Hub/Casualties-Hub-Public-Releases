@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Casualties_Hub.Services;
 
 namespace Casualties_Hub.Models;
 
@@ -97,21 +96,13 @@ public sealed class MetadataMod
         ? $"Size {FormatFileSize(bytes)}"
         : "Size not supplied";
 
-    public bool IsAdultContent
-    {
-        get
-        {
-            if (AdultContentCatalog.IsAdult(Name)) return true;
-            if (AdditionalProperties is null) return false;
-            foreach (var key in new[] { "AdultContent", "IsAdult", "Adult", "adult_content", "adult" })
-            {
-                if (!AdditionalProperties.TryGetValue(key, out var value)) continue;
-                if (value.ValueKind == JsonValueKind.True) return true;
-                if (value.ValueKind == JsonValueKind.String && bool.TryParse(value.GetString(), out var parsed)) return parsed;
-            }
-            return false;
-        }
-    }
+    /// <summary>
+    /// Adult-content flag published by the metadata generator from the Nexus
+    /// contains_adult_content field.
+    /// </summary>
+    public bool ContainsAdultContent { get; init; }
+
+    public bool IsAdultContent => ContainsAdultContent;
 
     private static string FormatFileSize(long bytes)
     {
