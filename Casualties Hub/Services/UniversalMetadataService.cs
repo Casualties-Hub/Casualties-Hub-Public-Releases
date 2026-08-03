@@ -13,6 +13,9 @@ namespace Casualties_Hub.Services;
 public sealed class UniversalMetadataService
 {
     public const string MetadataUrl = "https://github.com/jimmyking9999999/Metadata-generator/raw/refs/heads/main/nexusmods.json";
+    // Moderators can mark a mod adult at any time, so a cache is only trusted briefly.
+    // Beyond this age the live list is requested and the cache serves as an offline fallback.
+    private static readonly TimeSpan CacheLifetime = TimeSpan.FromHours(6);
     private static readonly HttpClient HttpClient = CreateClient();
     private readonly string _cachePath;
     private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
@@ -27,7 +30,7 @@ public sealed class UniversalMetadataService
 
     public async Task<IReadOnlyList<MetadataMod>> GetModsAsync(bool forceRefresh = false)
     {
-        if (!forceRefresh && File.Exists(_cachePath))
+        if (!forceRefresh && File.Exists(_cachePath) && !IsCacheStale())
         {
             try
             {
@@ -62,6 +65,18 @@ public sealed class UniversalMetadataService
             _lastSuccessfulMods = cachedMods;
             DebugLogService.Info($"Using offline universal metadata cache: {cachedMods.Count} mods.");
             return cachedMods;
+        }
+    }
+
+    private bool IsCacheStale()
+    {
+        try
+        {
+            return DateTime.UtcNow - File.GetLastWriteTimeUtc(_cachePath) > CacheLifetime;
+        }
+        catch (IOException)
+        {
+            return true;
         }
     }
 
