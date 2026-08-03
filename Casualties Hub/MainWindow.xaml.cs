@@ -235,7 +235,7 @@ public partial class MainWindow : Window
     {
         var settings = _settingsService.Load();
         var status = _hubContentResult ?? _hubContentService.LoadCached();
-        var manualCheckAvailable = _hubContentService.IsCheckDue();
+        var manualCheckAvailable = _hubContentService.IsManualCheckDue();
         var currentVersion = HubVersion.Current().ToString();
         var releaseNotes = new ReleaseNotesService().GetWhatChanged(currentVersion);
         return new HubHomeState
@@ -244,7 +244,7 @@ public partial class MainWindow : Window
             OnlineServicesEnabled = settings.HubOnlineServicesEnabled,
             ServiceOnline = status.IsOnline,
             ManualCheckAvailable = manualCheckAvailable,
-            NextManualCheckUtc = status.NextCheckUtc,
+            NextManualCheckUtc = _hubContentService.NextManualCheckUtc(),
             ShowingCachedServiceData = status.IsCached,
             CurrentAnnouncement = status.Content.CurrentAnnouncement.Message,
             NextServiceCheckUtc = status.NextCheckUtc,
@@ -284,17 +284,17 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!_hubContentService.IsCheckDue())
+        if (!_hubContentService.IsManualCheckDue())
         {
-            var availableAtUtc = (_hubContentResult ?? _hubContentService.LoadCached()).NextCheckUtc;
+            var availableAtUtc = _hubContentService.NextManualCheckUtc();
             SetStatus(availableAtUtc is { } availableAt
-                ? $"Check now is available at {availableAt.LocalDateTime:t}."
+                ? $"Check now is available at {availableAt.LocalDateTime:T}."
                 : "Check now is temporarily unavailable.");
             RefreshHubHomeIfOpen();
             return;
         }
 
-        _hubContentResult = await _hubContentService.RefreshAsync();
+        _hubContentResult = await _hubContentService.RefreshAsync(manual: true);
         await CheckForUpdateAsync();
         SetStatus("GitHub announcement and update check completed.");
         RefreshHubHomeIfOpen();

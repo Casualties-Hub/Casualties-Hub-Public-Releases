@@ -26,6 +26,11 @@ Announcements
 
 - Announcements are now saved on this PC as they arrive, and the newest three stay readable in Hub Home even after the published feed stops listing them.
 
+GitHub content checks
+
+- The Check now button now cools down for 30 seconds instead of 30 minutes. The automatic background check is unchanged.
+- The remaining cooldown counts down live in the button itself, for example "Check now (23s)".
+
 Testing note
 
 This is a pre-release build intended for testing toward Casualties Hub v0.0.8.

@@ -30,7 +30,7 @@
                         <TextBlock x:Name="ActivitySummaryText" Foreground="#9BA3AF" TextWrapping="Wrap" Margin="0,10,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                             <Button x:Name="ToggleServicesButton" Width="174" Height="32" Click="ToggleServices_Click"/>
-                            <Button x:Name="CheckNowButton" Content="Check now" Width="100" Height="32" Margin="10,0,0,0" Click="CheckNow_Click" ToolTip="Checks no more than once every 30 minutes and uses the saved cache when unchanged."/>
+                            <Button x:Name="CheckNowButton" Content="Check now" Width="136" Height="32" Margin="10,0,0,0" Click="CheckNow_Click" ToolTip="Checks no more than once every 30 seconds and uses the saved cache when unchanged."/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

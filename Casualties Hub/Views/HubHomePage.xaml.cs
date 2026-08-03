@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Casualties_Hub.Models;
 
 namespace Casualties_Hub.Views;
@@ -15,6 +16,7 @@ public partial class HubHomePage : Page
     private readonly Action _openReleaseHistory;
     private readonly Action _openDiscord;
     private readonly Action _openCredits;
+    private readonly DispatcherTimer _checkNowCountdownTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     public HubHomePage(
         Func<HubHomeState> getState,
@@ -34,8 +36,12 @@ public partial class HubHomePage : Page
         _openReleaseHistory = openReleaseHistory;
         _openDiscord = openDiscord;
         _openCredits = openCredits;
+        _checkNowCountdownTimer.Tick += CheckNowCountdownTimer_Tick;
         InitializeComponent();
         Loaded += (_, _) => RefreshView();
+        // The page instance is torn down on navigation, but the DispatcherTimer
+        // it started is not; stop it explicitly or it keeps ticking forever.
+        Unloaded += (_, _) => _checkNowCountdownTimer.Stop();
     }
 
     public void RefreshView()
@@ -51,13 +57,8 @@ public partial class HubHomePage : Page
         NoHistoryText.Visibility = state.AnnouncementHistory.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         CheckNowButton.IsEnabled = state.OnlineServicesEnabled && state.ManualCheckAvailable;
         CheckNowButton.Opacity = CheckNowButton.IsEnabled ? 1 : 0.45;
-        CheckNowButton.ToolTip = !state.OnlineServicesEnabled
-            ? "Online services are disabled. Enable them before checking."
-            : state.ManualCheckAvailable
-                ? "Request GitHub announcements and release information now. Available once every 30 minutes."
-                : state.NextManualCheckUtc is { } nextManual
-                    ? $"Check now is cooling down. Available at {nextManual.LocalDateTime:t}."
-                    : "Check now is temporarily unavailable.";
+        CheckNowButton.ToolTip = "Checks no more than once every 30 seconds and uses the saved cache when unchanged.";
+        UpdateCheckNowCountdown(state);
         ActivitySummaryText.Text = state.OnlineServicesEnabled
             ? "Privacy: public GitHub files are checked without sending an installation ID or activity metrics."
             : "GitHub content checks are currently disabled.";
@@ -93,6 +94,36 @@ public partial class HubHomePage : Page
             : $"No eligible update is currently available. {state.ReleaseInformation}";
         InstallUpdateButton.Visibility = state.UpdateAvailable ? Visibility.Visible : Visibility.Collapsed;
         InstallUpdateButton.Content = state.UpdateAvailable ? "Install update" : "Install update";
+    }
+
+    /// <summary>
+    /// A disabled button does not reliably show a hover tooltip, so the
+    /// countdown is shown directly in the button's own label instead.
+    /// </summary>
+    private void UpdateCheckNowCountdown(HubHomeState state)
+    {
+        var remainingSeconds = RemainingCheckNowSeconds(state);
+        if (remainingSeconds is null)
+        {
+            _checkNowCountdownTimer.Stop();
+            CheckNowButton.Content = "Check now";
+            return;
+        }
+
+        CheckNowButton.Content = $"Check now ({remainingSeconds}s)";
+        if (!_checkNowCountdownTimer.IsEnabled) _checkNowCountdownTimer.Start();
+    }
+
+    private void CheckNowCountdownTimer_Tick(object? sender, EventArgs e) => UpdateCheckNowCountdown(_getState());
+
+    /// <summary>Seconds left on the cooldown, or null when the button is not cooling down.</summary>
+    private static int? RemainingCheckNowSeconds(HubHomeState state)
+    {
+        if (!state.OnlineServicesEnabled || state.ManualCheckAvailable || state.NextManualCheckUtc is not { } nextManual)
+            return null;
+
+        var remainingSeconds = (int)Math.Ceiling((nextManual - DateTimeOffset.UtcNow).TotalSeconds);
+        return remainingSeconds > 0 ? remainingSeconds : null;
     }
 
     private async void ToggleServices_Click(object sender, RoutedEventArgs e)
