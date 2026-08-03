@@ -237,7 +237,7 @@ public partial class MainWindow : Window
         var status = _hubContentResult ?? _hubContentService.LoadCached();
         var manualCheckAvailable = _hubContentService.IsManualCheckDue();
         var currentVersion = HubVersion.Current().ToString();
-        var releaseNotes = new ReleaseNotesService().GetWhatChanged(currentVersion);
+        var releaseNotesService = new ReleaseNotesService();
         return new HubHomeState
         {
             CurrentVersion = currentVersion,
@@ -250,8 +250,10 @@ public partial class MainWindow : Window
             NextServiceCheckUtc = status.NextCheckUtc,
             UpdateAvailable = _availableUpdate is not null,
             UpdateVersion = _availableUpdate?.Version.ToString(),
-            WhatChangedText = string.IsNullOrWhiteSpace(status.Content.WhatChanged) ? releaseNotes : status.Content.WhatChanged,
-            ReleaseInformation = status.Content.ReleaseInformation,
+            // Local to the installed build, not the GitHub feed, so these only
+            // change when a new build ships.
+            WhatChangedText = releaseNotesService.GetWhatChanged(currentVersion),
+            ReleaseInformation = releaseNotesService.GetReleaseInformation(currentVersion),
             // History is kept on this PC, so an announcement stays readable here
             // even after a later HubContent.json stops listing it.
             AnnouncementHistory = _announcementHistoryService.Record(status.Content)

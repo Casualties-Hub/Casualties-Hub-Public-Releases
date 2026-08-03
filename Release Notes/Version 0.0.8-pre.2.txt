@@ -1,5 +1,7 @@
 Casualties Hub v0.0.8-pre.2
 
+What changed
+
 Interface and navigation update
 
 - Renamed Hub Center to Hub Home.
@@ -25,6 +27,7 @@ Local Mods
 Announcements
 
 - Announcements are now saved on this PC as they arrive, and the newest three stay readable in Hub Home even after the published feed stops listing them.
+- The GitHub-hosted feed now carries only announcements. What Changed and release information come from this file instead, so they only change when a new build ships.
 
 GitHub content checks
 

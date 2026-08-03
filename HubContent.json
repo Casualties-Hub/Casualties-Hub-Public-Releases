@@ -12,7 +12,5 @@
       "publishedAtUtc": "2026-07-28T00:00:00Z",
       "message": "Casualties Hub v0.0.7 is the current public release."
     }
-  ],
-  "whatChanged": "Removed Supabase and anonymous activity metrics. Added a cached GitHub announcement feed with conditional refreshes and a 30-minute automatic check interval.",
-  "releaseInformation": "This is a pre-release testing build toward v0.0.8."
+  ]
 }

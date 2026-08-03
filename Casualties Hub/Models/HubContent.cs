@@ -1,13 +1,16 @@
 namespace Casualties_Hub.Models;
 
+/// <summary>
+/// The GitHub-hosted feed content. Announcements only — What Changed and
+/// release information come from the build's own local Release Notes file
+/// instead, so they only change when a new build ships, not when the feed does.
+/// </summary>
 public sealed class HubContent
 {
     public int SchemaVersion { get; set; } = 1;
     public DateTimeOffset UpdatedAtUtc { get; set; }
     public HubAnnouncement CurrentAnnouncement { get; set; } = new();
     public List<HubAnnouncement> PreviousAnnouncements { get; set; } = [];
-    public string WhatChanged { get; set; } = "What changed notes are not available for this build.";
-    public string ReleaseInformation { get; set; } = "No additional release information is available.";
 }
 
 public sealed class HubAnnouncement
