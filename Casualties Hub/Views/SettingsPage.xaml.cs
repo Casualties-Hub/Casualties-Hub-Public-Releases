@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Casualties_Hub.Models;
 using Casualties_Hub.Services;
 
@@ -33,7 +35,7 @@ public partial class SettingsPage : Page
         DownloadPathBox.Text = settings.DownloadPath;
         DadipfBox.IsChecked = settings.DisableAutoDeleteImportedParentFiles;
         EasterEggsToggle.IsChecked = settings.EasterEggsEnabled;
-        SetThemeControls(settings);
+        LoadDraftFromSettings();
         SetPresetControls(settings);
         var selectedSize = settings.TextSize.ToString("0");
         TextSizeBox.SelectedItem = TextSizeBox.Items.OfType<ComboBoxItem>()
@@ -109,39 +111,321 @@ public partial class SettingsPage : Page
         _setStatus($"Text size saved as {settings.TextSize:0}.");
     }
 
-    private void ThemeColourSlider_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    // ----- Custom colours -----
+    //
+    // One editor drives whichever of the four themeable colours is selected.
+    // Nothing is written to Settings until Apply, so a half-typed hex value or a
+    // stray keystroke never repaints the application.
+
+    /// <summary>The colour currently being edited, before Apply is pressed.</summary>
+    private Color _draftColour;
+
+    private string SelectedColourTarget =>
+        (ColourTargetBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "Accent";
+
+    private void ToggleCustomColours_Click(object sender, RoutedEventArgs e)
     {
-        if (_isLoadingSettings || _isUpdatingTheme) return;
-        SaveThemeFromControls();
+        var opening = CustomColourPanel.Visibility != Visibility.Visible;
+        CustomColourPanel.Visibility = opening ? Visibility.Visible : Visibility.Collapsed;
+        if (opening) LoadDraftFromSettings();
     }
 
-    private void ThemeHexBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void ColourTarget_Changed(object sender, SelectionChangedEventArgs e)
     {
-        if (_isLoadingSettings || _isUpdatingTheme || sender is not TextBox { Tag: string category } box) return;
-        if (!TryParseHexColour(box.Text, out var color)) return;
-
-        _isUpdatingTheme = true;
-        SetThemeSliderValues(category, color);
-        _isUpdatingTheme = false;
-        SaveThemeFromControls();
+        if (_isLoadingSettings || !IsLoaded) return;
+        LoadDraftFromSettings();
     }
 
-    private void RestoreDefaultColours_Click(object sender, RoutedEventArgs e)
+    /// <summary>Fills the editor from whatever the selected element is set to now.</summary>
+    private void LoadDraftFromSettings()
     {
         var settings = _settingsService.Load();
-        UiPreset.Stock.ApplyColoursTo(settings);
-        settings.ActiveUiPreset = UiPresetIds.Default;
+        // Switching element starts from the plain swatch again, so the panel
+        // always answers "what is this set to" before offering to change it.
+        ShowColourWheel(false);
+        SetDraft(SelectedColourTarget switch
+        {
+            "Background" => ThemePalette.Background(settings),
+            "Surface" => ThemePalette.Surface(settings),
+            "Text" => ThemePalette.Text(settings),
+            _ => ThemePalette.Accent(settings)
+        });
+    }
+
+    private void SetDraft(Color color) => SetDraft(color, syncBrightness: true);
+
+    /// <param name="syncBrightness">
+    /// False while the brightness slider itself is driving the change, so moving
+    /// it does not immediately rewrite its own value and fight the drag.
+    /// </param>
+    private void SetDraft(Color color, bool syncBrightness)
+    {
+        _draftColour = color;
+        _isUpdatingTheme = true;
+        ColourHexBox.Text = $"{color.R:X2}{color.G:X2}{color.B:X2}";
+        ColourRedSlider.Value = color.R;
+        ColourGreenSlider.Value = color.G;
+        ColourBlueSlider.Value = color.B;
+        ColourRedValue.Text = color.R.ToString();
+        ColourGreenValue.Text = color.G.ToString();
+        ColourBlueValue.Text = color.B.ToString();
+        ColourSwatch.Fill = new SolidColorBrush(color);
+
+        var (hue, saturation, value) = ToHsv(color);
+        if (syncBrightness) ColourValueSlider.Value = value * 100;
+        _wheelValue = syncBrightness ? value : _wheelValue;
+        _isUpdatingTheme = false;
+
+        // Repainting the wheel costs a full bitmap, so only do it while it is
+        // actually on screen.
+        if (ColourWheelImage.Visibility == Visibility.Visible)
+        {
+            RenderColourWheel();
+            PositionWheelMarker(hue, saturation);
+        }
+    }
+
+    /// <summary>
+    /// The slot shows the current colour until the player asks for the wheel, so
+    /// the panel opens on "here is your colour" rather than a picker.
+    /// </summary>
+    private void ShowColourWheel(bool show)
+    {
+        var visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        ColourWheelImage.Visibility = visibility;
+        ColourWheelMarker.Visibility = visibility;
+        // Brightness only means something once there is a wheel to modulate.
+        BrightnessPanel.Visibility = visibility;
+        ColourSwatch.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+        ColourSlotHint.Text = show
+            ? "Click or drag on the wheel."
+            : "Click the circle to open the colour wheel.";
+
+        if (!show) return;
+        var (hue, saturation, _) = ToHsv(_draftColour);
+        RenderColourWheel();
+        PositionWheelMarker(hue, saturation);
+    }
+
+    private void ColourSwatch_Click(object sender, MouseButtonEventArgs e) => ShowColourWheel(true);
+
+    // ----- Colour wheel -----
+    //
+    // Hue is the angle around the wheel, saturation the distance from the middle.
+    // Brightness is a separate slider; the wheel is redrawn at the current
+    // brightness so what you see is what you get.
+
+    private const int WheelSize = 86;
+    private double _wheelValue = 1;
+    private bool _draggingWheel;
+
+    private void RenderColourWheel()
+    {
+        var radius = WheelSize / 2.0;
+        var pixels = new byte[WheelSize * WheelSize * 4];
+        for (var y = 0; y < WheelSize; y++)
+        {
+            for (var x = 0; x < WheelSize; x++)
+            {
+                var dx = (x + 0.5) - radius;
+                var dy = (y + 0.5) - radius;
+                var distance = Math.Sqrt((dx * dx) + (dy * dy));
+                var index = ((y * WheelSize) + x) * 4;
+                if (distance > radius)
+                {
+                    // Outside the circle stays fully transparent, which is what
+                    // makes the control read as round rather than a square image.
+                    pixels[index + 3] = 0;
+                    continue;
+                }
+
+                var hue = ((Math.Atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+                var color = FromHsv(hue, Math.Min(distance / radius, 1), _wheelValue);
+                pixels[index] = color.B;
+                pixels[index + 1] = color.G;
+                pixels[index + 2] = color.R;
+                // Feather the last pixel so the rim is not visibly stair-stepped.
+                pixels[index + 3] = (byte)(distance > radius - 1 ? 255 * (radius - distance) : 255);
+            }
+        }
+
+        var bitmap = new WriteableBitmap(WheelSize, WheelSize, 96, 96, PixelFormats.Bgra32, null);
+        bitmap.WritePixels(new Int32Rect(0, 0, WheelSize, WheelSize), pixels, WheelSize * 4, 0);
+        ColourWheelImage.Source = bitmap;
+    }
+
+    private void PositionWheelMarker(double hue, double saturation)
+    {
+        var radius = WheelSize / 2.0;
+        var angle = hue * Math.PI / 180;
+        var x = radius + (Math.Cos(angle) * saturation * radius);
+        var y = radius + (Math.Sin(angle) * saturation * radius);
+        ColourWheelMarker.Margin = new Thickness(x - 6, y - 6, 0, 0);
+    }
+
+    private void ColourWheel_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _draggingWheel = true;
+        ColourWheelImage.CaptureMouse();
+        PickFromWheel(e.GetPosition(ColourWheelImage));
+    }
+
+    private void ColourWheel_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_draggingWheel) PickFromWheel(e.GetPosition(ColourWheelImage));
+    }
+
+    private void ColourWheel_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        _draggingWheel = false;
+        ColourWheelImage.ReleaseMouseCapture();
+    }
+
+    private void PickFromWheel(Point position)
+    {
+        var radius = WheelSize / 2.0;
+        var dx = position.X - radius;
+        var dy = position.Y - radius;
+        var distance = Math.Sqrt((dx * dx) + (dy * dy));
+        var hue = ((Math.Atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+        // Dragging past the rim keeps picking the outer edge rather than stopping.
+        var saturation = Math.Min(distance / radius, 1);
+        SetDraft(FromHsv(hue, saturation, _wheelValue), syncBrightness: false);
+    }
+
+    private void ColourValue_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isLoadingSettings || _isUpdatingTheme || !IsLoaded) return;
+        _wheelValue = ColourValueSlider.Value / 100;
+        var (hue, saturation, _) = ToHsv(_draftColour);
+        SetDraft(FromHsv(hue, saturation, _wheelValue), syncBrightness: false);
+    }
+
+    private static (double Hue, double Saturation, double Value) ToHsv(Color color)
+    {
+        double r = color.R / 255.0, g = color.G / 255.0, b = color.B / 255.0;
+        var max = Math.Max(r, Math.Max(g, b));
+        var min = Math.Min(r, Math.Min(g, b));
+        var delta = max - min;
+
+        double hue = 0;
+        if (delta > 0)
+        {
+            if (max == r) hue = 60 * (((g - b) / delta) % 6);
+            else if (max == g) hue = 60 * (((b - r) / delta) + 2);
+            else hue = 60 * (((r - g) / delta) + 4);
+        }
+        if (hue < 0) hue += 360;
+        return (hue, max <= 0 ? 0 : delta / max, max);
+    }
+
+    private static Color FromHsv(double hue, double saturation, double value)
+    {
+        var chroma = value * saturation;
+        var secondary = chroma * (1 - Math.Abs(((hue / 60) % 2) - 1));
+        var offset = value - chroma;
+        var (r, g, b) = (int)(hue / 60) switch
+        {
+            0 => (chroma, secondary, 0d),
+            1 => (secondary, chroma, 0d),
+            2 => (0d, chroma, secondary),
+            3 => (0d, secondary, chroma),
+            4 => (secondary, 0d, chroma),
+            _ => (chroma, 0d, secondary)
+        };
+        return Color.FromRgb(Channel(r + offset), Channel(g + offset), Channel(b + offset));
+    }
+
+    private static byte Channel(double value) => (byte)Math.Clamp(Math.Round(value * 255), 0, 255);
+
+    private void ColourHex_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (_isLoadingSettings || _isUpdatingTheme) return;
+        if (!TryParseHexColour(ColourHexBox.Text, out var color)) return;
+        SetDraft(color);
+    }
+
+    private void ColourChannel_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isLoadingSettings || _isUpdatingTheme || !IsLoaded) return;
+        SetDraft(Color.FromRgb(
+            SliderByte(ColourRedSlider),
+            SliderByte(ColourGreenSlider),
+            SliderByte(ColourBlueSlider)));
+    }
+
+    private static byte SliderByte(Slider slider) => (byte)Math.Clamp(Math.Round(slider.Value), 0, 255);
+
+    private void ApplyCustomColour_Click(object sender, RoutedEventArgs e)
+    {
+        var settings = _settingsService.Load();
+        var color = _draftColour;
+        switch (SelectedColourTarget)
+        {
+            case "Background":
+                (settings.BackgroundRed, settings.BackgroundGreen, settings.BackgroundBlue) = (color.R, color.G, color.B);
+                break;
+            case "Surface":
+                (settings.SurfaceRed, settings.SurfaceGreen, settings.SurfaceBlue) = (color.R, color.G, color.B);
+                break;
+            case "Text":
+                (settings.PrimaryTextRed, settings.PrimaryTextGreen, settings.PrimaryTextBlue) = (color.R, color.G, color.B);
+                break;
+            default:
+                (settings.AccentRed, settings.AccentGreen, settings.AccentBlue) = (color.R, color.G, color.B);
+                break;
+        }
+        // These are no longer the preset that was loaded, and a hand-picked colour
+        // only shows up once the animation stops repainting over it.
+        settings.ActiveUiPreset = UiPresetIds.CustomColours;
         settings.AnimatedRgbEnabled = false;
         _settingsService.Save(settings);
 
-        _isUpdatingTheme = true;
-        SetThemeControls(settings);
-        _isUpdatingTheme = false;
         SetPresetControls(settings);
         ApplyPreset();
-        _setStatus("Default Casualties Hub colours restored.");
-        DebugLogService.Activity("Settings", "Restored default Hub colours.");
+        _setStatus($"{TargetLabel(SelectedColourTarget)} colour applied.");
+        DebugLogService.Activity("Settings", $"Applied a custom {SelectedColourTarget} colour.");
     }
+
+    private void ResetCustomColour_Click(object sender, RoutedEventArgs e)
+    {
+        var settings = _settingsService.Load();
+        var stock = UiPreset.Stock;
+        switch (SelectedColourTarget)
+        {
+            case "Background":
+                (settings.BackgroundRed, settings.BackgroundGreen, settings.BackgroundBlue) = (stock.BackgroundRed, stock.BackgroundGreen, stock.BackgroundBlue);
+                break;
+            case "Surface":
+                (settings.SurfaceRed, settings.SurfaceGreen, settings.SurfaceBlue) = (stock.SurfaceRed, stock.SurfaceGreen, stock.SurfaceBlue);
+                break;
+            case "Text":
+                (settings.PrimaryTextRed, settings.PrimaryTextGreen, settings.PrimaryTextBlue) = (stock.PrimaryTextRed, stock.PrimaryTextGreen, stock.PrimaryTextBlue);
+                break;
+            default:
+                (settings.AccentRed, settings.AccentGreen, settings.AccentBlue) = (stock.AccentRed, stock.AccentGreen, stock.AccentBlue);
+                break;
+        }
+        settings.AnimatedRgbEnabled = false;
+        _settingsService.Save(settings);
+
+        // Reloading rather than reusing the reconcile result keeps the "Default"
+        // label honest once the last hand-picked colour has been put back.
+        var reloaded = _settingsService.Load();
+        LoadDraftFromSettings();
+        SetPresetControls(reloaded);
+        ApplyPreset();
+        _setStatus($"{TargetLabel(SelectedColourTarget)} colour reset to the Casualties Hub default.");
+        DebugLogService.Activity("Settings", $"Reset the {SelectedColourTarget} colour to default.");
+    }
+
+    private static string TargetLabel(string target) => target switch
+    {
+        "Background" => "Background",
+        "Surface" => "Panels and cards",
+        "Text" => "Text",
+        _ => "Accent"
+    };
 
     private void ApplyUiPreset_Click(object sender, RoutedEventArgs e)
     {
@@ -181,9 +465,7 @@ public partial class SettingsPage : Page
 
         _settingsService.Save(settings);
 
-        _isUpdatingTheme = true;
-        SetThemeControls(settings);
-        _isUpdatingTheme = false;
+        LoadDraftFromSettings();
         SetPresetControls(settings);
         ApplyPreset();
         if (Application.Current.MainWindow is MainWindow window) window.ApplySavedTextSize();
@@ -231,90 +513,6 @@ public partial class SettingsPage : Page
     {
         if (Application.Current.MainWindow is MainWindow window) window.ApplyActiveUiPreset();
     }
-
-    private void SaveThemeFromControls()
-    {
-        var settings = _settingsService.Load();
-        settings.PrimaryTextRed = SliderByte(PrimaryTextRedSlider);
-        settings.PrimaryTextGreen = SliderByte(PrimaryTextGreenSlider);
-        settings.PrimaryTextBlue = SliderByte(PrimaryTextBlueSlider);
-        settings.ButtonTextRed = SliderByte(ButtonTextRedSlider);
-        settings.ButtonTextGreen = SliderByte(ButtonTextGreenSlider);
-        settings.ButtonTextBlue = SliderByte(ButtonTextBlueSlider);
-        settings.NavigationSurfaceRed = SliderByte(ButtonSurfaceRedSlider);
-        settings.NavigationSurfaceGreen = SliderByte(ButtonSurfaceGreenSlider);
-        settings.NavigationSurfaceBlue = SliderByte(ButtonSurfaceBlueSlider);
-        settings.AccentRed = SliderByte(AccentRedSlider);
-        settings.AccentGreen = SliderByte(AccentGreenSlider);
-        settings.AccentBlue = SliderByte(AccentBlueSlider);
-        settings.ThemeColoursInitialized = true;
-        // These colours are no longer the preset that was loaded, and a hand-picked
-        // colour only shows up once the animation stops repainting over it.
-        settings.ActiveUiPreset = UiPresetIds.CustomColours;
-        settings.AnimatedRgbEnabled = false;
-        _settingsService.Save(settings);
-
-        _isUpdatingTheme = true;
-        SetThemeControls(settings);
-        _isUpdatingTheme = false;
-        SetPresetControls(settings);
-        ApplyPreset();
-        _setStatus("UI colours saved.");
-        DebugLogService.Activity("Settings", "Saved UI colour preferences.");
-    }
-
-    private void ApplyTheme()
-    {
-        if (Application.Current.MainWindow is MainWindow window) window.ApplySavedTextColor();
-    }
-
-    private void SetThemeControls(Settings settings)
-    {
-        SetSliders(PrimaryTextRedSlider, PrimaryTextGreenSlider, PrimaryTextBlueSlider, settings.PrimaryTextRed, settings.PrimaryTextGreen, settings.PrimaryTextBlue);
-        SetSliders(ButtonTextRedSlider, ButtonTextGreenSlider, ButtonTextBlueSlider, settings.ButtonTextRed, settings.ButtonTextGreen, settings.ButtonTextBlue);
-        SetSliders(ButtonSurfaceRedSlider, ButtonSurfaceGreenSlider, ButtonSurfaceBlueSlider, settings.NavigationSurfaceRed, settings.NavigationSurfaceGreen, settings.NavigationSurfaceBlue);
-        SetSliders(AccentRedSlider, AccentGreenSlider, AccentBlueSlider, settings.AccentRed, settings.AccentGreen, settings.AccentBlue);
-        UpdateThemeControlLabels();
-    }
-
-    private void SetThemeSliderValues(string category, Color color)
-    {
-        switch (category)
-        {
-            case "PrimaryText": SetSliders(PrimaryTextRedSlider, PrimaryTextGreenSlider, PrimaryTextBlueSlider, color.R, color.G, color.B); break;
-            case "ButtonText": SetSliders(ButtonTextRedSlider, ButtonTextGreenSlider, ButtonTextBlueSlider, color.R, color.G, color.B); break;
-            case "ButtonSurface": SetSliders(ButtonSurfaceRedSlider, ButtonSurfaceGreenSlider, ButtonSurfaceBlueSlider, color.R, color.G, color.B); break;
-            case "Accent": SetSliders(AccentRedSlider, AccentGreenSlider, AccentBlueSlider, color.R, color.G, color.B); break;
-            default: return;
-        }
-        UpdateThemeControlLabels();
-    }
-
-    private void UpdateThemeControlLabels()
-    {
-        UpdateThemeControl(PrimaryTextRedSlider, PrimaryTextGreenSlider, PrimaryTextBlueSlider, PrimaryTextRedValue, PrimaryTextGreenValue, PrimaryTextBlueValue, PrimaryTextHexBox);
-        UpdateThemeControl(ButtonTextRedSlider, ButtonTextGreenSlider, ButtonTextBlueSlider, ButtonTextRedValue, ButtonTextGreenValue, ButtonTextBlueValue, ButtonTextHexBox);
-        UpdateThemeControl(ButtonSurfaceRedSlider, ButtonSurfaceGreenSlider, ButtonSurfaceBlueSlider, ButtonSurfaceRedValue, ButtonSurfaceGreenValue, ButtonSurfaceBlueValue, ButtonSurfaceHexBox);
-        UpdateThemeControl(AccentRedSlider, AccentGreenSlider, AccentBlueSlider, AccentRedValue, AccentGreenValue, AccentBlueValue, AccentHexBox);
-    }
-
-    private static void UpdateThemeControl(Slider red, Slider green, Slider blue, TextBlock redValue, TextBlock greenValue, TextBlock blueValue, TextBox hexBox)
-    {
-        var color = Color.FromRgb(SliderByte(red), SliderByte(green), SliderByte(blue));
-        redValue.Text = $"{color.R}";
-        greenValue.Text = $"{color.G}";
-        blueValue.Text = $"{color.B}";
-        hexBox.Text = ToHex(color);
-    }
-
-    private static void SetSliders(Slider red, Slider green, Slider blue, byte redValue, byte greenValue, byte blueValue)
-    {
-        red.Value = redValue;
-        green.Value = greenValue;
-        blue.Value = blueValue;
-    }
-
-    private static byte SliderByte(Slider slider) => (byte)Math.Round(slider.Value);
 
     private static string ToHex(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
 

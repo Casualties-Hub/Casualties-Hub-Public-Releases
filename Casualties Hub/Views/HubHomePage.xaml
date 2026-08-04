@@ -1,7 +1,7 @@
 <Page x:Class="Casualties_Hub.Views.HubHomePage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Background="#2B2D31">
+      Background="{DynamicResource WindowBackgroundBrush}">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="28,24,28,32" MaxWidth="1100">
             <Grid.RowDefinitions>
@@ -12,67 +12,44 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="16"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Background="#35383E" CornerRadius="7" Padding="18">
-                    <StackPanel>
-                        <TextBlock Text="GitHub content" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,13,0,4">
-                            <Ellipse x:Name="ServiceStateDot" Width="18" Height="18" Fill="#B71C2A" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="ServiceStateText" Margin="9,0,0,0" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock x:Name="ServiceDetailText" Foreground="#C7CDD5" TextWrapping="Wrap"/>
-                        <TextBlock x:Name="ActivitySummaryText" Foreground="#9BA3AF" TextWrapping="Wrap" Margin="0,10,0,0"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                            <Button x:Name="ToggleServicesButton" Width="174" Height="32" Click="ToggleServices_Click"/>
-                            <Button x:Name="CheckNowButton" Content="Check now" Width="136" Height="32" Margin="10,0,0,0" Click="CheckNow_Click" ToolTip="Checks no more than once every 30 seconds and uses the saved cache when unchanged."/>
-                        </StackPanel>
+            <!-- The Hub no longer checks for or installs its own updates. This
+                 card only reports the build you are running. -->
+            <Border Grid.Row="0" Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="18">
+                <StackPanel>
+                    <TextBlock Text="This installation" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="CurrentVersionText" Margin="0,12,0,0" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="16"/>
+                    <TextBlock x:Name="InstallationDetailText" Margin="0,8,0,0" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <Button Content="Release history" Width="140" Height="32" Click="ReleaseHistory_Click" ToolTip="Open the GitHub releases page in your browser."/>
+                        <Button Content="Go to Nexus page" Width="150" Height="32" Margin="10,0,0,0" Click="NexusPage_Click" ToolTip="Open the Casualties Unknown page on Nexus Mods."/>
                     </StackPanel>
-                </Border>
-
-                <Border Grid.Column="2" Background="#35383E" CornerRadius="7" Padding="18">
-                    <StackPanel>
-                        <TextBlock Text="This installation" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
-                        <TextBlock x:Name="CurrentVersionText" Margin="0,12,0,0" Foreground="#DCE0E5" FontSize="16"/>
-                        <TextBlock x:Name="UpdateText" Margin="0,8,0,0" Foreground="#C7CDD5" TextWrapping="Wrap"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                            <Button x:Name="InstallUpdateButton" Width="132" Height="32" Click="InstallUpdate_Click"/>
-                            <Button Content="Use local ZIP" Width="122" Height="32" Margin="10,0,0,0" Click="InstallLocalZip_Click" ToolTip="Select a previously downloaded Casualties Hub release ZIP."/>
-                            <Button Content="Release history" Width="128" Height="32" Margin="10,0,0,0" Click="ReleaseHistory_Click" ToolTip="Open GitHub releases to download an older version if you need to roll back."/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-            </Grid>
+                </StackPanel>
+            </Border>
 
             <!-- Each card keeps its own action at the far right of its heading row
                  so the heading stays readable at any window width. -->
-            <Border Grid.Row="1" Background="#35383E" CornerRadius="7" Padding="18" Margin="0,16,0,0">
+            <Border Grid.Row="1" Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="18" Margin="0,16,0,0">
                 <StackPanel>
                     <DockPanel>
                         <Button x:Name="PriorAnnouncementsButton" DockPanel.Dock="Right" Content="Prior announcements" Width="168" Height="30"
                                 Click="PriorAnnouncements_Click" ToolTip="Show the announcements this PC received before the current one."/>
-                        <TextBlock Text="Current announcement" Foreground="White" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Text="Current announcement" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </DockPanel>
-                    <TextBlock x:Name="CurrentAnnouncementText" Margin="0,12,0,0" Foreground="#DCE0E5" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="CurrentAnnouncementText" Margin="0,12,0,0" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
-            <Border x:Name="AnnouncementHistoryCard" Grid.Row="2" Background="#35383E" CornerRadius="7" Padding="18" Margin="0,16,0,0" Visibility="Collapsed">
+            <Border x:Name="AnnouncementHistoryCard" Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="18" Margin="0,16,0,0" Visibility="Collapsed">
                 <StackPanel>
-                    <TextBlock Text="Prior announcements" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
-                    <TextBlock x:Name="NoHistoryText" Margin="0,10,0,0" Foreground="#9BA3AF" Text="Announcements you receive are saved on this PC. The newest three are kept here." TextWrapping="Wrap"/>
+                    <TextBlock Text="Prior announcements" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="NoHistoryText" Margin="0,10,0,0" Foreground="{DynamicResource DimTextBrush}" Text="Announcements you receive are saved on this PC. The newest three are kept here." TextWrapping="Wrap"/>
                     <ItemsControl x:Name="AnnouncementHistoryList" Margin="0,10,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="#4A4D52" BorderThickness="0,1,0,0" Padding="0,9,0,0" Margin="0,5,0,0">
+                                <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="0,9,0,0" Margin="0,5,0,0">
                                     <StackPanel>
-                                        <TextBlock Text="{Binding Message}" Foreground="#DCE0E5" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{Binding PublishedAtUtc, StringFormat={}{0:g}}" Foreground="#9BA3AF" FontSize="11" Margin="0,4,0,0"/>
+                                        <TextBlock Text="{Binding Message}" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding PublishedAtUtc, StringFormat={}{0:g}}" Foreground="{DynamicResource DimTextBrush}" FontSize="11" Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
@@ -81,16 +58,16 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="3" Background="#35383E" CornerRadius="7" Padding="18" Margin="0,16,0,0">
+            <Border Grid.Row="3" Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="18" Margin="0,16,0,0">
                 <StackPanel>
                     <DockPanel>
                         <Button x:Name="ReleaseInformationButton" DockPanel.Dock="Right" Content="Release / update info" Width="168" Height="30"
                                 Click="ReleaseInformation_Click" ToolTip="Show the release and update information published with this build."/>
-                        <TextBlock Text="What changed" Foreground="White" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Text="What changed" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </DockPanel>
-                    <TextBlock x:Name="WhatChangedText" Margin="0,12,0,0" Foreground="#DCE0E5" TextWrapping="Wrap"/>
-                    <Border x:Name="ReleaseInformationPanel" Background="#2F3237" CornerRadius="5" Padding="12" Margin="0,12,0,0" Visibility="Collapsed">
-                        <TextBlock x:Name="ReleaseInformationText" Foreground="#C7CDD5" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="WhatChangedText" Margin="0,12,0,0" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                    <Border x:Name="ReleaseInformationPanel" Background="{DynamicResource RaisedBrush}" CornerRadius="5" Padding="12" Margin="0,12,0,0" Visibility="Collapsed">
+                        <TextBlock x:Name="ReleaseInformationText" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap"/>
                     </Border>
                 </StackPanel>
             </Border>
@@ -101,18 +78,18 @@
                     <ColumnDefinition Width="16"/>
                     <ColumnDefinition Width="280"/>
                 </Grid.ColumnDefinitions>
-                <Border Background="#35383E" CornerRadius="7" Padding="18">
+                <Border Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="18">
                     <StackPanel>
-                        <TextBlock Text="Community" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
-                        <TextBlock Text="Get help, share feedback, or join the Casualties Hub community." Foreground="#C7CDD5" TextWrapping="Wrap" Margin="0,11,0,0"/>
+                        <TextBlock Text="Community" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold"/>
+                        <TextBlock Text="Get help, share feedback, or join the Casualties Hub community." Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,11,0,0"/>
                         <Button Content="Open CH Discord" Height="34" Width="180" HorizontalAlignment="Left" Margin="0,16,0,0" Click="OpenDiscord_Click"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="2" Background="#35383E" CornerRadius="7" Padding="18">
+                <Border Grid.Column="2" Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="18">
                     <StackPanel>
-                        <TextBlock Text="Credits" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
-                        <TextBlock Text="Those who made this possible." Foreground="#C7CDD5" TextWrapping="Wrap" Margin="0,11,0,0"/>
-                        <Button Content="Open credits" Height="44" Margin="0,16,0,0" Click="OpenCredits_Click" ToolTip="See everyone who contributed to Casualties Hub."/>
+                        <TextBlock Text="Credits" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold"/>
+                        <TextBlock Text="Those who made this possible." Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,11,0,0"/>
+                        <Button Content="Open credits" Height="44" Margin="0,16,0,0" Click="OpenCredits_Click"/>
                     </StackPanel>
                 </Border>
             </Grid>

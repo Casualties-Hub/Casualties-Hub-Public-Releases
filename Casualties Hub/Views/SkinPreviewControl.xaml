@@ -8,7 +8,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#1E1F22" CornerRadius="6" ClipToBounds="True">
+        <Border Grid.Row="0" Background="{DynamicResource ChromeBrush}" CornerRadius="6" ClipToBounds="True">
             <Grid>
                 <!-- Scrollbars stay hidden: panning is done by dragging the preview itself. -->
                 <ScrollViewer x:Name="PreviewScroller"
@@ -29,7 +29,7 @@
                 </ScrollViewer>
 
                 <TextBlock x:Name="EmptyPreviewMessage" Text="Select a skin slot to preview it."
-                           Foreground="#8A8F98" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="{DynamicResource DimTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" MaxWidth="320"
                            IsHitTestVisible="False" Visibility="Collapsed"/>
             </Grid>
@@ -40,7 +40,7 @@
             <TextBlock x:Name="MissingSpriteText" Foreground="#F0B4B4" TextWrapping="Wrap" FontSize="11"/>
         </Border>
 
-        <Border Grid.Row="2" Background="#36393F" CornerRadius="6" Padding="14" Margin="0,10,0,0">
+        <Border Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="6" Padding="14" Margin="0,10,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -53,35 +53,35 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,12,10">
-                    <TextBlock Text="Head" Foreground="#C9CDD3" VerticalAlignment="Center" Width="76"/>
+                    <TextBlock Text="Head" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Width="76"/>
                     <ComboBox x:Name="HeadShapeBox" Width="190" SelectionChanged="Option_Changed"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBlock Text="Expression" Foreground="#C9CDD3" VerticalAlignment="Center" Width="76"/>
+                    <TextBlock Text="Expression" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Width="76"/>
                     <ComboBox x:Name="EyeExpressionBox" Width="190" SelectionChanged="Option_Changed"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,0,12,10">
-                    <TextBlock Text="Facing" Foreground="#C9CDD3" VerticalAlignment="Center" Width="76"/>
+                    <TextBlock Text="Facing" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Width="76"/>
                     <Button x:Name="TurnAroundButton" Content="Turn Around" Width="190" Height="28" Click="TurnAround_Click"
                             ToolTip="Flip between forward (right) and backward (left) facing"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBlock Text="Zoom" Foreground="#C9CDD3" VerticalAlignment="Center" Width="76"/>
+                    <TextBlock Text="Zoom" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Width="76"/>
                     <!-- ValueChanged is attached in code-behind, after the named fields exist. -->
                     <Slider x:Name="ZoomSlider" Width="180" Minimum="1" Maximum="30" Value="6"
                             VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="0.5"
                             ToolTip="The mouse wheel over the preview also zooms"/>
-                    <TextBlock x:Name="ZoomLabel" Text="6.0x" Foreground="#C9CDD3" VerticalAlignment="Center" Width="42" Margin="8,0,0,0"/>
+                    <TextBlock x:Name="ZoomLabel" Text="6.0x" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Width="42" Margin="8,0,0,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal">
-                    <TextBlock Text="View" Foreground="#C9CDD3" VerticalAlignment="Center" Width="76"/>
+                    <TextBlock Text="View" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Width="76"/>
                     <Button Content="Return to center" Width="190" Height="28" Click="ReturnToCenter_Click"
                             ToolTip="Fit the whole character back into the frame"/>
-                    <TextBlock Text="Drag the preview to move it around." Foreground="#8A8F98"
+                    <TextBlock Text="Drag the preview to move it around." Foreground="{DynamicResource DimTextBrush}"
                                VerticalAlignment="Center" Margin="14,0,0,0" FontSize="11"/>
                 </StackPanel>
             </Grid>

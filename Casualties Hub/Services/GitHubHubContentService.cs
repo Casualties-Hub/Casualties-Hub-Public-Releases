@@ -12,10 +12,6 @@ public sealed class GitHubHubContentService
 {
     public const string ContentUrl = "https://raw.githubusercontent.com/MarlyZ89/Casualties-Hub-Public-Releases/main/HubContent.json";
     public static readonly TimeSpan RefreshInterval = TimeSpan.FromMinutes(30);
-    // The manual button gets its own much shorter cooldown. This still goes
-    // through the conditional If-None-Match/If-Modified-Since request below, so
-    // checking often does not re-download HubContent.json when it is unchanged.
-    public static readonly TimeSpan ManualCheckInterval = TimeSpan.FromSeconds(30);
     private static readonly HttpClient Client = CreateClient();
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
     private readonly string _cachePath;
@@ -36,25 +32,13 @@ public sealed class GitHubHubContentService
 
     public bool IsCheckDue() => LoadState().LastCheckedUtc is not { } last || DateTimeOffset.UtcNow - last >= RefreshInterval;
 
-    /// <summary>Whether the "Check now" button's own, much shorter cooldown has elapsed.</summary>
-    public bool IsManualCheckDue() => LoadState().LastManualCheckUtc is not { } last || DateTimeOffset.UtcNow - last >= ManualCheckInterval;
-
-    public DateTimeOffset? NextManualCheckUtc() => LoadState().LastManualCheckUtc?.Add(ManualCheckInterval);
-
-    /// <param name="manual">
-    /// Gates the request against <see cref="ManualCheckInterval"/> instead of
-    /// <see cref="RefreshInterval"/>, and records the attempt separately so the
-    /// manual button's cooldown never depends on the automatic timer.
-    /// </param>
-    public async Task<HubContentResult> RefreshAsync(bool force = false, bool manual = false, CancellationToken cancellationToken = default)
+    public async Task<HubContentResult> RefreshAsync(bool force = false, CancellationToken cancellationToken = default)
     {
         await RefreshLock.WaitAsync(cancellationToken);
         try
         {
             var state = LoadState();
-            var gateLast = manual ? state.LastManualCheckUtc : state.LastCheckedUtc;
-            var gateInterval = manual ? ManualCheckInterval : RefreshInterval;
-            if (!force && gateLast is { } last && DateTimeOffset.UtcNow - last < gateInterval)
+            if (!force && state.LastCheckedUtc is { } last && DateTimeOffset.UtcNow - last < RefreshInterval)
                 return new HubContentResult(LoadBestAvailable(), false, true, false, state.LastCheckedUtc?.Add(RefreshInterval));
 
             using var request = new HttpRequestMessage(HttpMethod.Get, ContentUrl);
@@ -66,7 +50,7 @@ public sealed class GitHubHubContentService
                 using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                 var checkedAtUtc = DateTimeOffset.UtcNow;
                 state.LastCheckedUtc = checkedAtUtc;
-                if (manual) state.LastManualCheckUtc = checkedAtUtc;
+
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
                     SaveState(state);
@@ -89,7 +73,7 @@ public sealed class GitHubHubContentService
             {
                 var checkedAtUtc = DateTimeOffset.UtcNow;
                 state.LastCheckedUtc = checkedAtUtc;
-                if (manual) state.LastManualCheckUtc = checkedAtUtc;
+
                 SaveState(state);
                 DebugLogService.Error("GitHub Hub content refresh failed; using cached content", exception);
                 return new HubContentResult(LoadBestAvailable(), false, true, false, checkedAtUtc.Add(RefreshInterval));
@@ -137,7 +121,7 @@ public sealed class GitHubHubContentService
     private static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.8-pre.3"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.8-pre.6"));
         return client;
     }
 
@@ -146,6 +130,6 @@ public sealed class GitHubHubContentService
         public string? ETag { get; set; }
         public DateTimeOffset? LastModifiedUtc { get; set; }
         public DateTimeOffset? LastCheckedUtc { get; set; }
-        public DateTimeOffset? LastManualCheckUtc { get; set; }
+
     }
 }

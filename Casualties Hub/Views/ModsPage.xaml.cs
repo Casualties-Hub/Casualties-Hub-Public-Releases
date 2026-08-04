@@ -223,10 +223,11 @@ public partial class ModsPage : Page
         var show = settings.LocalModsShareColumnVisible;
         ShareColumnDefinition.Width = show ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
         ShareColumnHost.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        ShareColumnToggleButton.Content = show ? "<" : ">";
+        // A bare chevron gave no clue what the button did, so it is labelled.
+        ShareColumnToggleButton.Content = show ? "‹ Hide column" : "Add column ›";
         ShareColumnToggleButton.ToolTip = show
             ? "Hide the third Local Mods column."
-            : "Show the third Local Mods column.";
+            : "Show a third Local Mods column, which you can point at any view.";
     }
 
     private void ToggleShareColumn_Click(object sender, RoutedEventArgs e)

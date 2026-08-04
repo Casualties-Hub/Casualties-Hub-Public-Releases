@@ -7,7 +7,7 @@ namespace Casualties_Hub.Services;
 
 /// <summary>
 /// Builds the checklist of removable Hub data and hands the actual deletion to a tiny
-/// temporary CMD helper, the same shape UpdateInstaller uses to replace files the running
+/// temporary CMD helper, which is the only way to replace files the running
 /// EXE cannot touch itself. The helper waits for this process to exit, deletes the chosen
 /// paths, then deletes itself.
 /// </summary>

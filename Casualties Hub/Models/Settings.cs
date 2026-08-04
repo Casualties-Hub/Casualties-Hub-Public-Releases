@@ -12,20 +12,26 @@ public class Settings
     // Theme colours are intentionally split by role so light navigation buttons
     // stay readable without making the dark pages use black text.
     public bool ThemeColoursInitialized { get; set; }
-    // The normal page-text default matches the crimson used by the Hub wordmark.
-    // The wordmark itself is deliberately not driven by this setting.
-    public byte PrimaryTextRed { get; set; } = 194;
-    public byte PrimaryTextGreen { get; set; } = 31;
-    public byte PrimaryTextBlue { get; set; } = 50;
-    public byte ButtonTextRed { get; set; } = 20;
-    public byte ButtonTextGreen { get; set; } = 20;
-    public byte ButtonTextBlue { get; set; } = 20;
-    public byte NavigationSurfaceRed { get; set; } = 245;
-    public byte NavigationSurfaceGreen { get; set; } = 245;
-    public byte NavigationSurfaceBlue { get; set; } = 245;
-    public byte AccentRed { get; set; } = 194;
-    public byte AccentGreen { get; set; } = 31;
-    public byte AccentBlue { get; set; } = 50;
+    // Set once when a pre-rebrand settings file is loaded, so the old light
+    // buttons and crimson body text are replaced by the dark theme exactly one
+    // time and every later choice the player makes is preserved.
+    public bool RebrandThemeInitialized { get; set; }
+    // The four colours a player can set. Everything else in the shell (button
+    // surfaces, borders, muted text, chrome) is derived from these by
+    // ThemePalette, so a change to any one of them stays self-consistent.
+    // The crimson wordmark is deliberately not driven by any of them.
+    public byte PrimaryTextRed { get; set; } = 241;
+    public byte PrimaryTextGreen { get; set; } = 239;
+    public byte PrimaryTextBlue { get; set; } = 238;
+    public byte BackgroundRed { get; set; } = 20;
+    public byte BackgroundGreen { get; set; } = 20;
+    public byte BackgroundBlue { get; set; } = 20;
+    public byte SurfaceRed { get; set; } = 30;
+    public byte SurfaceGreen { get; set; } = 30;
+    public byte SurfaceBlue { get; set; } = 30;
+    public byte AccentRed { get; set; } = 200;
+    public byte AccentGreen { get; set; } = 30;
+    public byte AccentBlue { get; set; } = 60;
     // Which colours are loaded: the stock set, a saved slot, or the player's own
     // mix. Animated RGB is a separate switch that paints over whichever of those
     // is loaded, so turning it off restores the colours untouched.
@@ -33,17 +39,11 @@ public class Settings
     public bool AnimatedRgbEnabled { get; set; }
     public List<UiPreset> CustomUiPresets { get; set; } = [];
     public string ProtectedFilesPath { get; set; } = "ProtectedFiles";
-    // Online services are an opt-in feature for new installs. Legacy settings
-    // are marked as already answered during loading so an update never changes
-    // an existing player's preference or shows an unexpected prompt.
-    public bool HubOnlineServicesEnabled { get; set; }
-    public bool OnlineServicesChoiceMade { get; set; }
     // Optional visual/clickable extras are off by default. This flag records
     // that the setting has been initialised so older settings can migrate to
     // the new default without adding a prompt.
     public bool EasterEggsEnabled { get; set; }
     public bool EasterEggsPreferenceInitialized { get; set; }
-    public DateTimeOffset? NextGitHubUpdateCheckUtc { get; set; }
     public string? CachedCompatibilityRules { get; set; }
     public string? CachedCompatibilityVersion { get; set; }
     public DateTimeOffset? CachedCompatibilityUpdatedAt { get; set; }

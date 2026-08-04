@@ -17,23 +17,19 @@ public partial class MainWindow : Window
 {
     private const string DiscordInviteUrl = "https://discord.gg/bzZkjAyu76";
     private const string ReportIssuesInviteUrl = "https://discord.gg/NnJNb7wkc";
+    private const string NexusPageUrl = "https://www.nexusmods.com/casualtiesunknown";
     private readonly Services.DownloadImportService _downloadImportService = new();
     private readonly SettingsService _settingsService = new();
     private readonly GameLaunchService _gameLaunchService = new();
-    private readonly GitHubUpdateService _gitHubUpdateService;
     private readonly GitHubHubContentService _hubContentService;
     private readonly AnnouncementHistoryService _announcementHistoryService;
-    private readonly UpdateInstaller _updateInstaller = new();
     private readonly DispatcherTimer _faceClickTimer = new() { Interval = TimeSpan.FromMilliseconds(700) };
-    private readonly DispatcherTimer _refreshBlinkTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private readonly DispatcherTimer _cloudStatusTimer = new() { Interval = TimeSpan.FromMinutes(1) };
     private readonly DispatcherTimer _animatedRgbTimer = new() { Interval = TimeSpan.FromMilliseconds(80) };
     private double _animatedRgbHue;
     private Color _previousPrimaryTextColor = Colors.White;
     private int _faceClickCount;
     private bool _papaZuckLinkOpenedThisBurst;
-    private GitHubUpdate? _availableUpdate;
-    private int _refreshBlinkCycles;
     private Page? _currentPage;
     private Button? _activeNavigationButton;
     private HubContentResult? _hubContentResult;
@@ -42,10 +38,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _gitHubUpdateService = new GitHubUpdateService(_settingsService);
         _hubContentService = new GitHubHubContentService(_settingsService);
         _announcementHistoryService = new AnnouncementHistoryService(_settingsService);
         Title = "Casualties Hub — 100% Vibe coded by MarlyZ89";
+        SidebarFooterText.Text = $"v{HubVersion.Current()} · Community metadata";
         Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/CasualtiesHub.png"));
         ApplySavedTextSize();
         ApplySavedTextColor();
@@ -57,26 +53,19 @@ public partial class MainWindow : Window
         Services.DebugLogService.Activity("Launcher", $"Started Casualties Hub {GetType().Assembly.GetName().Version}.");
         _downloadImportService.Start();
         _faceClickTimer.Tick += FaceClickTimer_Tick;
-        _refreshBlinkTimer.Tick += RefreshBlinkTimer_Tick;
         _cloudStatusTimer.Tick += async (_, _) => await RefreshRemoteDataIfEligibleAsync();
         _animatedRgbTimer.Tick += AnimatedRgbTimer_Tick;
         ApplyActiveUiPreset();
-        ModService.PluginFilesChanged += PluginFilesChanged;
-        ApplyOnlineServicesPreference();
-        Loaded += async (_, _) =>
-        {
-            PromptForOnlineServicesOnFirstLaunch();
-            await PromptForStaleUpdateFilesCleanupAsync();
-            await InitializeCloudFeaturesAsync();
-        };
+        _cloudStatusTimer.Start();
+        Loaded += async (_, _) => await InitializeCloudFeaturesAsync();
         Deactivated += async (_, _) => await RefreshRemoteDataIfEligibleAsync();
         NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, Environment.GetCommandLineArgs().Contains("--refresh-metadata", StringComparer.OrdinalIgnoreCase), RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
     }
 
     private void Dashboard_Click(object sender, RoutedEventArgs e) => NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, false, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
     private void Mods_Click(object sender, RoutedEventArgs e) => NavigateTo(new ModsPage(SetStatus), ModsNavButton);
-    private void ProtectedFiles_Click(object sender, RoutedEventArgs e) => NavigateTo(new ProtectedFilesPage(SetStatus), ProtectedAssetsNavButton);
-    private void SkinPreview_Click(object sender, RoutedEventArgs e) => NavigateTo(new SkinPreviewPage(SetStatus), SkinPreviewNavButton);
+    private void Multiplayer_Click(object sender, RoutedEventArgs e) => NavigateTo(new MultiplayerPage(SetStatus), MultiplayerNavButton);
+    private void SkinsAndBackups_Click(object sender, RoutedEventArgs e) => NavigateTo(new SkinsAndBackupsPage(SetStatus), SkinsAndBackupsNavButton);
     private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettingsPage();
     private void HubHome_Click(object sender, RoutedEventArgs e) => NavigateTo(CreateHubHomePage(), HubHomeNavButton);
 
@@ -97,92 +86,46 @@ public partial class MainWindow : Window
 
     private void OpenSettingsPage() => NavigateTo(new SettingsPage(SetStatus), SettingsNavButton);
 
+    /// <summary>
+    /// Paints the sidebar pills. The open page gets a translucent wash of the
+    /// player's accent plus accent-coloured text and dot; the rest stay
+    /// transparent and muted. Accent is still the themed brush, so UI presets and
+    /// Animated RGB continue to drive the sidebar.
+    /// </summary>
     private void SetActiveNavigation(Button activeButton)
     {
         _activeNavigationButton = activeButton;
-        var controlSurface = GetThemeBrush("ControlSurfaceBrush");
-        var controlText = GetThemeBrush("ControlTextBrush");
         var accent = GetThemeBrush("AccentBrush");
-        var accentText = GetThemeBrush("AccentTextBrush");
-        foreach (var button in new[] { DashboardNavButton, ModsNavButton, ProtectedAssetsNavButton, SkinPreviewNavButton, HubHomeNavButton, SettingsNavButton })
+        var muted = GetThemeBrush("MutedTextBrush");
+        foreach (var button in new[] { DashboardNavButton, ModsNavButton, MultiplayerNavButton, SkinsAndBackupsNavButton, HubHomeNavButton, SettingsNavButton })
         {
-            button.Background = controlSurface;
-            button.Foreground = controlText;
+            button.Background = Brushes.Transparent;
+            button.Foreground = muted;
         }
-        activeButton.Background = accent;
-        activeButton.Foreground = accentText;
+        activeButton.Background = AccentWashBrush(accent);
+        activeButton.Foreground = accent;
+    }
+
+    private static Brush AccentWashBrush(Brush accent)
+    {
+        if (accent is not SolidColorBrush solid) return Brushes.Transparent;
+        var color = solid.Color;
+        return new SolidColorBrush(Color.FromArgb(0x55, color.R, color.G, color.B));
     }
     private void SetStatus(string message)
     {
         StatusText.Text = message;
     }
 
+    /// <summary>
+    /// Announcements are the only online feature left. The Hub reads the public
+    /// HubContent.json and never checks for, downloads, or installs a Hub build.
+    /// </summary>
     private async Task InitializeCloudFeaturesAsync()
     {
-        if (!_settingsService.Load().HubOnlineServicesEnabled) return;
         _hubContentResult = _hubContentService.LoadCached();
         RefreshHubHomeIfOpen();
         await RefreshRemoteDataIfEligibleAsync();
-    }
-
-    /// <summary>
-    /// New installs start offline. Metadata browsing remains available, but
-    /// announcements and Hub/GitHub update checks require explicit consent.
-    /// </summary>
-    private void PromptForOnlineServicesOnFirstLaunch()
-    {
-        var settings = _settingsService.Load();
-        if (settings.OnlineServicesChoiceMade) return;
-
-        var dialog = new OnlineServicesChoiceDialog { Owner = this };
-        var enableOnlineServices = dialog.ShowDialog() == true;
-        settings.HubOnlineServicesEnabled = enableOnlineServices;
-        settings.OnlineServicesChoiceMade = true;
-        _settingsService.Save(settings);
-        ApplyOnlineServicesPreference();
-
-        if (enableOnlineServices)
-        {
-            SetStatus("Online services enabled. GitHub announcements and update checks are available.");
-            DebugLogService.Activity("Online services", "Player enabled online services during first-launch setup.");
-        }
-        else
-        {
-            SetStatus("Online services remain off. You can enable them later in Hub Home.");
-            DebugLogService.Activity("Online services", "Player kept online services disabled during first-launch setup.");
-        }
-    }
-
-    /// <summary>Called by Settings immediately; disabling means no Hub server or GitHub update request is sent.</summary>
-    public void ApplyOnlineServicesPreference()
-    {
-        var enabled = _settingsService.Load().HubOnlineServicesEnabled;
-        if (!enabled)
-        {
-            _cloudStatusTimer.Stop();
-            _availableUpdate = null;
-            RefreshHubHomeIfOpen();
-            return;
-        }
-        _cloudStatusTimer.Start();
-        RefreshHubHomeIfOpen();
-    }
-
-    /// <summary>
-    /// UpdateInstaller leaves each update's downloaded ZIP and extracted copy behind in Temp,
-    /// so this offers to reclaim that space on launch whenever leftovers are actually found.
-    /// </summary>
-    private async Task PromptForStaleUpdateFilesCleanupAsync()
-    {
-        var folders = await Task.Run(Services.UpdateCleanupService.ScanStagingFolders);
-        if (folders.Count == 0) return;
-
-        var dialog = new UpdateCleanupDialog(folders) { Owner = this };
-        if (dialog.ShowDialog() != true || dialog.SelectedPaths.Count == 0) return;
-
-        Services.UpdateCleanupService.Delete(dialog.SelectedPaths);
-        SetStatus($"Removed {dialog.SelectedPaths.Count} leftover update folder(s).");
-        DebugLogService.Activity("Update cleanup", $"Player removed {dialog.SelectedPaths.Count} leftover update folder(s).");
     }
 
     /// <summary>Applies the persisted preference for optional Easter eggs.</summary>
@@ -212,14 +155,13 @@ public partial class MainWindow : Window
 
     private async Task RefreshAllRemoteDataAsync()
     {
-        if (_remoteRefreshInProgress || !_settingsService.Load().HubOnlineServicesEnabled) return;
+        if (_remoteRefreshInProgress) return;
         _remoteRefreshInProgress = true;
         try
         {
             var metadataTask = new UniversalMetadataService(_settingsService).GetModsAsync(true);
             var contentTask = _hubContentService.RefreshAsync();
-            var updateTask = CheckForUpdateAsync();
-            await Task.WhenAll(metadataTask, contentTask, updateTask);
+            await Task.WhenAll(metadataTask, contentTask);
             _hubContentResult = await contentTask;
             RefreshHubHomeIfOpen();
             if (_hubContentResult.ContentChanged)
@@ -230,41 +172,30 @@ public partial class MainWindow : Window
 
     private async Task RefreshGitHubDataForMetadataPingAsync()
     {
-        if (!_settingsService.Load().HubOnlineServicesEnabled || !_hubContentService.IsCheckDue()) return;
+        if (!_hubContentService.IsCheckDue()) return;
         _hubContentResult = await _hubContentService.RefreshAsync();
-        await CheckForUpdateAsync();
         RefreshHubHomeIfOpen();
     }
 
     private HubHomePage CreateHubHomePage() => new(
         GetHubHomeState,
-        SetHubOnlineServicesEnabledAsync,
-        RefreshHubHomeServiceAsync,
-        InstallAvailableUpdateAsync,
-        InstallLocalUpdateAsync,
         OpenReleaseHistory,
+        OpenNexusPage,
         ConfirmOpenDiscord,
         OpenCreditsPage);
 
     private HubHomeState GetHubHomeState()
     {
-        var settings = _settingsService.Load();
         var status = _hubContentResult ?? _hubContentService.LoadCached();
-        var manualCheckAvailable = _hubContentService.IsManualCheckDue();
         var currentVersion = HubVersion.Current().ToString();
         var releaseNotesService = new ReleaseNotesService();
         return new HubHomeState
         {
             CurrentVersion = currentVersion,
-            OnlineServicesEnabled = settings.HubOnlineServicesEnabled,
             ServiceOnline = status.IsOnline,
-            ManualCheckAvailable = manualCheckAvailable,
-            NextManualCheckUtc = _hubContentService.NextManualCheckUtc(),
             ShowingCachedServiceData = status.IsCached,
             CurrentAnnouncement = status.Content.CurrentAnnouncement.Message,
             NextServiceCheckUtc = status.NextCheckUtc,
-            UpdateAvailable = _availableUpdate is not null,
-            UpdateVersion = _availableUpdate?.Version.ToString(),
             // Local to the installed build, not the GitHub feed, so these only
             // change when a new build ships.
             WhatChangedText = releaseNotesService.GetWhatChanged(currentVersion),
@@ -273,48 +204,6 @@ public partial class MainWindow : Window
             // even after a later HubContent.json stops listing it.
             AnnouncementHistory = _announcementHistoryService.Record(status.Content)
         };
-    }
-
-    private async Task SetHubOnlineServicesEnabledAsync(bool enabled)
-    {
-        var settings = _settingsService.Load();
-        settings.HubOnlineServicesEnabled = enabled;
-        _settingsService.Save(settings);
-        ApplyOnlineServicesPreference();
-        if (enabled)
-        {
-            _hubContentResult = _hubContentService.LoadCached();
-            SetStatus("Online services enabled. Automatic GitHub checks run after the Hub leaves focus.");
-        }
-        else
-        {
-            SetStatus("Online services disabled. The Hub will not send server or update requests.");
-        }
-        RefreshHubHomeIfOpen();
-    }
-
-    private async Task RefreshHubHomeServiceAsync()
-    {
-        if (!_settingsService.Load().HubOnlineServicesEnabled)
-        {
-            SetStatus("Online services are disabled in Settings.");
-            return;
-        }
-
-        if (!_hubContentService.IsManualCheckDue())
-        {
-            var availableAtUtc = _hubContentService.NextManualCheckUtc();
-            SetStatus(availableAtUtc is { } availableAt
-                ? $"Check now is available at {availableAt.LocalDateTime:T}."
-                : "Check now is temporarily unavailable.");
-            RefreshHubHomeIfOpen();
-            return;
-        }
-
-        _hubContentResult = await _hubContentService.RefreshAsync(manual: true);
-        await CheckForUpdateAsync();
-        SetStatus("GitHub announcement and update check completed.");
-        RefreshHubHomeIfOpen();
     }
 
     private void RefreshHubHomeIfOpen()
@@ -332,20 +221,19 @@ public partial class MainWindow : Window
         DebugLogService.Activity("Settings", $"Applied saved text size {savedTextSize:0}.");
     }
 
+    /// <summary>
+    /// Rebuilds every themed brush from the player's four colours. Pages bind to
+    /// these with DynamicResource, so recolouring the background or panels
+    /// repaints the whole shell without touching a single page.
+    /// </summary>
     public void ApplySavedTextColor()
     {
         var settings = _settingsService.Load();
-        var primaryColor = Color.FromRgb(settings.PrimaryTextRed, settings.PrimaryTextGreen, settings.PrimaryTextBlue);
-        var primaryBrush = new SolidColorBrush(primaryColor);
-        SetThemeBrush("PrimaryTextBrush", primaryBrush);
-        SetThemeBrush("ControlTextBrush", new SolidColorBrush(Color.FromRgb(settings.ButtonTextRed, settings.ButtonTextGreen, settings.ButtonTextBlue)));
-        SetThemeBrush("ControlSurfaceBrush", new SolidColorBrush(Color.FromRgb(settings.NavigationSurfaceRed, settings.NavigationSurfaceGreen, settings.NavigationSurfaceBlue)));
+        foreach (var (key, color) in ThemePalette.Build(settings))
+            SetThemeBrush(key, new SolidColorBrush(color));
 
-        var accentColor = Color.FromRgb(settings.AccentRed, settings.AccentGreen, settings.AccentBlue);
-        SetThemeBrush("AccentBrush", new SolidColorBrush(accentColor));
-        SetThemeBrush("AccentTextBrush", ContrastBrush(accentColor));
-
-        ApplyPrimaryTextColour(this, primaryBrush, _previousPrimaryTextColor);
+        var primaryColor = ThemePalette.Text(settings);
+        ApplyPrimaryTextColour(Wordmark, this, new SolidColorBrush(primaryColor), _previousPrimaryTextColor);
         _previousPrimaryTextColor = primaryColor;
         if (_activeNavigationButton is not null) SetActiveNavigation(_activeNavigationButton);
     }
@@ -358,6 +246,9 @@ public partial class MainWindow : Window
     {
         if (_settingsService.Load().AnimatedRgbEnabled)
         {
+            // The saved colours are applied first so text, background and panels
+            // are correct; the timer then only animates the accent over the top.
+            ApplySavedTextColor();
             _animatedRgbTimer.Start();
             return;
         }
@@ -370,12 +261,21 @@ public partial class MainWindow : Window
     {
         _animatedRgbHue = (_animatedRgbHue + 2) % 360;
         var color = HueToColor(_animatedRgbHue);
-        // Only the dynamic brushes are swapped. Walking the visual tree on every
-        // tick would be far too expensive, and pages that pick an explicit
-        // colour are meant to keep it.
-        SetThemeBrush("PrimaryTextBrush", new SolidColorBrush(color));
+        // Accent only. Page text deliberately keeps the player's saved colour:
+        // cycling it meant the readability guard kept swapping the text between
+        // white and black as the hue passed each threshold, which read as a
+        // flicker. Only these two brushes are swapped because walking the visual
+        // tree on every tick would be far too expensive.
+        var settings = _settingsService.Load();
+        var background = ThemePalette.Background(settings);
         SetThemeBrush("AccentBrush", new SolidColorBrush(color));
-        SetThemeBrush("AccentTextBrush", ContrastBrush(color));
+        SetThemeBrush("AccentTextBrush", new SolidColorBrush(ThemePalette.ReadableOn(color)));
+        // Accent buttons are a dark wash plus an accent label, so both have to
+        // follow the hue or the button would stop matching its own text. Shared
+        // with the static palette so the two can never drift apart.
+        var (soft, onSoft) = ThemePalette.AccentButton(color, background);
+        SetThemeBrush("AccentSoftBrush", new SolidColorBrush(soft));
+        SetThemeBrush("AccentSoftTextBrush", new SolidColorBrush(onSoft));
         if (_activeNavigationButton is not null) SetActiveNavigation(_activeNavigationButton);
     }
 
@@ -414,18 +314,24 @@ public partial class MainWindow : Window
         return brightness >= 150 ? Brushes.Black : Brushes.White;
     }
 
-    private static void ApplyPrimaryTextColour(DependencyObject root, Brush brush, Color previousColour)
+    /// <param name="excluded">
+    /// The product wordmark. Its Runs already set their own brushes, but skipping
+    /// the element outright makes the intent explicit: branding is never
+    /// repainted by a preset, a custom colour, or Animated RGB.
+    /// </param>
+    private static void ApplyPrimaryTextColour(DependencyObject? excluded, DependencyObject root, Brush brush, Color previousColour)
     {
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(root); index++)
         {
             var child = VisualTreeHelper.GetChild(root, index);
+            if (ReferenceEquals(child, excluded)) continue;
             if (child is TextBlock textBlock && !IsInsideButton(textBlock) && IsPrimaryTextBrush(textBlock.Foreground, previousColour))
                 textBlock.Foreground = brush;
             else if (child is TextBox textBox && IsPrimaryTextBrush(textBox.Foreground, previousColour))
                 textBox.Foreground = brush;
             else if (child is PasswordBox passwordBox && IsPrimaryTextBrush(passwordBox.Foreground, previousColour))
                 passwordBox.Foreground = brush;
-            ApplyPrimaryTextColour(child, brush, previousColour);
+            ApplyPrimaryTextColour(excluded, child, brush, previousColour);
         }
     }
 
@@ -445,55 +351,10 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         DebugLogService.Activity("Launcher", "Closing Casualties Hub.");
-        _refreshBlinkTimer.Stop();
         _cloudStatusTimer.Stop();
         _animatedRgbTimer.Stop();
-        ModService.PluginFilesChanged -= PluginFilesChanged;
         _downloadImportService.Dispose();
         base.OnClosed(e);
-    }
-
-    private void MasterRefresh_Click(object sender, RoutedEventArgs e) => RestartHub(true);
-
-    /// <summary>
-    /// Reloads visible data after a user request or after an allowed server poll
-    /// changes the locally cached announcement/compatibility feed. This does not
-    /// itself make another network request.
-    /// </summary>
-    private void RefreshCurrentPage(string completionMessage)
-    {
-        switch (_currentPage)
-        {
-            case DashboardPage:
-                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, false, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
-                break;
-            case ModsPage:
-                NavigateTo(new ModsPage(SetStatus), ModsNavButton);
-                break;
-            case ProtectedFilesPage:
-                NavigateTo(new ProtectedFilesPage(SetStatus), ProtectedAssetsNavButton);
-                break;
-            case SkinPreviewPage:
-                NavigateTo(new SkinPreviewPage(SetStatus), SkinPreviewNavButton);
-                break;
-            case SettingsPage:
-                OpenSettingsPage();
-                break;
-            case CreditsPage:
-                OpenCreditsPage();
-                break;
-            case HubHomePage hubHome:
-                hubHome.RefreshView();
-                break;
-            default:
-                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, false, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
-                break;
-        }
-        SetStatus(completionMessage);
-    }
-    private void OpenDiscord_Click(object sender, RoutedEventArgs e)
-    {
-        ConfirmOpenDiscord();
     }
 
     private void ConfirmOpenDiscord()
@@ -510,31 +371,6 @@ public partial class MainWindow : Window
         DebugLogService.Activity("Discord", "Opened the Casualties Hub Discord invite in the browser.");
     }
 
-    private void PluginFilesChanged(object? sender, EventArgs e)
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => PluginFilesChanged(sender, e));
-            return;
-        }
-        _refreshBlinkCycles = 6;
-        _refreshBlinkTimer.Start();
-    }
-
-    private void RefreshBlinkTimer_Tick(object? sender, EventArgs e)
-    {
-        if (_refreshBlinkCycles-- <= 0)
-        {
-            _refreshBlinkTimer.Stop();
-            MasterRefreshButton.ClearValue(Control.BackgroundProperty);
-            MasterRefreshButton.ClearValue(Control.ForegroundProperty);
-            return;
-        }
-        var highlighted = _refreshBlinkCycles % 2 == 0;
-        MasterRefreshButton.Background = highlighted ? new SolidColorBrush(Color.FromRgb(194, 31, 50)) : Brushes.Gold;
-        MasterRefreshButton.Foreground = highlighted ? Brushes.White : Brushes.Black;
-    }
-
     private void LaunchGame_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -547,99 +383,6 @@ public partial class MainWindow : Window
         {
             Services.DebugLogService.Error("Could not launch Casualties Unknown", exception);
             MessageBox.Show(exception.Message, "Launch game", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
-    }
-
-    private async Task CheckForUpdateAsync()
-    {
-        var settings = _settingsService.Load();
-        if (!settings.HubOnlineServicesEnabled) return;
-        if (settings.NextGitHubUpdateCheckUtc is { } nextCheck && nextCheck > DateTimeOffset.UtcNow) return;
-        try
-        {
-            DebugLogService.Activity("Update check", "Checking the official GitHub release feed.");
-            var current = HubVersion.Current();
-            var update = await _gitHubUpdateService.CheckForUpdateAsync(current);
-            settings.NextGitHubUpdateCheckUtc = DateTimeOffset.UtcNow.AddMinutes(30);
-            _settingsService.Save(settings);
-            if (update is null)
-            {
-                _availableUpdate = null;
-                RefreshHubHomeIfOpen();
-                DebugLogService.Activity("Update check", "No newer release was found.");
-                return;
-            }
-            _availableUpdate = update;
-            SetStatus($"Casualties Hub update {update.Version} is available.");
-            DebugLogService.Activity("Update check", $"Update {update.Version} is available.");
-            RefreshHubHomeIfOpen();
-        }
-        catch (Exception exception)
-        {
-            var retrySettings = _settingsService.Load();
-            retrySettings.NextGitHubUpdateCheckUtc = DateTimeOffset.UtcNow.AddMinutes(30);
-            _settingsService.Save(retrySettings);
-            DebugLogService.Error("GitHub update check failed", exception);
-        }
-    }
-
-    private async Task InstallAvailableUpdateAsync()
-    {
-        if (_availableUpdate is null)
-        {
-            SetStatus("No eligible update is available.");
-            return;
-        }
-        var update = _availableUpdate;
-        var response = MessageBox.Show(
-            $"Download and install Casualties Hub {update.Version}?\n\nThe Hub will close, replace its program files, and restart.",
-            "Install Casualties Hub update",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-        if (response != MessageBoxResult.Yes) return;
-
-        try
-        {
-            SetStatus($"Downloading Casualties Hub {update.Version}.");
-            await _updateInstaller.DownloadAndStartAsync(update);
-            SetStatus("Update verified. Casualties Hub will restart shortly.");
-            Application.Current.Shutdown();
-        }
-        catch (Exception exception)
-        {
-            DebugLogService.Error("Automatic update failed", exception);
-            MessageBox.Show($"The update was not installed.\n\n{exception.Message}\n\nYou can download it manually from GitHub.", "Update failed", MessageBoxButton.OK, MessageBoxImage.Warning);
-            Process.Start(new ProcessStartInfo(update.ReleaseUrl) { UseShellExecute = true });
-        }
-    }
-
-    private async Task InstallLocalUpdateAsync()
-    {
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Filter = "Casualties Hub release ZIP (*.zip)|*.zip",
-            Title = "Choose a downloaded Casualties Hub release ZIP"
-        };
-        if (dialog.ShowDialog(this) != true) return;
-
-        var response = MessageBox.Show(
-            "Install this local Casualties Hub release?\n\nThe Hub will close, replace only its own files, and restart. Your game, mods, and protected assets will not be changed.",
-            "Install local Hub release",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-        if (response != MessageBoxResult.Yes) return;
-
-        try
-        {
-            SetStatus("Preparing the local Casualties Hub release.");
-            await _updateInstaller.InstallLocalArchiveAndStartAsync(dialog.FileName);
-            SetStatus("Local release verified. Casualties Hub will restart shortly.");
-            Application.Current.Shutdown();
-        }
-        catch (Exception exception)
-        {
-            DebugLogService.Error("Local Hub release installation failed", exception);
-            MessageBox.Show($"The local release was not installed.\n\n{exception.Message}", "Install local Hub release", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -665,26 +408,10 @@ public partial class MainWindow : Window
         DebugLogService.Activity("Hub Home", "Opened the GitHub release history.");
     }
 
-    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    private void OpenNexusPage()
     {
-        if (e.Key == Key.R && Keyboard.Modifiers == ModifierKeys.Control)
-        {
-            e.Handled = true;
-            RestartHub(true);
-        }
-    }
-
-    private void RestartHub(bool refreshMetadata = false)
-    {
-        DebugLogService.Activity("Launcher", refreshMetadata ? "Master refresh requested; restarting and refreshing metadata." : "Restart requested.");
-        ApplySavedTextSize();
-        var executablePath = Environment.ProcessPath;
-        if (string.IsNullOrWhiteSpace(executablePath))
-            return;
-
-        _downloadImportService.Dispose();
-        Process.Start(new ProcessStartInfo(executablePath) { UseShellExecute = true, Arguments = refreshMetadata ? "--refresh-metadata" : "" });
-        Application.Current.Shutdown();
+        Process.Start(new ProcessStartInfo(NexusPageUrl) { UseShellExecute = true });
+        DebugLogService.Activity("Hub Home", "Opened the Casualties Unknown Nexus page.");
     }
 
     private void PapaZuck_Click(object sender, MouseButtonEventArgs e)

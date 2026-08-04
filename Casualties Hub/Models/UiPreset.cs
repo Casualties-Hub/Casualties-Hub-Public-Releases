@@ -39,18 +39,20 @@ public sealed class UiPreset
     /// <summary>False while a custom slot has never been written to.</summary>
     public bool IsSaved { get; set; }
 
-    public byte PrimaryTextRed { get; set; } = 194;
-    public byte PrimaryTextGreen { get; set; } = 31;
-    public byte PrimaryTextBlue { get; set; } = 50;
-    public byte ButtonTextRed { get; set; } = 20;
-    public byte ButtonTextGreen { get; set; } = 20;
-    public byte ButtonTextBlue { get; set; } = 20;
-    public byte NavigationSurfaceRed { get; set; } = 245;
-    public byte NavigationSurfaceGreen { get; set; } = 245;
-    public byte NavigationSurfaceBlue { get; set; } = 245;
-    public byte AccentRed { get; set; } = 194;
-    public byte AccentGreen { get; set; } = 31;
-    public byte AccentBlue { get; set; } = 50;
+    // These are the stock look and must stay in step with the matching defaults
+    // on Settings, or ReconcileActivePreset will label a clean install "Custom".
+    public byte PrimaryTextRed { get; set; } = 241;
+    public byte PrimaryTextGreen { get; set; } = 239;
+    public byte PrimaryTextBlue { get; set; } = 238;
+    public byte BackgroundRed { get; set; } = 20;
+    public byte BackgroundGreen { get; set; } = 20;
+    public byte BackgroundBlue { get; set; } = 20;
+    public byte SurfaceRed { get; set; } = 30;
+    public byte SurfaceGreen { get; set; } = 30;
+    public byte SurfaceBlue { get; set; } = 30;
+    public byte AccentRed { get; set; } = 200;
+    public byte AccentGreen { get; set; } = 30;
+    public byte AccentBlue { get; set; } = 60;
     public double TextSize { get; set; } = 14;
 
     /// <summary>The stock Casualties Hub look; the property defaults above are it.</summary>
@@ -63,12 +65,12 @@ public sealed class UiPreset
         PrimaryTextRed = settings.PrimaryTextRed,
         PrimaryTextGreen = settings.PrimaryTextGreen,
         PrimaryTextBlue = settings.PrimaryTextBlue,
-        ButtonTextRed = settings.ButtonTextRed,
-        ButtonTextGreen = settings.ButtonTextGreen,
-        ButtonTextBlue = settings.ButtonTextBlue,
-        NavigationSurfaceRed = settings.NavigationSurfaceRed,
-        NavigationSurfaceGreen = settings.NavigationSurfaceGreen,
-        NavigationSurfaceBlue = settings.NavigationSurfaceBlue,
+        BackgroundRed = settings.BackgroundRed,
+        BackgroundGreen = settings.BackgroundGreen,
+        BackgroundBlue = settings.BackgroundBlue,
+        SurfaceRed = settings.SurfaceRed,
+        SurfaceGreen = settings.SurfaceGreen,
+        SurfaceBlue = settings.SurfaceBlue,
         AccentRed = settings.AccentRed,
         AccentGreen = settings.AccentGreen,
         AccentBlue = settings.AccentBlue,
@@ -81,16 +83,17 @@ public sealed class UiPreset
         settings.PrimaryTextRed = PrimaryTextRed;
         settings.PrimaryTextGreen = PrimaryTextGreen;
         settings.PrimaryTextBlue = PrimaryTextBlue;
-        settings.ButtonTextRed = ButtonTextRed;
-        settings.ButtonTextGreen = ButtonTextGreen;
-        settings.ButtonTextBlue = ButtonTextBlue;
-        settings.NavigationSurfaceRed = NavigationSurfaceRed;
-        settings.NavigationSurfaceGreen = NavigationSurfaceGreen;
-        settings.NavigationSurfaceBlue = NavigationSurfaceBlue;
+        settings.BackgroundRed = BackgroundRed;
+        settings.BackgroundGreen = BackgroundGreen;
+        settings.BackgroundBlue = BackgroundBlue;
+        settings.SurfaceRed = SurfaceRed;
+        settings.SurfaceGreen = SurfaceGreen;
+        settings.SurfaceBlue = SurfaceBlue;
         settings.AccentRed = AccentRed;
         settings.AccentGreen = AccentGreen;
         settings.AccentBlue = AccentBlue;
         settings.ThemeColoursInitialized = true;
+        settings.RebrandThemeInitialized = true;
     }
 
     public void ApplyTo(Settings settings)

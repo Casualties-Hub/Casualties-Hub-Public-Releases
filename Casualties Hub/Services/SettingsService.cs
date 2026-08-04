@@ -33,15 +33,7 @@ public class SettingsService
                     changed = true;
                 }
 
-                // Builds released before the first-launch consent prompt did
-                // not store this property. Treat those saved preferences as a
-                // completed choice instead of surprising an existing player.
                 using var document = JsonDocument.Parse(rawSettings);
-                if (!document.RootElement.TryGetProperty(nameof(Settings.OnlineServicesChoiceMade), out _))
-                {
-                    settings.OnlineServicesChoiceMade = true;
-                    changed = true;
-                }
 
                 // Easter eggs became an opt-in preference in v0.0.7. Settings
                 // from earlier builds did not contain this field, so make the
@@ -53,23 +45,28 @@ public class SettingsService
                     changed = true;
                 }
 
-                // Older builds stored only one white text colour. Move them to
-                // the four-part theme once, while preserving all newer choices.
-                if (!settings.ThemeColoursInitialized)
+                // The v0.0.8-pre.6 rebrand replaced the light navigation buttons
+                // and crimson body text with the dark theme. Older settings
+                // still carry the previous colours, which look wrong against the
+                // new shell, so move them across exactly once. Anything the
+                // player picks afterwards is left alone.
+                if (!settings.RebrandThemeInitialized)
                 {
-                    settings.PrimaryTextRed = 194;
-                    settings.PrimaryTextGreen = 31;
-                    settings.PrimaryTextBlue = 50;
-                    settings.ButtonTextRed = 20;
-                    settings.ButtonTextGreen = 20;
-                    settings.ButtonTextBlue = 20;
-                    settings.NavigationSurfaceRed = 245;
-                    settings.NavigationSurfaceGreen = 245;
-                    settings.NavigationSurfaceBlue = 245;
-                    settings.AccentRed = 194;
-                    settings.AccentGreen = 31;
-                    settings.AccentBlue = 50;
+                    var defaults = new Settings();
+                    settings.PrimaryTextRed = defaults.PrimaryTextRed;
+                    settings.PrimaryTextGreen = defaults.PrimaryTextGreen;
+                    settings.PrimaryTextBlue = defaults.PrimaryTextBlue;
+                    settings.BackgroundRed = defaults.BackgroundRed;
+                    settings.BackgroundGreen = defaults.BackgroundGreen;
+                    settings.BackgroundBlue = defaults.BackgroundBlue;
+                    settings.SurfaceRed = defaults.SurfaceRed;
+                    settings.SurfaceGreen = defaults.SurfaceGreen;
+                    settings.SurfaceBlue = defaults.SurfaceBlue;
+                    settings.AccentRed = defaults.AccentRed;
+                    settings.AccentGreen = defaults.AccentGreen;
+                    settings.AccentBlue = defaults.AccentBlue;
                     settings.ThemeColoursInitialized = true;
+                    settings.RebrandThemeInitialized = true;
                     changed = true;
                 }
                 // Presets arrived in v0.0.8-pre.2. Older settings have no slots,
@@ -97,6 +94,9 @@ public class SettingsService
         {
             settings.TextSize = Math.Clamp(settings.TextSize, 10, 20);
             settings.ThemeColoursInitialized = true;
+            // Saving is itself a deliberate colour choice, so the one-time
+            // rebrand migration must never run over the top of it afterwards.
+            settings.RebrandThemeInitialized = true;
             NormalizeCustomPresets(settings);
             SaveUnsafe(settings);
         }
@@ -122,12 +122,12 @@ public class SettingsService
         var matchesStock = settings.PrimaryTextRed == stock.PrimaryTextRed
             && settings.PrimaryTextGreen == stock.PrimaryTextGreen
             && settings.PrimaryTextBlue == stock.PrimaryTextBlue
-            && settings.ButtonTextRed == stock.ButtonTextRed
-            && settings.ButtonTextGreen == stock.ButtonTextGreen
-            && settings.ButtonTextBlue == stock.ButtonTextBlue
-            && settings.NavigationSurfaceRed == stock.NavigationSurfaceRed
-            && settings.NavigationSurfaceGreen == stock.NavigationSurfaceGreen
-            && settings.NavigationSurfaceBlue == stock.NavigationSurfaceBlue
+            && settings.BackgroundRed == stock.BackgroundRed
+            && settings.BackgroundGreen == stock.BackgroundGreen
+            && settings.BackgroundBlue == stock.BackgroundBlue
+            && settings.SurfaceRed == stock.SurfaceRed
+            && settings.SurfaceGreen == stock.SurfaceGreen
+            && settings.SurfaceBlue == stock.SurfaceBlue
             && settings.AccentRed == stock.AccentRed
             && settings.AccentGreen == stock.AccentGreen
             && settings.AccentBlue == stock.AccentBlue;

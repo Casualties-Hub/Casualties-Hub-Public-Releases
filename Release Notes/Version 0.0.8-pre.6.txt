@@ -1,0 +1,61 @@
+Casualties Hub v0.0.8-pre.6
+
+What changed
+
+Major UI facelift
+
+- The whole application has been rebuilt on a new dark theme: a near-black shell, rounded cards with soft borders, a wider sidebar with pill-shaped navigation, and a single crimson accent that runs through the whole app.
+- Buttons, text boxes, dropdowns, lists, tables, and scrollbars are now all styled to match. Several controls were still showing stock light-grey Windows chrome and have been brought in line.
+- Installed mods on the Nexus Dashboard, and disabled or share-code mods in Local Mods, now show their state with a coloured card edge and coloured status text instead of a heavy tinted background, which is far easier to read.
+- Protected Assets and Skin Preview have been merged into a single "Skins & Backups" section, since they are the two things you do to installed character art.
+- The unlabelled ">" button in Local Mods is now a proper "Add column" button, so it is obvious what it does.
+
+Rebuilt colour customisation
+
+- Settings now has Default, Animated RGB, and a new "Custom..." panel.
+- You can now recolour four things: Accent, Background, Panels & cards, and Text. Background and panel colours could not be changed at all before.
+- Everything else - button surfaces, borders, input boxes, muted labels, the sidebar - is worked out from those four, so the whole application stays consistent instead of leaving mismatched pieces behind.
+- The picker shows the colour currently in use as a circle. Click it to open a colour wheel, with a brightness slider and 0-255 R, G and B sliders. Hex can still be typed directly.
+- Text can no longer be made unreadable. If a chosen text colour does not have enough contrast against the background or panels, the Hub overrides it with black or white automatically, and muted labels back off their fade until they are legible too. This also applies while Animated RGB is running.
+- The four preset slots keep both Apply and Save. Existing colour choices are moved to the new theme once, automatically.
+
+Tooltips
+
+- Blank tooltips no longer appear. Several tooltips were bound to status text that is often empty, and Windows was happily popping an empty box for them.
+- Tooltips are restyled to match the dark theme.
+- Added explanations to the actions that most deserve them: the bulk and destructive buttons now state exactly what they touch and what they leave alone, and terms like share code, protected assets, and the BepInEx/Plugins folder are explained where they are used.
+- Plain labels still never pop a tooltip. Only buttons, and text that is actually cut off, respond to hover.
+- Feedback on the new look is very much appreciated. If something is hard to read, hard to find, or just feels wrong, please say so on the Discord or in the report forum.
+
+This is in preparation for the Nexus edition of the program. Some things will return with the normal version once the Nexus version has been submitted and accepted.
+
+Self-updating is gone
+
+- The Hub no longer checks GitHub for a newer Hub release, and the Hub Home update card, Install update button, and Use local ZIP button have all been removed.
+- The leftover-update cleanup prompt is gone with it, since nothing downloads Hub releases into Temp anymore.
+- Getting a new Hub build is now a normal download, which is the shape a Nexus release needs.
+
+Online services simplified
+
+- The first-launch online services prompt has been removed. There is no longer an opt-in dialog or an enable/disable toggle.
+- The one remaining online feature is the announcement feed: the Hub reads the public HubContent.json from GitHub every 30 minutes, exactly as before.
+- No installation ID, activity metrics, or update requests are sent. Announcements are cached locally and the newest three stay readable in Hub Home.
+
+Master Refresh removed
+
+- The Master Refresh button and its Ctrl+R shortcut are gone. They restarted the whole application, which is no longer needed.
+- Each page keeps its own Refresh button for the data it owns.
+
+Multiplayer preview
+
+- A new Multiplayer section has been added to the sidebar.
+- It is a layout preview only. The server list is sample data, no connection is made, and Join does nothing yet.
+- Region, max ping, password-locked, and search filters all work against the sample rows so the layout can be reviewed.
+
+Testing note
+
+This is a pre-release build intended for testing toward Casualties Hub v0.0.8. Please confirm Hub Home still shows the current announcement and prior announcements without any online services toggle, that no update prompt ever appears, and that the Multiplayer page opens and filters correctly while making it obvious that it is a preview.
+
+On the facelift specifically, please check every page for anything unreadable, any control that still looks like the old light theme, and anything that overlaps or gets cut off at your window size and text size.
+
+The colour customisation is worth deliberately trying to break. Pick a background and a text colour that should clash and confirm the Hub refuses to let the text become unreadable, then check the four preset slots still save and apply correctly.

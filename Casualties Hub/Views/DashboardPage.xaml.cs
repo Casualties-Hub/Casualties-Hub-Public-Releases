@@ -317,6 +317,7 @@ public partial class DashboardPage : Page
                 || string.Equals(candidate.Name, mod.Name, StringComparison.OrdinalIgnoreCase));
             mod.IsLocallyInstalled = local is not null;
             mod.IsLocallyDisabled = local?.IsDisabled == true;
+            mod.IsLocallyOutOfDate = local?.IsOutOfDate == true;
             mod.LocalStatusLabel = local is null ? "Not installed" : local.IsOutOfDate ? "Installed — Out of date" : local.IsDisabled ? "Installed — Disabled" : "Installed — Up to date";
         }
     }

@@ -1,24 +1,26 @@
 <Page x:Class="Casualties_Hub.Views.ModsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Background="#2B2D31">
+      Background="{DynamicResource WindowBackgroundBrush}">
     <Page.Resources>
         <!-- Without this the default container sizes itself to the widest card
              content, so one long status line could make a card wider than its
              neighbours. Stretching pins every card to the column width instead. -->
-        <Style x:Key="StretchedModCardContainer" TargetType="ListBoxItem">
+        <Style x:Key="StretchedModCardContainer" TargetType="ListBoxItem" BasedOn="{StaticResource HubListBoxItemStyle}">
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="Padding" Value="0"/>
         </Style>
         <DataTemplate x:Key="CompactModCard">
-            <Border Margin="3" Padding="10" CornerRadius="5" Background="#303238">
+            <Border Margin="3" Padding="10" CornerRadius="10" Background="{DynamicResource RaisedBrush}" BorderThickness="1">
                 <Border.Style>
                     <Style TargetType="Border">
-                        <Setter Property="Background" Value="#303238"/>
+                        <!-- State is carried by the card's edge rather than a heavy fill,
+                             so the rows stay legible against the dark shell. -->
+                        <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsDisabled}" Value="True"><Setter Property="Background" Value="#4A2025"/></DataTrigger>
-                            <DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Background" Value="#4B2E65"/></DataTrigger>
+                            <DataTrigger Binding="{Binding IsDisabled}" Value="True"><Setter Property="BorderBrush" Value="#7A3038"/></DataTrigger>
+                            <DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="BorderBrush" Value="#6A4A94"/></DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
@@ -27,10 +29,10 @@
                          shape no matter which buttons a mod happens to show. -->
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="104"/></Grid.ColumnDefinitions>
                     <StackPanel>
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
-                        <TextBlock Text="{Binding VersionLabel}" Foreground="#C9CDD3" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding VersionEvidenceLabel}"/>
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+                        <TextBlock Text="{Binding VersionLabel}" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding VersionEvidenceLabel}"/>
                         <TextBlock Text="{Binding UpdateStatusLabel}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding UpdateStatusLabel}">
-                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Foreground" Value="#C9CDD3"/><Style.Triggers>
+                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/><Style.Triggers>
                                 <DataTrigger Binding="{Binding IsUpToDate}" Value="True"><Setter Property="Foreground" Value="#67E480"/></DataTrigger>
                                 <DataTrigger Binding="{Binding IsOutOfDate}" Value="True"><Setter Property="Foreground" Value="#F1C453"/></DataTrigger>
                                 <DataTrigger Binding="{Binding IsDisabled}" Value="True"><Setter Property="Foreground" Value="#D58B8B"/></DataTrigger>
@@ -45,7 +47,7 @@
                         <TextBlock Text="{Binding IncompatibilityLabel}" Foreground="#FF5A5A" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding IncompatibilityLabel}">
                             <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding HasIncompatibilities}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                         </TextBlock>
-                        <TextBlock Text="{Binding KnownBugsLabel}" Foreground="#A32345" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding KnownBugsLabel}">
+                        <TextBlock Text="{Binding KnownBugsLabel}" Foreground="#A5182F" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding KnownBugsLabel}">
                             <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding HasKnownBugs}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="Requested by imported share code — download from Nexus." Foreground="#D58BFF" Margin="0,3,0,0" TextTrimming="CharacterEllipsis">
@@ -54,25 +56,25 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
                         <Button Content="{Binding ToggleButtonLabel}" Tag="{Binding}" Click="ToggleDisable_Click" ToolTip="Disable renames the DLL to .dll.disabled; Enable restores it.">
-                            <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                            <Button.Style><Style TargetType="Button" BasedOn="{StaticResource HubButtonStyle}"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Button.Style>
                         </Button>
                         <Button Tag="{Binding}" Content="{Binding DependencyActionLabel}" Click="DownloadMissingDependency_Click" Foreground="#5DB8FF" Margin="0,5,0,0">
-                            <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                            <Button.Style><Style TargetType="Button" BasedOn="{StaticResource HubButtonStyle}"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
                         </Button>
                         <Button Content="Ignore" Tag="{Binding}" Click="IgnoreMissingDependency_Click" Margin="0,5,0,0">
-                            <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                            <Button.Style><Style TargetType="Button" BasedOn="{StaticResource HubButtonStyle}"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
                         </Button>
                         <Button Content="Out of date" Tag="{Binding}" Foreground="#F1C453" Click="OpenOutOfDateMod_Click" Margin="0,5,0,0">
-                            <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><MultiDataTrigger><MultiDataTrigger.Conditions><Condition Binding="{Binding IsOutOfDate}" Value="True"/><Condition Binding="{Binding IsDisabled}" Value="False"/></MultiDataTrigger.Conditions><Setter Property="Visibility" Value="Visible"/></MultiDataTrigger></Style.Triggers></Style></Button.Style>
+                            <Button.Style><Style TargetType="Button" BasedOn="{StaticResource HubButtonStyle}"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><MultiDataTrigger><MultiDataTrigger.Conditions><Condition Binding="{Binding IsOutOfDate}" Value="True"/><Condition Binding="{Binding IsDisabled}" Value="False"/></MultiDataTrigger.Conditions><Setter Property="Visibility" Value="Visible"/></MultiDataTrigger></Style.Triggers></Style></Button.Style>
                         </Button>
                         <Button Content="{Binding ShareCodeActionLabel}" Tag="{Binding}" Click="InstallRequestedMod_Click" Margin="0,5,0,0">
-                            <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                            <Button.Style><Style TargetType="Button" BasedOn="{StaticResource HubButtonStyle}"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
                         </Button>
                         <Button Content="Ignore" Tag="{Binding}" Click="IgnoreModlistEntry_Click" Margin="0,5,0,0">
-                            <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                            <Button.Style><Style TargetType="Button" BasedOn="{StaticResource HubButtonStyle}"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
                         </Button>
                         <Button Content="Delete" Tag="{Binding}" Click="DeleteMod_Click" Margin="0,5,0,0">
-                            <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                            <Button.Style><Style TargetType="Button" BasedOn="{StaticResource HubButtonStyle}"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding IsMissingFromModlist}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger><DataTrigger Binding="{Binding IsDependencyPlaceholder}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Button.Style>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -81,34 +83,34 @@
     </Page.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <Border Grid.Row="0" Background="#36393F" CornerRadius="6" Padding="10" Margin="0,0,0,12">
+        <Border Grid.Row="0" Background="{DynamicResource CardBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,12">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <Border Background="#292B30" BorderBrush="#4B5058" BorderThickness="1" CornerRadius="4" Padding="6" Margin="0,0,0,0">
+                <Border Background="{DynamicResource InsetBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6" Margin="0,0,0,0">
                     <WrapPanel VerticalAlignment="Center">
-                        <Button Content="Install mod" Width="112" Margin="0,0,7,0" Click="InstallArchive_Click" ToolTip="Select ZIP files of mods"/>
-                        <Button Content="Refresh" Width="82" Margin="0,0,7,0" Click="Refresh_Click"/>
-                        <Button Content="Delete all" Width="90" Margin="0,0,7,0" Click="DeleteAllMods_Click" ToolTip="Delete all mod files from BepInEx\Plugins."/>
-                        <Button Content="Disable all" Width="88" Margin="0,0,7,0" Click="DisableAll_Click"/>
-                        <Button Content="Enable all" Width="88" Margin="0,0,9,0" Click="EnableAll_Click"/>
-                        <Grid Width="190" Height="28"><TextBox x:Name="LocalSearchBox" VerticalContentAlignment="Center" TextChanged="LocalSearchBox_TextChanged"/><TextBlock Text="Search Mods" Foreground="#7F8791" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=LocalSearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
+                        <Button Content="Install mod" Width="112" Margin="0,0,7,0" Click="InstallArchive_Click" ToolTip="Install one or more mod archives from disk into BepInEx\Plugins."/>
+                        <Button Content="Refresh" Width="82" Margin="0,0,7,0" Click="Refresh_Click" ToolTip="Re-scan BepInEx\Plugins and re-check every mod against the community metadata."/>
+                        <Button Content="Delete all" Width="90" Margin="0,0,7,0" Click="DeleteAllMods_Click" ToolTip="Permanently deletes every mod file from BepInEx\Plugins. Protected assets and your saved settings are not touched."/>
+                        <Button Content="Disable all" Width="88" Margin="0,0,7,0" Click="DisableAll_Click" ToolTip="Renames every enabled mod to .dll.disabled. Nothing is deleted and Enable all puts them back."/>
+                        <Button Content="Enable all" Width="88" Margin="0,0,9,0" Click="EnableAll_Click" ToolTip="Restores every .dll.disabled mod back to an active .dll."/>
+                        <Grid Width="190" Height="28"><TextBox x:Name="LocalSearchBox" VerticalContentAlignment="Center" TextChanged="LocalSearchBox_TextChanged"/><TextBlock Text="Search Mods" Foreground="{DynamicResource DimTextBrush}" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=LocalSearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
                     </WrapPanel>
                 </Border>
-                <Border Grid.Column="1" Background="#292B30" BorderBrush="#4B5058" BorderThickness="1" CornerRadius="4" Padding="6" Margin="10,0,0,0" ToolTip="Create or import a compact list of enabled mods.">
+                <Border Grid.Column="1" Background="{DynamicResource InsetBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6" Margin="10,0,0,0" ToolTip="Create or import a compact list of enabled mods.">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="Share code" Width="92" Height="28" Margin="0,0,6,0" Click="ExportModlist_Click" ToolTip="Copy your enabled mods and versions to the clipboard."/>
-                        <Grid Width="190" Height="28"><TextBox x:Name="ModlistCodeBox" VerticalContentAlignment="Center"/><TextBlock Text="Paste share code" Foreground="#7F8791" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=ModlistCodeBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
-                        <Button Content="Import" Width="72" Height="28" Margin="6,0,6,0" Click="PasteImportModlist_Click" ToolTip="Import the pasted share code."/>
-                        <Button x:Name="ShareColumnToggleButton" Width="30" Height="28" Content=">" Click="ToggleShareColumn_Click" ToolTip="Show the third Local Mods column."/>
+                        <Button Content="Share code" Width="92" Height="28" Margin="0,0,6,0" Click="ExportModlist_Click" ToolTip="A share code is a compact text list of your enabled mods and their versions. This copies yours to the clipboard so someone else can import it."/>
+                        <Grid Width="190" Height="28"><TextBox x:Name="ModlistCodeBox" VerticalContentAlignment="Center"/><TextBlock Text="Paste share code" Foreground="{DynamicResource DimTextBrush}" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=ModlistCodeBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
+                        <Button Content="Import" Width="72" Height="28" Margin="6,0,6,0" Click="PasteImportModlist_Click" ToolTip="Reads the pasted share code and lists the mods it asks for, so you can install any you are missing. Nothing is downloaded automatically."/>
+                        <Button x:Name="ShareColumnToggleButton" MinWidth="118" Height="28" Margin="6,0,0,0" Content="Add column ›" Click="ToggleShareColumn_Click" ToolTip="Show a third Local Mods column."/>
                     </StackPanel>
                 </Border>
             </Grid>
         </Border>
         <Grid Grid.Row="1" x:Name="ColumnsGrid">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition x:Name="ShareColumnDefinition" Width="0"/></Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Margin="0,0,8,0" Background="#36393F" Padding="10" CornerRadius="6"><DockPanel><StackPanel DockPanel.Dock="Top"><ComboBox x:Name="FirstColumnView" SelectedIndex="0" SelectionChanged="ColumnView_SelectionChanged" Margin="0,0,0,8"><ComboBoxItem Content="Enabled Mods"/><ComboBoxItem Content="Disabled Mods"/><ComboBoxItem Content="Sharecode Requested Mods"/><ComboBoxItem Content="Missing Dependencies"/><ComboBoxItem Content="Update Available"/><ComboBoxItem Content="Incompatibility"/><ComboBoxItem Content="Known Bugs"/><ComboBoxItem Content="Needs Attention"/></ComboBox><TextBlock x:Name="FirstColumnEmpty" Foreground="#87909B" Opacity=".72" TextWrapping="Wrap"/></StackPanel><ListBox x:Name="FirstModsList" Margin="0,8,0,0" Background="Transparent" BorderThickness="0" ItemTemplate="{StaticResource CompactModCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" ItemContainerStyle="{StaticResource StretchedModCardContainer}"/></DockPanel></Border>
-            <Border Grid.Column="1" Margin="0,0,0,0" Background="#36393F" Padding="10" CornerRadius="6"><DockPanel><StackPanel DockPanel.Dock="Top"><ComboBox x:Name="SecondColumnView" SelectedIndex="1" SelectionChanged="ColumnView_SelectionChanged" Margin="0,0,0,8"><ComboBoxItem Content="Enabled Mods"/><ComboBoxItem Content="Disabled Mods"/><ComboBoxItem Content="Sharecode Requested Mods"/><ComboBoxItem Content="Missing Dependencies"/><ComboBoxItem Content="Update Available"/><ComboBoxItem Content="Incompatibility"/><ComboBoxItem Content="Known Bugs"/><ComboBoxItem Content="Needs Attention"/></ComboBox><TextBlock x:Name="SecondColumnEmpty" Foreground="#87909B" Opacity=".72" TextWrapping="Wrap"/></StackPanel><ListBox x:Name="SecondModsList" Margin="0,8,0,0" Background="Transparent" BorderThickness="0" ItemTemplate="{StaticResource CompactModCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" ItemContainerStyle="{StaticResource StretchedModCardContainer}"/></DockPanel></Border>
-            <Border x:Name="ShareColumnHost" Grid.Column="2" Margin="8,0,0,0" Background="#36393F" Padding="10" CornerRadius="6"><DockPanel><StackPanel DockPanel.Dock="Top"><ComboBox x:Name="ThirdColumnView" SelectedIndex="2" SelectionChanged="ColumnView_SelectionChanged" Margin="0,0,0,8"><ComboBoxItem Content="Enabled Mods"/><ComboBoxItem Content="Disabled Mods"/><ComboBoxItem Content="Sharecode Requested Mods"/><ComboBoxItem Content="Missing Dependencies"/><ComboBoxItem Content="Update Available"/><ComboBoxItem Content="Incompatibility"/><ComboBoxItem Content="Known Bugs"/><ComboBoxItem Content="Needs Attention"/></ComboBox><TextBlock x:Name="ThirdColumnEmpty" Foreground="#87909B" Opacity=".72" TextWrapping="Wrap"/></StackPanel><ListBox x:Name="ThirdModsList" Margin="0,8,0,0" Background="Transparent" BorderThickness="0" ItemTemplate="{StaticResource CompactModCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" ItemContainerStyle="{StaticResource StretchedModCardContainer}"/></DockPanel></Border>
+            <Border Grid.Column="0" Margin="0,0,8,0" Background="{DynamicResource CardBrush}" Padding="10" CornerRadius="6"><DockPanel><StackPanel DockPanel.Dock="Top"><ComboBox x:Name="FirstColumnView" SelectedIndex="0" SelectionChanged="ColumnView_SelectionChanged" Margin="0,0,0,8"><ComboBoxItem Content="Enabled Mods"/><ComboBoxItem Content="Disabled Mods"/><ComboBoxItem Content="Sharecode Requested Mods"/><ComboBoxItem Content="Missing Dependencies"/><ComboBoxItem Content="Update Available"/><ComboBoxItem Content="Incompatibility"/><ComboBoxItem Content="Known Bugs"/><ComboBoxItem Content="Needs Attention"/></ComboBox><TextBlock x:Name="FirstColumnEmpty" Foreground="{DynamicResource DimTextBrush}" Opacity=".72" TextWrapping="Wrap"/></StackPanel><ListBox x:Name="FirstModsList" Margin="0,8,0,0" Background="Transparent" BorderThickness="0" ItemTemplate="{StaticResource CompactModCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" ItemContainerStyle="{StaticResource StretchedModCardContainer}"/></DockPanel></Border>
+            <Border Grid.Column="1" Margin="0,0,0,0" Background="{DynamicResource CardBrush}" Padding="10" CornerRadius="6"><DockPanel><StackPanel DockPanel.Dock="Top"><ComboBox x:Name="SecondColumnView" SelectedIndex="1" SelectionChanged="ColumnView_SelectionChanged" Margin="0,0,0,8"><ComboBoxItem Content="Enabled Mods"/><ComboBoxItem Content="Disabled Mods"/><ComboBoxItem Content="Sharecode Requested Mods"/><ComboBoxItem Content="Missing Dependencies"/><ComboBoxItem Content="Update Available"/><ComboBoxItem Content="Incompatibility"/><ComboBoxItem Content="Known Bugs"/><ComboBoxItem Content="Needs Attention"/></ComboBox><TextBlock x:Name="SecondColumnEmpty" Foreground="{DynamicResource DimTextBrush}" Opacity=".72" TextWrapping="Wrap"/></StackPanel><ListBox x:Name="SecondModsList" Margin="0,8,0,0" Background="Transparent" BorderThickness="0" ItemTemplate="{StaticResource CompactModCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" ItemContainerStyle="{StaticResource StretchedModCardContainer}"/></DockPanel></Border>
+            <Border x:Name="ShareColumnHost" Grid.Column="2" Margin="8,0,0,0" Background="{DynamicResource CardBrush}" Padding="10" CornerRadius="6"><DockPanel><StackPanel DockPanel.Dock="Top"><ComboBox x:Name="ThirdColumnView" SelectedIndex="2" SelectionChanged="ColumnView_SelectionChanged" Margin="0,0,0,8"><ComboBoxItem Content="Enabled Mods"/><ComboBoxItem Content="Disabled Mods"/><ComboBoxItem Content="Sharecode Requested Mods"/><ComboBoxItem Content="Missing Dependencies"/><ComboBoxItem Content="Update Available"/><ComboBoxItem Content="Incompatibility"/><ComboBoxItem Content="Known Bugs"/><ComboBoxItem Content="Needs Attention"/></ComboBox><TextBlock x:Name="ThirdColumnEmpty" Foreground="{DynamicResource DimTextBrush}" Opacity=".72" TextWrapping="Wrap"/></StackPanel><ListBox x:Name="ThirdModsList" Margin="0,8,0,0" Background="Transparent" BorderThickness="0" ItemTemplate="{StaticResource CompactModCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" ItemContainerStyle="{StaticResource StretchedModCardContainer}"/></DockPanel></Border>
         </Grid>
     </Grid>
 </Page>
