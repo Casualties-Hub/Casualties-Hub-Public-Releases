@@ -1,0 +1,21 @@
+Casualties Hub v0.0.8-pre.4
+
+What changed
+
+Standalone single file Hub
+
+- Casualties Hub is now one standalone EXE. There is no folder to unpack and no other file has to sit beside it.
+- The dependency catalog, incompatibility catalog, Hub content, and release notes are carried inside the EXE, so the Data folder is no longer required for the Hub to run.
+- A Data folder placed beside the Hub still takes priority over the built-in copies, so the catalogs can be hand-edited when needed.
+- Settings, logs, crash reports, and protected assets are unchanged and still live in the Casualties Hub folder under LocalAppData.
+
+No external tools in this release
+
+- The external Developer Console is gone from this build. The Hub no longer watches LocalAppData for developer commands, so it no longer runs any instruction from outside the application.
+- The in-app Developer Console page is unchanged. It is still the place to view live activity, copy the log, open the BepInEx crash log, and create a support-ready crash report.
+- CH Uninstaller.cmd is no longer included. To remove the Hub, delete the EXE, and delete the Casualties Hub folder under LocalAppData if you also want to clear saved data.
+- A separate developer console and uninstaller are planned as their own downloads later.
+
+Testing note
+
+This is a pre-release build intended for testing toward Casualties Hub v0.0.8. Run the EXE from any folder and confirm Hub Home, What Changed, dependency prompts, and incompatibility warnings all still populate correctly. Making the Hub self-contained is also the groundwork for a future Linux build, where a single portable executable is the practical shape to target.

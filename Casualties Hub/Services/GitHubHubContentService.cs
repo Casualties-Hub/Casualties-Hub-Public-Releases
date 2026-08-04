@@ -20,14 +20,12 @@ public sealed class GitHubHubContentService
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
     private readonly string _cachePath;
     private readonly string _statePath;
-    private readonly string _bundledPath;
     private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
 
     public GitHubHubContentService(SettingsService settingsService)
     {
         _cachePath = Path.Combine(settingsService.AppDataPath, "HubContentCache.json");
         _statePath = Path.Combine(settingsService.AppDataPath, "HubContentHttpState.json");
-        _bundledPath = Path.Combine(AppContext.BaseDirectory, "Data", "HubContent.json");
     }
 
     public HubContentResult LoadCached()
@@ -102,12 +100,19 @@ public sealed class GitHubHubContentService
 
     private HubContent LoadBestAvailable()
     {
-        foreach (var path in new[] { _cachePath, _bundledPath })
+        if (File.Exists(_cachePath))
         {
-            if (!File.Exists(path)) continue;
-            try { return Deserialize(File.ReadAllText(path)); }
+            try { return Deserialize(File.ReadAllText(_cachePath)); }
             catch (Exception exception) when (exception is IOException or JsonException)
-            { DebugLogService.Error($"Could not load {Path.GetFileName(path)}", exception); }
+            { DebugLogService.Error($"Could not load {Path.GetFileName(_cachePath)}", exception); }
+        }
+
+        // Falls back to the copy bundled in the EXE, or beside it on an unpacked install.
+        if (BundledData.Read("Bundled/HubContent.json", Path.Combine("Data", "HubContent.json")) is { } bundled)
+        {
+            try { return Deserialize(bundled.Text); }
+            catch (JsonException exception)
+            { DebugLogService.Error("Could not load the bundled HubContent.json", exception); }
         }
         return new HubContent();
     }

@@ -9,7 +9,6 @@
 | `Casualties Hub/Models/` | Settings, metadata, mod, and installation models. |
 | `Casualties Hub/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
 | `Casualties Hub Installer/` | Standalone Windows setup wizard. |
-| `Developer Console/` | Local development commands for a running Hub instance. |
 | `Nexus Mod Package/` | Nexus package marker project. |
 | `Release Packaging/` | Scripts and inputs used to assemble releases. |
 | `Release Notes/` | In-application version history. |

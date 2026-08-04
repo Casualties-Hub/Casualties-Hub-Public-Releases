@@ -64,7 +64,6 @@ again.
 | --- | --- |
 | `Casualties Hub/` | The WPF application. `Services/` holds the logic worth reading first. |
 | `Casualties Hub Installer/` | Standalone Setup Wizard, published separately from the Hub ZIP. |
-| `Developer Console/` | Sends a fixed set of test commands to a running Hub via a file in AppData. |
 | `Release Packaging/` | PowerShell scripts that assemble the release ZIPs. |
 | `HubContent.json` | Public announcement and release-information feed cached by the Hub. |
 | `Release Notes/`, `GitHub Release Notes/` | Per-version notes. Some are embedded in the app. |

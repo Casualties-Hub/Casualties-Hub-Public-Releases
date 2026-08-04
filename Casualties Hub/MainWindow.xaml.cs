@@ -25,11 +25,9 @@ public partial class MainWindow : Window
     private readonly AnnouncementHistoryService _announcementHistoryService;
     private readonly UpdateInstaller _updateInstaller = new();
     private readonly DispatcherTimer _faceClickTimer = new() { Interval = TimeSpan.FromMilliseconds(700) };
-    private readonly DispatcherTimer _developerCommandTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer _refreshBlinkTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private readonly DispatcherTimer _cloudStatusTimer = new() { Interval = TimeSpan.FromMinutes(1) };
     private readonly DispatcherTimer _animatedRgbTimer = new() { Interval = TimeSpan.FromMilliseconds(80) };
-    private readonly DeveloperCommandService _developerCommandService = new();
     private double _animatedRgbHue;
     private Color _previousPrimaryTextColor = Colors.White;
     private int _faceClickCount;
@@ -59,8 +57,6 @@ public partial class MainWindow : Window
         Services.DebugLogService.Activity("Launcher", $"Started Casualties Hub {GetType().Assembly.GetName().Version}.");
         _downloadImportService.Start();
         _faceClickTimer.Tick += FaceClickTimer_Tick;
-        _developerCommandTimer.Tick += (_, _) => CheckDeveloperConsoleCommands();
-        _developerCommandTimer.Start();
         _refreshBlinkTimer.Tick += RefreshBlinkTimer_Tick;
         _cloudStatusTimer.Tick += async (_, _) => await RefreshRemoteDataIfEligibleAsync();
         _animatedRgbTimer.Tick += AnimatedRgbTimer_Tick;
@@ -431,93 +427,12 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         DebugLogService.Activity("Launcher", "Closing Casualties Hub.");
-        _developerCommandTimer.Stop();
         _refreshBlinkTimer.Stop();
         _cloudStatusTimer.Stop();
         _animatedRgbTimer.Stop();
         ModService.PluginFilesChanged -= PluginFilesChanged;
         _downloadImportService.Dispose();
         base.OnClosed(e);
-    }
-
-    private void CheckDeveloperConsoleCommands()
-    {
-        if (!_developerCommandService.TryTake(out var request)) return;
-        var command = request.Command;
-        _developerCommandService.Acknowledge(request, $"Hub received {command} and is running the requested test.");
-
-        switch (command)
-        {
-            case "MissingGameLocation":
-                DebugLogService.Info("Developer Console simulated a missing Casualties Unknown install.");
-                SetStatus("Install cannot be found, manually set game path.");
-                var gameDialog = new GameDetectionDialog { Owner = this };
-                gameDialog.ShowDialog();
-                if (gameDialog.OpenSettingsRequested) OpenSettingsPage();
-                break;
-
-            case "MissingPluginsFolder":
-                ShowDeveloperFailure("BepInEx Plugins folder cannot be found. Select your Casualties Unknown, BepInEx, or Plugins folder in Settings.");
-                break;
-
-            case "MetadataRequestFailed":
-                ShowDeveloperFailure("Community metadata could not be loaded. This is a Developer Console test of the normal metadata failure path.");
-                break;
-
-            case "ImportFailed":
-                ShowDeveloperFailure("The selected mod archive could not be imported. This is a Developer Console test of the normal import failure path.");
-                break;
-
-            case "CreateCrashReport":
-                var testException = new InvalidOperationException("Developer Console requested a test crash report.");
-                DebugLogService.Error("Developer test failure", testException);
-                var reportPath = DebugLogService.CreateCrashReport(testException);
-                SetStatus(string.IsNullOrWhiteSpace(reportPath) ? "Test crash report could not be created." : "Test crash report created.");
-                MessageBox.Show("A test crash report was created without crashing Casualties Hub.", "Developer Console", MessageBoxButton.OK, MessageBoxImage.Information);
-                break;
-
-            case "ReloadDashboard":
-                NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, true, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
-                SetStatus("Developer Console requested a dashboard refresh.");
-                break;
-
-            case "ReloadLocalMods":
-                NavigateTo(new ModsPage(SetStatus), ModsNavButton);
-                SetStatus("Developer Console requested a Local Mods refresh.");
-                break;
-
-            case "OpenSettings":
-                OpenSettingsPage();
-                SetStatus("Developer Console opened Settings.");
-                break;
-
-            case "CreateDiagnosticLog":
-                var diagnosticPath = DebugLogService.CreateDiagnosticLog();
-                SetStatus(string.IsNullOrWhiteSpace(diagnosticPath) ? "Diagnostic log could not be created." : "Diagnostic log created from the last 10 minutes.");
-                break;
-
-            case "CheckGitHubNow":
-                _ = RefreshHubHomeServiceAsync();
-                SetStatus("Developer Console requested the scheduled GitHub content check.");
-                break;
-
-            case "CheckUpdateFeed":
-                _ = CheckForUpdateAsync();
-                SetStatus("Developer Console is checking the GitHub update feed for an eligible release.");
-                break;
-
-            default:
-                DebugLogService.Info($"Developer Console sent an unknown command: {command}");
-                _developerCommandService.Acknowledge(request, $"Hub does not recognize the command {command}.");
-                break;
-        }
-    }
-
-    private void ShowDeveloperFailure(string message)
-    {
-        DebugLogService.Error("Developer Console simulated a failure", new InvalidOperationException(message));
-        SetStatus(message);
-        MessageBox.Show(message, "Casualties Hub â€” Developer test", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void MasterRefresh_Click(object sender, RoutedEventArgs e) => RestartHub(true);

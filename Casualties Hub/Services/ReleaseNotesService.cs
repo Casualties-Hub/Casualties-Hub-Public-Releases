@@ -43,10 +43,11 @@ public sealed class ReleaseNotesService
 
     private static string[]? ReadReleaseNotes(string version)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Data", "Release Notes", $"Version {version}.txt");
-        if (!File.Exists(path))
-            path = Path.Combine(AppContext.BaseDirectory, $"Version {version}.txt"); // legacy builds
-        return File.Exists(path) ? File.ReadAllLines(path) : null;
+        var loaded = BundledData.Read(
+            $"Bundled/Release Notes/Version {version}.txt",
+            Path.Combine("Data", "Release Notes", $"Version {version}.txt"),
+            $"Version {version}.txt"); // legacy builds
+        return loaded?.Text.ReplaceLineEndings("\n").Split('\n');
     }
 
     /// <summary>Lines under the given heading, stopping at the next recognised heading or the end of the file.</summary>
