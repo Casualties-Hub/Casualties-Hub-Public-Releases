@@ -390,4 +390,15 @@ public partial class SettingsPage : Page
         DebugLogService.Activity("Logs", "Created a diagnostic log from recent Hub activity.");
         MessageBox.Show($"Diagnostic log created:\n{path}", "Create Log", MessageBoxButton.OK, MessageBoxImage.Information);
     }
+
+    private void Uninstall_Click(object sender, RoutedEventArgs e)
+    {
+        var items = UninstallService.GetItems(_settingsService);
+        var dialog = new UninstallDialog(items) { Owner = Window.GetWindow(this) };
+        if (dialog.ShowDialog() != true) return;
+
+        DebugLogService.Activity("Uninstall", $"Player confirmed removal of: {string.Join(", ", dialog.SelectedItems.Select(item => item.Title))}.");
+        UninstallService.BeginUninstall(dialog.SelectedItems);
+        Application.Current.Shutdown();
+    }
 }

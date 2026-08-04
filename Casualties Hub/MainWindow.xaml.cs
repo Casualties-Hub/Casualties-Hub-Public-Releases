@@ -66,6 +66,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             PromptForOnlineServicesOnFirstLaunch();
+            await PromptForStaleUpdateFilesCleanupAsync();
             await InitializeCloudFeaturesAsync();
         };
         Deactivated += async (_, _) => await RefreshRemoteDataIfEligibleAsync();
@@ -165,6 +166,23 @@ public partial class MainWindow : Window
         }
         _cloudStatusTimer.Start();
         RefreshHubHomeIfOpen();
+    }
+
+    /// <summary>
+    /// UpdateInstaller leaves each update's downloaded ZIP and extracted copy behind in Temp,
+    /// so this offers to reclaim that space on launch whenever leftovers are actually found.
+    /// </summary>
+    private async Task PromptForStaleUpdateFilesCleanupAsync()
+    {
+        var folders = await Task.Run(Services.UpdateCleanupService.ScanStagingFolders);
+        if (folders.Count == 0) return;
+
+        var dialog = new UpdateCleanupDialog(folders) { Owner = this };
+        if (dialog.ShowDialog() != true || dialog.SelectedPaths.Count == 0) return;
+
+        Services.UpdateCleanupService.Delete(dialog.SelectedPaths);
+        SetStatus($"Removed {dialog.SelectedPaths.Count} leftover update folder(s).");
+        DebugLogService.Activity("Update cleanup", $"Player removed {dialog.SelectedPaths.Count} leftover update folder(s).");
     }
 
     /// <summary>Applies the persisted preference for optional Easter eggs.</summary>

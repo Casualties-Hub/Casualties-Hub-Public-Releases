@@ -158,8 +158,16 @@
                 <StackPanel><TextBlock Text="Nexus Premium" Foreground="White" FontSize="19" FontWeight="SemiBold"/><TextBlock Text="Optional: save your personal API key for direct mod downloads." Foreground="#C9CDD3" Margin="0,6,0,12"/><PasswordBox x:Name="NexusApiKeyBox" Background="#292B30" Foreground="White" BorderBrush="#555A63" Padding="8" ToolTip="Your personal Nexus API key"/><StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button Content="Save Premium API key" Width="170" Click="SaveNexusApiKey_Click"/><Button Content="Clear key" Width="100" Margin="10,0,0,0" Click="ClearNexusApiKey_Click"/></StackPanel><TextBlock x:Name="NexusApiKeyStatusText" Foreground="#A9AFB8" TextWrapping="Wrap" Margin="0,8,0,0"/></StackPanel>
             </Border>
 
-            <Border Background="#36393F" CornerRadius="7" Padding="18">
+            <Border Background="#36393F" CornerRadius="7" Padding="18" Margin="0,0,0,14">
                 <StackPanel><TextBlock Text="Support logs" Foreground="White" FontSize="19" FontWeight="SemiBold"/><TextBlock Text="Logs stay on this PC and describe Hub activity only. They do not include your API key, Discord token, IP address, or installation ID." Foreground="#C9CDD3" Margin="0,6,0,12" TextWrapping="Wrap"/><WrapPanel><Button Content="Open logs folder" Width="145" Margin="0,0,10,0" Click="OpenLogsFolder_Click" ToolTip="Open local Hub logs and diagnostic logs"/><Button Content="Open crash logs" Width="145" Margin="0,0,10,0" Click="OpenCrashLogs_Click" ToolTip="Open the folder containing the latest five Hub crash reports"/><Button Content="Create Log" Width="120" Click="CreateLog_Click" ToolTip="Create a diagnostic log containing the last 10 minutes of Hub activity"/></WrapPanel><TextBlock x:Name="StorageText" Foreground="#A9AFB8" Margin="0,16,0,0" TextWrapping="Wrap"/></StackPanel>
+            </Border>
+
+            <Border Background="#36393F" CornerRadius="7" Padding="18" BorderBrush="#7A2530" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Uninstall Casualties Hub" Foreground="White" FontSize="19" FontWeight="SemiBold"/>
+                    <TextBlock Text="Remove the Hub program files, your settings, protected assets, saved Nexus API key, or logs — choose exactly what to delete." Foreground="#C9CDD3" Margin="0,6,0,12" TextWrapping="Wrap"/>
+                    <Button Content="Uninstall..." Width="150" HorizontalAlignment="Left" Background="#B71C2A" Foreground="White" Click="Uninstall_Click"/>
+                </StackPanel>
             </Border>
         </StackPanel>
     </ScrollViewer>
