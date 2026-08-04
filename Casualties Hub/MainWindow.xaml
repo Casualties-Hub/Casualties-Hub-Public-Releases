@@ -35,6 +35,8 @@
                 <Button x:Name="DashboardNavButton" Content="Nexus Dashboard" Height="32" Margin="0,0,0,6" Click="Dashboard_Click"/>
                 <Button x:Name="ModsNavButton" Content="Local Mods" Height="32" Margin="0,0,0,6" Click="Mods_Click"/>
                 <Button x:Name="ProtectedAssetsNavButton" Content="Protected Assets" Height="32" Margin="0,0,0,6" Click="ProtectedFiles_Click"/>
+                <Button x:Name="SkinPreviewNavButton" Content="Skin Preview" Height="32" Margin="0,0,0,6" Click="SkinPreview_Click"
+                        ToolTip="Character skins installed through CustomSprites appear here. Pick a slot to see how it looks in the game's idle pose, then change the head, expression, and facing to check the rest of the art."/>
                 <!-- Credits now lives inside Hub Home, keeping the sidebar to five entries. -->
                 <Button x:Name="HubHomeNavButton" Content="Hub Home" Height="32" Margin="0,0,0,6" Click="HubHome_Click"/>
                 <Button x:Name="SettingsNavButton" Content="Settings" Height="32" Click="Settings_Click"/>
@@ -46,7 +48,7 @@
         <Border x:Name="StatusBarHost" Grid.Row="2" Grid.ColumnSpan="2" Background="#18191C" Panel.ZIndex="20" ClipToBounds="True">
             <Grid ClipToBounds="True">
                 <TextBlock x:Name="StatusText" Text="Ready" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="10,0,180,0" TextTrimming="CharacterEllipsis"/>
-                <TextBlock Text="v0.0.8-pre.2" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
+                <TextBlock Text="v0.0.8-pre.3" Foreground="{DynamicResource PrimaryTextBrush}" Background="#18191C" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Panel.ZIndex="2"/>
             </Grid>
         </Border>
 

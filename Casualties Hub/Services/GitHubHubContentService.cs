@@ -132,7 +132,7 @@ public sealed class GitHubHubContentService
     private static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.8-pre.2"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CasualtiesHub", "0.0.8-pre.3"));
         return client;
     }
 

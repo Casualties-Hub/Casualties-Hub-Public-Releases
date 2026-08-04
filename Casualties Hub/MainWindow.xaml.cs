@@ -79,6 +79,7 @@ public partial class MainWindow : Window
     private void Dashboard_Click(object sender, RoutedEventArgs e) => NavigateTo(new DashboardPage(SetStatus, OpenSettingsPage, false, RefreshGitHubDataForMetadataPingAsync), DashboardNavButton);
     private void Mods_Click(object sender, RoutedEventArgs e) => NavigateTo(new ModsPage(SetStatus), ModsNavButton);
     private void ProtectedFiles_Click(object sender, RoutedEventArgs e) => NavigateTo(new ProtectedFilesPage(SetStatus), ProtectedAssetsNavButton);
+    private void SkinPreview_Click(object sender, RoutedEventArgs e) => NavigateTo(new SkinPreviewPage(SetStatus), SkinPreviewNavButton);
     private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettingsPage();
     private void HubHome_Click(object sender, RoutedEventArgs e) => NavigateTo(CreateHubHomePage(), HubHomeNavButton);
 
@@ -106,7 +107,7 @@ public partial class MainWindow : Window
         var controlText = GetThemeBrush("ControlTextBrush");
         var accent = GetThemeBrush("AccentBrush");
         var accentText = GetThemeBrush("AccentTextBrush");
-        foreach (var button in new[] { DashboardNavButton, ModsNavButton, ProtectedAssetsNavButton, HubHomeNavButton, SettingsNavButton })
+        foreach (var button in new[] { DashboardNavButton, ModsNavButton, ProtectedAssetsNavButton, SkinPreviewNavButton, HubHomeNavButton, SettingsNavButton })
         {
             button.Background = controlSurface;
             button.Foreground = controlText;
@@ -538,6 +539,9 @@ public partial class MainWindow : Window
                 break;
             case ProtectedFilesPage:
                 NavigateTo(new ProtectedFilesPage(SetStatus), ProtectedAssetsNavButton);
+                break;
+            case SkinPreviewPage:
+                NavigateTo(new SkinPreviewPage(SetStatus), SkinPreviewNavButton);
                 break;
             case SettingsPage:
                 OpenSettingsPage();

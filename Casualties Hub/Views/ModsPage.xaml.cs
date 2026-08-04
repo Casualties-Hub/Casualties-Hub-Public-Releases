@@ -380,7 +380,8 @@ public partial class ModsPage : Page
                 var slotDialog = new SkinSlotDialog { Owner = Window.GetWindow(this) };
                 if (slotDialog.ShowDialog() != true) return;
                 skinSlot = slotDialog.SelectedSlot;
-                if (MessageBox.Show($"The current CustomSprites\\{skinSlot} contents will be permanently replaced. Continue?", "Replace sprite slot", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                if (slotDialog.SelectedSlotIsOccupied
+                    && MessageBox.Show($"The current CustomSprites\\{skinSlot} contents will be permanently replaced. Continue?", "Replace sprite slot", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
                     return;
             }
 

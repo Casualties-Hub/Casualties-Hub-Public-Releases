@@ -65,7 +65,7 @@ public sealed class NexusDownloadService
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("apikey", apiKey);
         request.Headers.Add("Application-Name", "CasualtiesHub");
-        request.Headers.Add("Application-Version", "0.0.8-pre.2");
+        request.Headers.Add("Application-Version", "0.0.8-pre.3");
         return request;
     }
 
