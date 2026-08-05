@@ -100,13 +100,35 @@ public static class SkinPreviewComposer
             .Select(spriteName => spriteName + ".png")
             .ToList();
 
-    private static BitmapImage LoadBitmap(string path)
+    /// <summary>
+    /// Loads a sprite and strips any embedded DPI metadata. Some community skins ship PNGs
+    /// saved at 72 DPI (a common pixel-art tool default) instead of the 96 DPI the rest of a
+    /// skin's own files use. WPF's Image control renders a bitmap at its *DPI-scaled* size,
+    /// not its raw pixel size, so a 72 DPI sprite draws ~33% larger than its PixelWidth/
+    /// PixelHeight — silently breaking this composer's placement math, which assumes 1 source
+    /// pixel = 1 device-independent pixel. Re-hosting the decoded pixels in a bitmap stamped
+    /// at 96 DPI removes that variable regardless of what a given file's metadata claims.
+    /// </summary>
+    private static BitmapSource LoadBitmap(string path)
     {
         var bitmap = new BitmapImage();
         bitmap.BeginInit();
         bitmap.CacheOption = BitmapCacheOption.OnLoad;
         bitmap.UriSource = new Uri(path, UriKind.Absolute);
         bitmap.EndInit();
+
+        if (Math.Abs(bitmap.DpiX - 96.0) > 0.01 || Math.Abs(bitmap.DpiY - 96.0) > 0.01)
+        {
+            var stride = bitmap.PixelWidth * ((bitmap.Format.BitsPerPixel + 7) / 8);
+            var pixels = new byte[stride * bitmap.PixelHeight];
+            bitmap.CopyPixels(pixels, stride, 0);
+            var normalized = BitmapSource.Create(
+                bitmap.PixelWidth, bitmap.PixelHeight, 96.0, 96.0,
+                bitmap.Format, bitmap.Palette, pixels, stride);
+            normalized.Freeze();
+            return normalized;
+        }
+
         bitmap.Freeze();
         return bitmap;
     }
@@ -119,7 +141,7 @@ public static class SkinPreviewComposer
     {
         var worldTransforms = SkinRigDefinition.ComputeWorldTransforms();
 
-        var placements = new List<(BitmapImage Bitmap, SkinRigDefinition.WorldTransform World, int SortingOrder)>();
+        var placements = new List<(BitmapSource Bitmap, SkinRigDefinition.WorldTransform World, int SortingOrder)>();
 
         foreach (var node in SkinRigDefinition.Nodes)
         {

@@ -1,0 +1,5 @@
+Casualties Hub v0.0.8-pre.6.1
+Released: August 4, 2026
+
+Fixed
+- Skin Preview no longer trusts a skin's own DPI metadata. Some community skins ship sprites saved at 72 DPI instead of the expected 96 DPI, which made the preview compositor render those sprites at the wrong size and could visibly knock the eye, and sometimes limbs, out of place even though the skin's art was correct. Affected sprites are now normalised to 96 DPI on load, regardless of what the file claims.
