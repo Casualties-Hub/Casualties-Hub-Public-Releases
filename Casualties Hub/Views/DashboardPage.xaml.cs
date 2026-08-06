@@ -18,7 +18,7 @@ public partial class DashboardPage : Page
     private readonly ModService _modService = new();
     private readonly ProtectedFilesService _protectedFilesService;
     private readonly UniversalMetadataService _metadataService;
-    private readonly NexusApiKeyStore _nexusApiKeyStore;
+    private readonly NexusAuthService _nexusAuthService;
     private readonly NexusDownloadService _nexusDownloadService = new();
     private readonly GameInstallDetector _gameInstallDetector = new();
     private readonly Action<string> _setStatus;
@@ -38,7 +38,7 @@ public partial class DashboardPage : Page
         _forceMetadataRefresh = forceMetadataRefresh;
         _protectedFilesService = new(_settingsService, _modService);
         _metadataService = new(_settingsService);
-        _nexusApiKeyStore = new(_settingsService);
+        _nexusAuthService = new(_settingsService);
         RefreshLocalCounts();
         Loaded += DashboardPage_Loaded;
         Unloaded += DashboardPage_Unloaded;
@@ -145,7 +145,7 @@ public partial class DashboardPage : Page
             var githubTask = forceRefresh && _refreshGitHubData is not null ? _refreshGitHubData() : Task.CompletedTask;
             _allMods = await _metadataService.GetModsAsync(forceRefresh);
             await githubTask;
-            var premiumEnabled = _nexusApiKeyStore.HasKey;
+            var premiumEnabled = _nexusAuthService.IsSignedIn;
             foreach (var mod in _allMods)
             {
                 mod.HasPremiumDownload = premiumEnabled;
@@ -262,15 +262,15 @@ public partial class DashboardPage : Page
             return;
         }
 
-        var apiKey = _nexusApiKeyStore.Load();
-        if (!string.IsNullOrWhiteSpace(apiKey))
+        var accessToken = await _nexusAuthService.GetAccessTokenAsync();
+        if (!string.IsNullOrWhiteSpace(accessToken))
         {
             try
             {
                 DebugLogService.Activity("Nexus Dashboard", $"Starting Premium download for {mod.Name}.");
                 if (sender is Button button) button.IsEnabled = false;
                 _setStatus($"Downloading {mod.Name} with the Nexus Premium API…");
-                var path = await _nexusDownloadService.DownloadLatestFileAsync(mod, apiKey, _settingsService.Load().DownloadPath);
+                var path = await _nexusDownloadService.DownloadLatestFileAsync(mod, accessToken, _settingsService.Load().DownloadPath);
                 _setStatus($"Downloaded {Path.GetFileName(path)}. The Hub will offer to install it shortly.");
                 return;
             }

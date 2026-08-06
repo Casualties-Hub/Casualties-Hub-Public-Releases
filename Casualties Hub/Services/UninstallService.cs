@@ -47,10 +47,10 @@ public sealed class UninstallService
             },
             new UninstallItem
             {
-                Key = "NexusApiKey",
-                Title = "Nexus API key",
-                Description = "Your saved personal Nexus Premium API key.",
-                Paths = [Path.Combine(settingsService.AppDataPath, "NexusApiKey.dat")]
+                Key = "NexusSignIn",
+                Title = "Nexus sign-in",
+                Description = "Your saved Nexus Mods sign-in tokens.",
+                Paths = [Path.Combine(settingsService.AppDataPath, "NexusOAuthTokens.dat")]
             },
             new UninstallItem
             {

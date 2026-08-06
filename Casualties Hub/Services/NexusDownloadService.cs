@@ -7,13 +7,13 @@ using Casualties_Hub.Models;
 
 namespace Casualties_Hub.Services;
 
-/// <summary>Premium direct-download flow using the player's own Nexus API key.</summary>
+/// <summary>Premium direct-download flow authenticated with the player's Nexus OAuth sign-in.</summary>
 public sealed class NexusDownloadService
 {
     private const string GameDomain = "scavprototype";
     private readonly HttpClient _client = new() { Timeout = TimeSpan.FromMinutes(5) };
 
-    public async Task<string> DownloadLatestFileAsync(MetadataMod mod, string apiKey, string downloadFolder)
+    public async Task<string> DownloadLatestFileAsync(MetadataMod mod, string accessToken, string downloadFolder)
     {
         DebugLogService.Activity("Nexus Premium", $"Requesting the latest downloadable file for {mod.Name}.");
         if (string.IsNullOrWhiteSpace(mod.NexusUrl))
@@ -21,26 +21,26 @@ public sealed class NexusDownloadService
         var idMatch = Regex.Match(mod.NexusUrl, @"/mods/(?<id>\d+)", RegexOptions.IgnoreCase);
         if (!idMatch.Success)
             throw new InvalidOperationException("Could not determine this mod's Nexus ID from its metadata link.");
-        if (string.IsNullOrWhiteSpace(apiKey))
-            throw new InvalidOperationException("Add your personal Nexus Premium API key in Settings first.");
+        if (string.IsNullOrWhiteSpace(accessToken))
+            throw new InvalidOperationException("Sign in with Nexus in Settings first.");
 
         var modId = idMatch.Groups["id"].Value;
-        using var fileRequest = CreateRequest($"https://api.nexusmods.com/v1/games/{GameDomain}/mods/{modId}/files.json", apiKey);
+        using var fileRequest = CreateRequest($"https://api.nexusmods.com/v1/games/{GameDomain}/mods/{modId}/files.json", accessToken);
         using var fileResponse = await _client.SendAsync(fileRequest);
         var fileJson = await fileResponse.Content.ReadAsStringAsync();
         if (!fileResponse.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Nexus could not list downloadable files ({(int)fileResponse.StatusCode}). Check your API key and Premium status.");
+            throw new InvalidOperationException($"Nexus could not list downloadable files ({(int)fileResponse.StatusCode}). Check your Nexus sign-in and Premium status.");
 
         using var fileDocument = JsonDocument.Parse(fileJson);
         var file = SelectLatestFile(fileDocument.RootElement);
         var fileId = GetInt(file, "file_id", "id");
         if (fileId <= 0) throw new InvalidOperationException("Nexus did not provide a downloadable file for this mod.");
 
-        using var linkRequest = CreateRequest($"https://api.nexusmods.com/v1/games/{GameDomain}/mods/{modId}/files/{fileId}/download_link.json", apiKey);
+        using var linkRequest = CreateRequest($"https://api.nexusmods.com/v1/games/{GameDomain}/mods/{modId}/files/{fileId}/download_link.json", accessToken);
         using var linkResponse = await _client.SendAsync(linkRequest);
         var linkJson = await linkResponse.Content.ReadAsStringAsync();
         if (!linkResponse.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Nexus refused the direct-download request ({(int)linkResponse.StatusCode}). The account may not be Premium or the API key may be invalid.");
+            throw new InvalidOperationException($"Nexus refused the direct-download request ({(int)linkResponse.StatusCode}). The account may not be Premium or the sign-in may have expired.");
 
         using var linksDocument = JsonDocument.Parse(linkJson);
         var downloadUrl = GetString(linksDocument.RootElement.ValueKind == JsonValueKind.Array
@@ -60,12 +60,12 @@ public sealed class NexusDownloadService
         return destination;
     }
 
-    private static HttpRequestMessage CreateRequest(string url, string apiKey)
+    private static HttpRequestMessage CreateRequest(string url, string accessToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add("apikey", apiKey);
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         request.Headers.Add("Application-Name", "CasualtiesHub");
-        request.Headers.Add("Application-Version", "0.0.8-pre.6");
+        request.Headers.Add("Application-Version", "0.0.8-pre.7");
         return request;
     }
 

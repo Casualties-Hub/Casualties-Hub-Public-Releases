@@ -54,7 +54,7 @@ public sealed class NexusService
         using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl);
         request.Headers.Add("apikey", apiKey);
         request.Headers.Add("Application-Name", "CasualtiesHub");
-        request.Headers.Add("Application-Version", "0.0.8-pre.6");
+        request.Headers.Add("Application-Version", "0.0.8-pre.7");
         request.Content = new StringContent(JsonSerializer.Serialize(new { query }), Encoding.UTF8, "application/json");
 
         using var response = await client.SendAsync(request);

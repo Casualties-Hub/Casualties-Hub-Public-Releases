@@ -14,7 +14,7 @@ namespace Casualties_Hub.Views;
 public partial class SettingsPage : Page
 {
     private readonly SettingsService _settingsService = new();
-    private readonly NexusApiKeyStore _nexusApiKeyStore;
+    private readonly NexusAuthService _nexusAuthService;
     private readonly Action<string> _setStatus;
     private bool _isLoadingSettings;
     private bool _isUpdatingTheme;
@@ -23,7 +23,7 @@ public partial class SettingsPage : Page
     {
         InitializeComponent();
         _setStatus = setStatus;
-        _nexusApiKeyStore = new(_settingsService);
+        _nexusAuthService = new(_settingsService);
         Refresh();
     }
 
@@ -40,9 +40,9 @@ public partial class SettingsPage : Page
         var selectedSize = settings.TextSize.ToString("0");
         TextSizeBox.SelectedItem = TextSizeBox.Items.OfType<ComboBoxItem>()
             .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), selectedSize, StringComparison.Ordinal));
-        NexusApiKeyStatusText.Text = _nexusApiKeyStore.HasKey
-            ? "A Nexus API key is saved for this Windows user. Dashboard mod cards can use direct Download."
-            : "No Nexus API key is saved. Dashboard mod cards will open the original Nexus Files page.";
+        NexusSignInStatusText.Text = _nexusAuthService.IsSignedIn
+            ? $"Signed in to Nexus Mods as {_nexusAuthService.Username}. Dashboard mod cards can use direct Download."
+            : "Not signed in to Nexus Mods. Dashboard mod cards will open the original Nexus Files page.";
         StorageText.Text = $"Hub data is kept locally in:\n{_settingsService.AppDataPath}\n\nRestart the Hub after changing the download inbox so the watcher uses the new folder.";
         _isLoadingSettings = false;
     }
@@ -529,35 +529,41 @@ public partial class SettingsPage : Page
         return true;
     }
 
-    private void SaveNexusApiKey_Click(object sender, RoutedEventArgs e)
+    private async void SignInToNexus_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(NexusApiKeyBox.Password))
-        {
-            MessageBox.Show("Paste your personal Nexus API key first.", "Nexus Premium API", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
+        if (sender is Button button) button.IsEnabled = false;
+        _setStatus("Opening your browser to sign in to Nexus Mods…");
         try
         {
-            _nexusApiKeyStore.Save(NexusApiKeyBox.Password);
-            NexusApiKeyBox.Clear();
-            Refresh();
-            _setStatus("Nexus Premium API key saved for this Windows user.");
-            DebugLogService.Activity("Settings", "Saved a Nexus Premium API key for the current Windows user.");
+            var result = await _nexusAuthService.SignInAsync();
+            if (result.Success)
+            {
+                Refresh();
+                _setStatus($"Signed in to Nexus Mods as {result.Username}.");
+                DebugLogService.Activity("Settings", $"Signed in to Nexus Mods as {result.Username}.");
+            }
+            else
+            {
+                MessageBox.Show(result.Error, "Nexus sign-in", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
         catch (Exception exception)
         {
-            DebugLogService.Error("Could not save Nexus API key", exception);
-            MessageBox.Show(exception.Message, "Nexus Premium API", MessageBoxButton.OK, MessageBoxImage.Error);
+            DebugLogService.Error("Nexus sign-in failed", exception);
+            MessageBox.Show(exception.Message, "Nexus sign-in", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            if (sender is Button button2) button2.IsEnabled = true;
         }
     }
 
-    private void ClearNexusApiKey_Click(object sender, RoutedEventArgs e)
+    private void SignOutOfNexus_Click(object sender, RoutedEventArgs e)
     {
-        _nexusApiKeyStore.Clear();
-        NexusApiKeyBox.Clear();
+        _nexusAuthService.SignOut();
         Refresh();
-        _setStatus("Nexus API key removed.");
-        DebugLogService.Activity("Settings", "Removed the stored Nexus Premium API key.");
+        _setStatus("Signed out of Nexus Mods.");
+        DebugLogService.Activity("Settings", "Signed out of Nexus Mods.");
     }
 
     private void OpenCrashLogs_Click(object sender, RoutedEventArgs e)

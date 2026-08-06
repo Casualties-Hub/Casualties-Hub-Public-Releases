@@ -16,7 +16,7 @@ public partial class ModsPage : Page
     private readonly ModlistService _modlistService;
     private readonly UniversalMetadataService _metadataService;
     private readonly NexusDownloadService _nexusDownloadService = new();
-    private readonly NexusApiKeyStore _nexusApiKeyStore;
+    private readonly NexusAuthService _nexusAuthService;
     private readonly Action<string> _setStatus;
     private readonly DispatcherTimer _pluginRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private FileSystemWatcher? _pluginsWatcher;
@@ -30,7 +30,7 @@ public partial class ModsPage : Page
         _setStatus = setStatus;
         _metadataService = new(_settingsService);
         _modlistService = new(_settingsService);
-        _nexusApiKeyStore = new(_settingsService);
+        _nexusAuthService = new(_settingsService);
         _pluginRefreshTimer.Tick += PluginRefreshTimer_Tick;
         Loaded += ModsPage_Loaded;
         Unloaded += ModsPage_Unloaded;
@@ -208,7 +208,7 @@ public partial class ModsPage : Page
                     NexusUrl = metadata?.NexusDownloadPageUrl ?? BuildNexusSearchUrl(dependency.Name),
                     IsDependencyPlaceholder = true,
                     DependencyMetadata = metadata,
-                    DependencyActionLabel = _nexusApiKeyStore.HasKey && metadata is not null ? "Download" : "Open Download",
+                    DependencyActionLabel = _nexusAuthService.IsSignedIn && metadata is not null ? "Download" : "Open Download",
                     DependencyRequiredByLabel = "Required by: " + requiredBy,
                     UpdateStatusLabel = "Missing dependency"
                 };
@@ -534,13 +534,13 @@ public partial class ModsPage : Page
     {
         if (sender is not Button { Tag: InstalledMod { IsDependencyPlaceholder: true } dependency }) return;
         var metadata = dependency.DependencyMetadata;
-        var apiKey = _nexusApiKeyStore.Load();
+        var accessToken = await _nexusAuthService.GetAccessTokenAsync();
         try
         {
-            if (metadata is not null && !string.IsNullOrWhiteSpace(apiKey))
+            if (metadata is not null && !string.IsNullOrWhiteSpace(accessToken))
             {
                 if (sender is Button button) button.IsEnabled = false;
-                var path = await _nexusDownloadService.DownloadLatestFileAsync(metadata, apiKey, _settingsService.Load().DownloadPath);
+                var path = await _nexusDownloadService.DownloadLatestFileAsync(metadata, accessToken, _settingsService.Load().DownloadPath);
                 _setStatus($"Downloaded {Path.GetFileName(path)}. The Hub will offer to install it shortly.");
                 return;
             }
