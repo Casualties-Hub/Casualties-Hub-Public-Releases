@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Casualties_Hub.Views.HubDialog"
+        Title="Casualties Hub"
+        SizeToContent="Height"
+        Width="460"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+  <StackPanel Margin="22" Spacing="16">
+    <TextBlock x:Name="HeadingText" Classes="heading" TextWrapping="Wrap"/>
+    <TextBlock x:Name="BodyText" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}"/>
+    <StackPanel x:Name="ButtonRow" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8"/>
+  </StackPanel>
+
+</Window>

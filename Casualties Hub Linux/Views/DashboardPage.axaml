@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.DashboardPage">
+
+  <DockPanel>
+
+    <Border x:Name="GameFolderCard" DockPanel.Dock="Top" Classes="card"
+            BorderBrush="{DynamicResource WarningBrush}" Margin="0,0,0,14" IsVisible="False">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="heading" Text="No game folder set"/>
+        <TextBlock Classes="muted" TextWrapping="Wrap"
+                   Text="The Hub cannot tell what you have installed until it knows where Casualties Unknown lives."/>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="DetectButton" Classes="accent" Content="Detect automatically"/>
+          <Button x:Name="OpenSettingsButton" Content="Open Settings"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,14">
+      <StackPanel Spacing="10">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="heading" Text="Community mods"/>
+            <TextBlock x:Name="SummaryText" Classes="dim"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+            <CheckBox x:Name="AdultContentBox" Content="18+"
+                      ToolTip.Tip="Include mods flagged as adult content on Nexus."/>
+            <Button x:Name="RefreshButton" Content="Refresh"/>
+          </StackPanel>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,Auto,Auto">
+          <TextBox x:Name="SearchBox" Grid.Column="0" Margin="0,0,8,0"
+                   Watermark="Search by name, author or description"/>
+          <ComboBox x:Name="FilterBox" Grid.Column="1" Margin="0,0,8,0" MinWidth="165"/>
+          <ComboBox x:Name="SortBox" Grid.Column="2" MinWidth="165"/>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <Border DockPanel.Dock="Bottom" Classes="card" Margin="0,14,0,0" Padding="12">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Button x:Name="PrevButton" Grid.Column="0" Content="Previous"/>
+        <TextBlock x:Name="PageText" Grid.Column="1" Classes="muted"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Button x:Name="NextButton" Grid.Column="2" Content="Next"/>
+      </Grid>
+    </Border>
+
+    <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Classes="muted"
+               TextWrapping="Wrap" Margin="2,0,0,10" IsVisible="False"/>
+
+    <ScrollViewer x:Name="ModScroller">
+      <ItemsControl x:Name="ModList">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <!--
+              Fixed-size cards in a wrap panel, matching the Windows dashboard. Every card keeps
+              the same surface; state shows in the border and the status line rather than a tinted
+              background, which reads far better on the dark shell.
+            -->
+            <Border Width="270" Height="495" CornerRadius="16" Margin="0,0,14,14" Padding="12"
+                    Background="{DynamicResource CardBrush}" BorderThickness="1"
+                    BorderBrush="{Binding CardBorderBrush}" Cursor="Hand"
+                    Tag="{Binding}" PointerPressed="OnCardPressed">
+              <Grid RowDefinitions="130,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+
+                <Border Grid.Row="0" Background="{DynamicResource ChromeBrush}" CornerRadius="4" ClipToBounds="True">
+                  <Panel>
+                    <TextBlock Text="No image" Classes="dim"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Image Source="{Binding Icon}" Stretch="UniformToFill"/>
+                  </Panel>
+                </Border>
+
+                <TextBlock Grid.Row="1" Text="{Binding Name}" FontWeight="SemiBold"
+                           Margin="0,10,0,0" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Grid.Row="2" Text="{Binding Author}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Grid.Row="3" Text="{Binding TotalDownloadsLabel}" Classes="muted" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="4" Text="{Binding UniqueDownloadsLabel}" Classes="muted" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="5" Text="{Binding EndorsementsLabel}" Classes="muted" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="6" Text="{Binding VersionLabel}" Classes="muted" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="7" Text="{Binding FileSizeLabel}" Classes="muted" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="8" Text="{Binding DependenciesLabel}" Foreground="#5DB8FF"
+                           TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="9" Text="{Binding LocalStatusLabel}" Foreground="{Binding StatusBrush}"
+                           TextTrimming="CharacterEllipsis" Margin="0,4,0,0" VerticalAlignment="Top"/>
+
+                <StackPanel Grid.Row="10" Spacing="6">
+                  <Button Content="{Binding DashboardActionLabel}" Tag="{Binding}" Click="OnAction"
+                          HorizontalAlignment="Stretch" Height="30"/>
+                  <Button Content="View Modpage" Tag="{Binding}" Click="OnOpenNexus"
+                          HorizontalAlignment="Stretch" Height="30"/>
+                </StackPanel>
+
+                <!-- Description overlay, shown by clicking the card. -->
+                <Border Grid.Row="0" Grid.RowSpan="11" Background="{DynamicResource InsetBrush}"
+                        Padding="12" CornerRadius="12" ZIndex="10"
+                        IsVisible="{Binding IsDescriptionExpanded}">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding Name}" FontWeight="SemiBold"
+                               TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Description" Foreground="#5DB8FF"
+                               FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBlock DockPanel.Dock="Bottom" Classes="dim" Margin="0,8,0,0"
+                               Text="Click the card again to close."/>
+                    <ScrollViewer>
+                      <TextBlock Text="{Binding RenderedDescription}" TextWrapping="Wrap" LineHeight="18"/>
+                    </ScrollViewer>
+                  </DockPanel>
+                </Border>
+
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+
+</UserControl>

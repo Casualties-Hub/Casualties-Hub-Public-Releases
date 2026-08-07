@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.ProtectedFilesPage">
+
+  <DockPanel>
+
+    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,16">
+      <StackPanel Spacing="10">
+        <TextBlock Classes="heading" Text="Protected assets"/>
+        <TextBlock Classes="muted" TextWrapping="Wrap"
+                   Text="Keeps a safe copy of files in your plugins folder that you do not want a mod install to overwrite, such as a skin you edited yourself. Restore puts them back."/>
+        <TextBlock x:Name="RootPathText" Classes="dim" TextWrapping="Wrap"/>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="ProtectButton" Classes="accent" Content="Protect files..."/>
+          <Button x:Name="RestoreButton" Content="Restore all"/>
+          <Button x:Name="RefreshButton" Content="Refresh"/>
+          <Button x:Name="OpenFolderButton" Content="Open folder"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Classes="muted"
+               TextWrapping="Wrap" Margin="2,0,0,12"/>
+
+    <ScrollViewer>
+      <ItemsControl x:Name="FileList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="raised" Margin="0,0,0,8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="{Binding DisplayLabel}" FontSize="13"/>
+                  <TextBlock Text="{Binding SavedPath}" Classes="dim" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Remove" Classes="danger" Tag="{Binding}" Click="OnRemove"
+                        VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+
+</UserControl>

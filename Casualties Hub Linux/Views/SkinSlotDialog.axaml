@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Casualties_Hub.Views.SkinSlotDialog"
+        Title="Choose a skin slot"
+        SizeToContent="Height"
+        Width="500"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+  <StackPanel Margin="22" Spacing="14">
+    <TextBlock Classes="heading" Text="Which CustomSprites slot should this skin replace?"
+               TextWrapping="Wrap"/>
+    <TextBlock Classes="muted" TextWrapping="Wrap"
+               Text="The game reads character skins from numbered st# folders. Pick the character this skin should replace."/>
+
+    <ComboBox x:Name="SlotBox" HorizontalAlignment="Stretch"/>
+
+    <TextBlock x:Name="SlotHint" TextWrapping="Wrap" FontSize="12"
+               Foreground="{DynamicResource WarningBrush}"/>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button x:Name="CancelButton" Content="Cancel" MinWidth="96"/>
+      <Button x:Name="ConfirmButton" Classes="accent" Content="Use slot" MinWidth="120"/>
+    </StackPanel>
+  </StackPanel>
+
+</Window>

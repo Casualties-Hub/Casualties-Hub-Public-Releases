@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.MultiplayerPage">
+
+  <DockPanel>
+
+    <Border DockPanel.Dock="Top" Background="{DynamicResource AccentSoftBrush}"
+            CornerRadius="6" Padding="14" Margin="0,0,0,16">
+      <StackPanel Spacing="4">
+        <TextBlock Text="Layout preview" FontWeight="SemiBold"
+                   Foreground="{DynamicResource AccentSoftTextBrush}"/>
+        <TextBlock TextWrapping="Wrap" FontSize="12"
+                   Foreground="{DynamicResource AccentSoftTextBrush}"
+                   Text="These servers are made up. There is no multiplayer service yet, nothing here contacts the network, and Join does nothing. This page exists so the layout can be reviewed early."/>
+      </StackPanel>
+    </Border>
+
+    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,16">
+      <StackPanel Spacing="10">
+        <TextBlock Classes="heading" Text="Server browser"/>
+        <Grid ColumnDefinitions="*,*,Auto" >
+          <ComboBox x:Name="RegionBox" Grid.Column="0" HorizontalAlignment="Stretch" Margin="0,0,8,0"/>
+          <ComboBox x:Name="PingBox" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,8,0"/>
+          <CheckBox x:Name="HideLockedBox" Grid.Column="2" Content="Hide locked" VerticalAlignment="Center"/>
+        </Grid>
+        <TextBox x:Name="SearchBox" Watermark="Filter by server name"/>
+      </StackPanel>
+    </Border>
+
+    <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Classes="muted"
+               TextWrapping="Wrap" Margin="2,0,0,12" IsVisible="False"
+               Text="No sample servers match those filters."/>
+
+    <ScrollViewer>
+      <ItemsControl x:Name="ServerList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="raised" Margin="0,0,0,8">
+              <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding Mood}" Classes="dim"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding LayerLabel}" Classes="muted"
+                           VerticalAlignment="Center" Width="70"/>
+                <TextBlock Grid.Column="2" Text="{Binding PopulationLabel}" Classes="muted"
+                           VerticalAlignment="Center" Width="60"/>
+                <TextBlock Grid.Column="3" Text="{Binding PingLabel}" Classes="muted"
+                           VerticalAlignment="Center" Width="60"/>
+                <Button Grid.Column="4" Content="Join" Tag="{Binding}" Click="OnJoin"
+                        VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+
+</UserControl>
