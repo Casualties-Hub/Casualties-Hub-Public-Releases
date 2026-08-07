@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.CreditsPage">
+
+  <ScrollViewer>
+    <ItemsControl x:Name="CreditList" MaxWidth="1185">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel/>
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <!-- Square cards deliberately reserve the upper section for name, role, and contribution. -->
+          <Border Background="{DynamicResource CardBrush}" CornerRadius="7"
+                  Width="280" Height="280" Margin="0,0,16,16" ClipToBounds="True">
+            <Grid RowDefinitions="112,*">
+
+              <StackPanel Grid.Row="0" Margin="14,12,14,10">
+                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Role}" Foreground="#C81E3C" Margin="0,3,0,0" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Contribution}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+              </StackPanel>
+
+              <Image Grid.Row="1" Source="{Binding Image}" Stretch="UniformToFill"
+                     IsVisible="{Binding HasImage}"/>
+              <Border Grid.Row="1" Background="{DynamicResource InsetBrush}"
+                      IsVisible="{Binding !HasImage}">
+                <TextBlock Text="Pending Picture" Classes="dim"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </ScrollViewer>
+
+</UserControl>

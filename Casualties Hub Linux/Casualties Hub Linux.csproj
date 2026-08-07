@@ -1,0 +1,105 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Casualties Hub - Linux Edition.
+
+    A standalone fork of the Windows Hub at 0.0.8-pre.6.1, rebuilt on Avalonia. It shares no
+    code or project references with the WPF app: the two are maintained separately so each can
+    follow its own platform's conventions. Files under Models\ and Services\ began as copies of
+    the Windows sources and are free to diverge.
+
+    Publish:
+      dotnet publish "Casualties Hub Linux\Casualties Hub Linux.csproj" -c Release -o <out>
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Casualties_Hub</RootNamespace>
+    <AssemblyName>casualties-hub</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <!--
+      The WPF views this port is based on bind against plain POCO models with no x:DataType.
+      Compiled bindings would reject those outright, so they stay reflection-based while the
+      pages are ported over one at a time.
+    -->
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <!--
+      Only for the HSV colour wheel, which writes pixels through Avalonia's locked framebuffer.
+      That is the direct equivalent of the Windows Hub's WriteableBitmap.WritePixels call.
+    -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>0.0.8-pre.6.1</Version>
+    <AssemblyVersion>0.0.8.61</AssemblyVersion>
+    <FileVersion>0.0.8.61</FileVersion>
+    <InformationalVersion>0.0.8-pre.6.1</InformationalVersion>
+  </PropertyGroup>
+
+  <!--
+    One portable executable, matching the shape the Windows release already ships. A tarball
+    (not a zip) carries it, because zip does not preserve the executable bit.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+
+  <!--
+    Lets the test project reach internal members. Used for the download-completion poll, which
+    is timing-driven: tests pass a 20ms interval where the app uses 1s, so the suite stays fast.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Casualties Hub Linux.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.18" Condition="'$(Configuration)' == 'Debug'" />
+    <!--
+      Ships Inter inside the binary. Without a bundled font the app renders as tofu boxes on
+      distros that lack whatever the default resolves to, which is not something this project
+      can reproduce or debug from Windows.
+    -->
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.18" />
+    <!-- Backs the selftest command line switch, which constructs every page with no display attached. -->
+    <PackageReference Include="Avalonia.Headless" Version="11.3.18" />
+    <PackageReference Include="SharpCompress" Version="0.50.0" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+  </ItemGroup>
+
+  <!--
+    Catalogs, Hub content, and release notes travel inside the binary so a release stays a single
+    file. BundledData still prefers a matching file under Data/ beside the executable, which keeps
+    the catalogs hand-editable on an unpacked install.
+  -->
+  <!--
+    Copies, not links into the WPF project's folder. The two editions are maintained separately,
+    so the Linux build must not break if the Windows assets move.
+  -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Services\DependencyCatalog.json">
+      <LogicalName>Bundled/Catalogs/DependencyCatalog.json</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Services\IncompatibilityCatalog.json">
+      <LogicalName>Bundled/Catalogs/IncompatibilityCatalog.json</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\HubContent.json">
+      <LogicalName>Bundled/HubContent.json</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Release Notes\*.txt">
+      <LogicalName>Bundled/Release Notes/%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

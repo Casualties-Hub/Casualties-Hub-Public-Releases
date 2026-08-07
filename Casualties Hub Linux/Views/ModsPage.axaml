@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.ModsPage">
+
+  <DockPanel>
+
+    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,14">
+      <StackPanel Spacing="12">
+        <TextBlock Classes="heading" Text="Local mods"/>
+        <TextBlock x:Name="PluginsPathText" Classes="dim" TextWrapping="Wrap"/>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="InstallButton" Classes="accent" Content="Install from file..."/>
+          <Button x:Name="RefreshButton" Content="Refresh"/>
+          <Button x:Name="OpenFolderButton" Content="Open folder"/>
+          <Border Width="1" Background="{DynamicResource DividerBrush}" Margin="4,2"/>
+          <Button x:Name="EnableAllButton" Content="Enable all"/>
+          <Button x:Name="DisableAllButton" Content="Disable all"/>
+          <Button x:Name="DeleteAllButton" Classes="danger" Content="Delete all"/>
+        </StackPanel>
+
+        <Border Height="1" Background="{DynamicResource DividerBrush}"/>
+
+        <StackPanel Spacing="8">
+          <TextBlock Text="Modlist share code" Classes="muted"/>
+          <TextBlock Classes="dim" TextWrapping="Wrap"
+                     Text="Share what you have installed, or paste someone else's code to see what you are missing."/>
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <TextBox x:Name="ModlistCodeBox" Grid.Column="0" Margin="0,0,8,0"
+                     Watermark="Paste a share code here"/>
+            <Button x:Name="ExportModlistButton" Grid.Column="1" Content="Copy my list" Margin="0,0,6,0"/>
+            <Button x:Name="ImportModlistButton" Grid.Column="2" Content="Import"/>
+          </Grid>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Classes="muted"
+               TextWrapping="Wrap" Margin="2,0,0,12"/>
+
+    <ScrollViewer>
+      <ItemsControl x:Name="ModsList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="raised" Margin="0,0,0,8" BorderThickness="1"
+                    BorderBrush="{Binding RowBorderBrush}">
+              <Grid ColumnDefinitions="*,Auto">
+
+                <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,12,0">
+                  <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                             Foreground="{Binding NameBrush}"/>
+                  <TextBlock Text="{Binding VersionLabel}" Classes="muted"/>
+                  <TextBlock Text="{Binding VersionEvidenceLabel}" Classes="dim"/>
+                  <TextBlock Text="{Binding UpdateStatusLabel}" Classes="dim" TextWrapping="Wrap"/>
+
+                  <!-- Avalonia has no DataTriggers, so each conditional row binds IsVisible
+                       to a bool on the model instead of toggling Visibility from a trigger. -->
+                  <TextBlock Text="{Binding RequiredDependenciesLabel}"
+                             IsVisible="{Binding HasRequiredDependencies}"
+                             Classes="dim" TextWrapping="Wrap"/>
+                  <TextBlock Text="{Binding MissingDependenciesLabel}"
+                             IsVisible="{Binding HasMissingDependencies}"
+                             Foreground="{DynamicResource WarningBrush}"
+                             FontSize="11" TextWrapping="Wrap"/>
+                  <TextBlock Text="{Binding IncompatibilityLabel}"
+                             IsVisible="{Binding HasIncompatibilities}"
+                             Foreground="{DynamicResource DangerBrush}"
+                             FontSize="11" TextWrapping="Wrap"/>
+                  <TextBlock Text="{Binding KnownBugsLabel}"
+                             IsVisible="{Binding HasKnownBugs}"
+                             Foreground="{DynamicResource WarningBrush}"
+                             FontSize="11" TextWrapping="Wrap"/>
+                  <TextBlock Text="{Binding DependencyRequiredByLabel}"
+                             IsVisible="{Binding IsDependencyPlaceholder}"
+                             Foreground="{DynamicResource WarningBrush}"
+                             FontSize="11" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <Border Background="{DynamicResource InsetBrush}" CornerRadius="3" Padding="7,3"
+                          IsVisible="{Binding IsDisabled}" VerticalAlignment="Center">
+                    <TextBlock Text="Disabled" Classes="dim"/>
+                  </Border>
+
+                  <!-- A dependency placeholder is not installed, so it gets install actions
+                       rather than enable/delete. -->
+                  <Button Content="{Binding DependencyActionLabel}" Tag="{Binding}" Click="OnDownloadDependency"
+                          IsVisible="{Binding IsDependencyPlaceholder}"/>
+                  <Button Content="Ignore" Tag="{Binding}" Click="OnIgnoreDependency"
+                          IsVisible="{Binding IsDependencyPlaceholder}"/>
+
+                  <Button Content="Get update" Tag="{Binding}" Click="OnOpenOutOfDate"
+                          IsVisible="{Binding IsOutOfDate}"/>
+                  <Button Content="{Binding ToggleButtonLabel}" Tag="{Binding}" Click="OnToggle"
+                          IsVisible="{Binding IsManageable}" MinWidth="84"/>
+                  <Button Content="Delete" Classes="danger" Tag="{Binding}" Click="OnDelete"
+                          IsVisible="{Binding IsManageable}"/>
+                </StackPanel>
+
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+
+</UserControl>

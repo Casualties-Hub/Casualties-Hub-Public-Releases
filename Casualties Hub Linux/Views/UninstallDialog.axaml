@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Casualties_Hub.Views.UninstallDialog"
+        Title="Remove Casualties Hub"
+        SizeToContent="Height"
+        Width="560"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+  <StackPanel Margin="22" Spacing="14">
+
+    <TextBlock Classes="heading" Text="Choose what to remove" TextWrapping="Wrap"/>
+    <TextBlock Classes="muted" TextWrapping="Wrap"
+               Text="Everything ticked below is deleted permanently once the Hub closes. Your mods and your game are never touched."/>
+
+    <ItemsControl x:Name="ItemList">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Border Classes="raised" Margin="0,0,0,6">
+            <StackPanel Spacing="3">
+              <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Title}" FontWeight="SemiBold"/>
+              <TextBlock Text="{Binding Description}" Classes="dim" TextWrapping="Wrap" Margin="26,0,0,0"/>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock x:Name="WarningText" TextWrapping="Wrap" FontSize="12"
+               Foreground="{DynamicResource WarningBrush}"/>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button x:Name="CancelButton" Content="Cancel" MinWidth="96"/>
+      <Button x:Name="RemoveButton" Classes="danger" Content="Remove and quit" MinWidth="150"/>
+    </StackPanel>
+
+  </StackPanel>
+
+</Window>

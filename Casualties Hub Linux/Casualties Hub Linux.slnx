@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Casualties Hub Linux.csproj" />
+  <Project Path="../Casualties Hub Linux.Tests/Casualties Hub Linux.Tests.csproj" />
+</Solution>
