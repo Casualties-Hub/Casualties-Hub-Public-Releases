@@ -9,16 +9,29 @@ using Casualties_Hub.Services;
 namespace Casualties_Hub.Views;
 
 /// <summary>
-/// Local mod management: list, enable, disable, delete, install from an archive, bulk actions,
-/// modlist share codes, and the missing-dependency prompts.
+/// Local mod management, laid out as two (optionally three) columns that can each be pointed at
+/// any of eight views of the same mod list.
 /// </summary>
 /// <remarks>
 /// The Windows page reads MessageBox results inline, so its handlers are synchronous. Avalonia
-/// dialogs are async, so every handler that asks a question is async here and confirm-then-act is
+/// dialogs are async, so anything that asks a question is async here and confirm-then-act is
 /// awaited rather than inlined.
 /// </remarks>
 public partial class ModsPage : UserControl
 {
+    /// <summary>The eight column views, in the order the Windows dropdowns list them.</summary>
+    private static readonly string[] Views =
+    [
+        "Enabled Mods",
+        "Disabled Mods",
+        "Sharecode Requested Mods",
+        "Missing Dependencies",
+        "Update Available",
+        "Incompatibility",
+        "Known Bugs",
+        "Needs Attention",
+    ];
+
     private readonly SettingsService _settingsService = new();
     private readonly ModService _modService = new();
     private readonly ModlistService _modlistService;
@@ -27,7 +40,9 @@ public partial class ModsPage : UserControl
     private readonly Action<string> _setStatus;
 
     private string _pluginsPath = "";
-    private List<InstalledMod> _allMods = [];
+    private List<InstalledMod> _allDisplayMods = [];
+    private IReadOnlyList<MetadataMod> _currentMetadata = [];
+    private bool _initialised;
 
     /// <summary>
     /// For Avalonia's XAML loader and the designer, which can only call a parameterless
@@ -42,59 +57,48 @@ public partial class ModsPage : UserControl
         _apiKeyStore = new NexusApiKeyStore(_settingsService);
         AvaloniaXamlLoader.Load(this);
 
-        this.FindControl<Button>("RefreshButton")!.Click += (_, _) => Reload();
-        this.FindControl<Button>("OpenFolderButton")!.Click += OnOpenFolder;
-        this.FindControl<Button>("InstallButton")!.Click += OnInstall;
-        this.FindControl<Button>("EnableAllButton")!.Click += async (_, _) => await SetAllDisabledAsync(false);
-        this.FindControl<Button>("DisableAllButton")!.Click += async (_, _) => await SetAllDisabledAsync(true);
-        this.FindControl<Button>("DeleteAllButton")!.Click += async (_, _) => await DeleteAllAsync();
-        this.FindControl<Button>("ExportModlistButton")!.Click += async (_, _) => await ExportModlistAsync();
-        this.FindControl<Button>("ImportModlistButton")!.Click += async (_, _) => await ImportModlistAsync();
+        foreach (var (name, defaultIndex) in new[] { ("FirstColumnView", 0), ("SecondColumnView", 1), ("ThirdColumnView", 2) })
+        {
+            var box = this.FindControl<ComboBox>(name)!;
+            box.ItemsSource = Views;
+            box.SelectedIndex = defaultIndex;
+            box.SelectionChanged += (_, _) => { if (_initialised) ApplyLocalFilter(); };
+        }
 
+        this.FindControl<Button>("InstallButton")!.Click += OnInstall;
+        this.FindControl<Button>("RefreshButton")!.Click += async (_, _) => await RefreshAsync();
+        this.FindControl<Button>("DeleteAllButton")!.Click += async (_, _) => await DeleteAllAsync();
+        this.FindControl<Button>("DisableAllButton")!.Click += async (_, _) => await SetAllDisabledAsync(true);
+        this.FindControl<Button>("EnableAllButton")!.Click += async (_, _) => await SetAllDisabledAsync(false);
+        this.FindControl<Button>("ShareCodeButton")!.Click += async (_, _) => await ExportModlistAsync();
+        this.FindControl<Button>("ImportButton")!.Click += async (_, _) => await ImportModlistAsync();
+        this.FindControl<Button>("ShareColumnToggleButton")!.Click += (_, _) => ToggleShareColumn();
+        this.FindControl<TextBox>("LocalSearchBox")!.TextChanged += (_, _) => { if (_initialised) ApplyLocalFilter(); };
+
+        _initialised = true;
         Reload();
-        _ = LoadMetadataAsync();
+        UpdateShareColumnVisibility();
+        _ = RefreshAsync();
     }
 
     private Window? Owner => TopLevel.GetTopLevel(this) as Window;
 
-    /// <summary>
-    /// Fetches the community catalogue in the background, then relists so mods pick up their
-    /// proper names and update status. The list is shown first from disk alone, so the page is
-    /// usable immediately and stays usable if the network is unavailable.
-    /// </summary>
-    private async Task LoadMetadataAsync()
-    {
-        if (UniversalMetadataService.LastSuccessfulMods.Count > 0) return;
+    // --- loading -----------------------------------------------------------
 
-        try
-        {
-            var mods = await new UniversalMetadataService(_settingsService).GetModsAsync();
-            if (mods.Count > 0) Reload();
-        }
-        catch (Exception exception)
-        {
-            // Offline is a normal state for a mod manager; the list already works without this.
-            DebugLogService.Info($"Community metadata was not available: {exception.Message}");
-        }
-    }
-
+    /// <summary>Re-reads the plugins folder, then re-applies the column filters.</summary>
     private void Reload()
     {
         var settings = _settingsService.Load();
         _pluginsPath = _modService.GetPluginsPath(settings);
 
-        this.FindControl<TextBlock>("PluginsPathText")!.Text =
-            string.IsNullOrWhiteSpace(_pluginsPath) ? "No game folder configured." : _pluginsPath;
-
-        _allMods = [];
         var configured = _modService.HasConfiguredPluginsFolder(settings);
+        _allDisplayMods = [];
+
         if (configured)
         {
             try
             {
-                // Whatever metadata has already been fetched. Passing an empty list here would
-                // leave every mod unmatched, costing names, versions and update status.
-                _allMods = _modService.GetInstalledModsWithMetadata(settings, UniversalMetadataService.LastSuccessfulMods);
+                _allDisplayMods = _modService.GetInstalledModsWithMetadata(settings, _currentMetadata);
             }
             catch (Exception exception)
             {
@@ -103,23 +107,192 @@ public partial class ModsPage : UserControl
             }
         }
 
-        this.FindControl<ItemsControl>("ModsList")!.ItemsSource = _allMods.Select(mod => new ModRow(mod)).ToList();
+        ApplyImportedModlist(_allDisplayMods, _currentMetadata);
+        ApplyLocalFilter();
 
-        var empty = this.FindControl<TextBlock>("EmptyText")!;
-        empty.IsVisible = _allMods.Count == 0;
-        empty.Text = !configured
-            ? "The BepInEx plugins folder was not found. Install BepInEx into your game folder first, then press Refresh."
-            : "No mods are installed yet. Use \"Install from file...\" to add one.";
-
-        foreach (var name in new[] { "InstallButton", "OpenFolderButton", "EnableAllButton", "DisableAllButton", "DeleteAllButton" })
+        foreach (var name in new[] { "InstallButton", "DeleteAllButton", "DisableAllButton", "EnableAllButton" })
             this.FindControl<Button>(name)!.IsEnabled = configured;
 
-        _setStatus($"{_allMods.Count(mod => !mod.IsDependencyPlaceholder && !mod.IsMissingFromModlist)} mod(s) installed.");
+        var real = _allDisplayMods.Count(mod => !mod.IsMissingFromModlist && !mod.IsDependencyPlaceholder);
+        _setStatus(configured
+            ? $"{real} mod(s) installed."
+            : "No BepInEx plugins folder found. Set your game folder in Settings.");
     }
 
-    private void OnOpenFolder(object? sender, RoutedEventArgs e)
+    /// <summary>Fetches the community catalogue, then relists so names and versions resolve.</summary>
+    private async Task RefreshAsync()
     {
-        if (!string.IsNullOrWhiteSpace(_pluginsPath)) LinuxShell.OpenFolder(_pluginsPath);
+        try
+        {
+            _currentMetadata = await new UniversalMetadataService(_settingsService).GetModsAsync();
+        }
+        catch (Exception exception)
+        {
+            // Offline is a normal state for a mod manager; the list still works from disk alone.
+            DebugLogService.Info($"Community metadata was not available: {exception.Message}");
+            _currentMetadata = UniversalMetadataService.LastSuccessfulMods;
+        }
+
+        Reload();
+    }
+
+    // --- column filtering --------------------------------------------------
+
+    private void ApplyLocalFilter()
+    {
+        var search = this.FindControl<TextBox>("LocalSearchBox")!.Text?.Trim() ?? "";
+
+        var filtered = string.IsNullOrWhiteSpace(search)
+            ? _allDisplayMods
+            : _allDisplayMods.Where(mod =>
+                mod.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || (mod.ModGuid?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
+                || mod.RequiredDependencies.Any(dependency =>
+                    dependency.Name.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+        ApplyColumn("FirstColumnView", "FirstModsList", "FirstColumnEmpty", filtered);
+        ApplyColumn("SecondColumnView", "SecondModsList", "SecondColumnEmpty", filtered);
+        ApplyColumn("ThirdColumnView", "ThirdModsList", "ThirdColumnEmpty", filtered);
+    }
+
+    private void ApplyColumn(string viewBoxName, string listName, string emptyTextName, IEnumerable<InstalledMod> source)
+    {
+        var view = this.FindControl<ComboBox>(viewBoxName)!.SelectedItem as string ?? Views[0];
+
+        var results = (view switch
+        {
+            "Enabled Mods" => source.Where(mod => !mod.IsMissingFromModlist && !mod.IsDependencyPlaceholder && !mod.IsDisabled),
+            "Disabled Mods" => source.Where(mod => !mod.IsMissingFromModlist && !mod.IsDependencyPlaceholder && mod.IsDisabled),
+            "Sharecode Requested Mods" => source.Where(mod => mod.IsMissingFromModlist),
+            "Missing Dependencies" => CreateMissingDependencyCards(source),
+            "Update Available" => source.Where(mod => !mod.IsDisabled && mod.IsOutOfDate),
+            "Incompatibility" => source.Where(mod => !mod.IsDisabled && mod.HasIncompatibilities),
+            "Known Bugs" => source.Where(mod => !mod.IsDisabled && mod.HasKnownBugs),
+            "Needs Attention" => source.Where(mod => !mod.IsDisabled
+                && (mod.HasMissingDependencies || mod.IsOutOfDate || mod.HasIncompatibilities || mod.HasKnownBugs)),
+            _ => [],
+        }).ToList();
+
+        this.FindControl<ListBox>(listName)!.ItemsSource = results.Select(mod => new ModRow(mod)).ToList();
+
+        var empty = this.FindControl<TextBlock>(emptyTextName)!;
+        empty.Text = results.Count == 0 ? $"No {view.ToLowerInvariant()} to show." : "";
+        empty.IsVisible = results.Count == 0;
+    }
+
+    /// <summary>
+    /// Builds a card per missing dependency rather than per mod that wants it, so a library three
+    /// mods need appears once, listing all three.
+    /// </summary>
+    private IEnumerable<InstalledMod> CreateMissingDependencyCards(IEnumerable<InstalledMod> source) =>
+        source.Where(mod => !mod.IsDisabled)
+            .SelectMany(mod => mod.MissingDependencies.Select(requirement => new { requirement, RequiredBy = mod.Name }))
+            .GroupBy(item => item.requirement.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(group =>
+            {
+                var dependency = group.First().requirement;
+                var metadata = _currentMetadata.FirstOrDefault(mod => DependencyCatalog.NamesMatch(mod.Name, dependency.Name));
+                var requiredBy = string.Join(", ", group.Select(item => item.RequiredBy).Distinct(StringComparer.OrdinalIgnoreCase));
+
+                return new InstalledMod
+                {
+                    Name = metadata?.Name ?? dependency.Name,
+                    MetadataId = metadata?.Id,
+                    NexusUrl = metadata?.NexusDownloadPageUrl ?? BuildNexusSearchUrl(dependency.Name),
+                    IsDependencyPlaceholder = true,
+                    DependencyMetadata = metadata,
+                    DependencyActionLabel = _apiKeyStore.HasKey && metadata is not null ? "Download" : "Open Download",
+                    DependencyRequiredByLabel = "Required by: " + requiredBy,
+                    UpdateStatusLabel = "Missing dependency",
+                };
+            });
+
+    /// <summary>
+    /// Adds a card for every mod an imported share code asks for that is not installed. Without
+    /// this an imported code produces no visible result at all.
+    /// </summary>
+    private void ApplyImportedModlist(List<InstalledMod> mods, IReadOnlyList<MetadataMod> metadata)
+    {
+        IReadOnlyList<ModlistEntry> imported;
+        try { imported = _modlistService.LoadImported(); }
+        catch (Exception exception)
+        {
+            DebugLogService.Error("Could not read the imported modlist", exception);
+            return;
+        }
+
+        foreach (var installed in mods)
+            installed.IsRequestedByModlist = imported.Any(entry => ModlistEntryMatches(installed, entry));
+
+        foreach (var requested in imported.Where(entry => !mods.Any(installed => ModlistEntryMatches(installed, entry))))
+        {
+            // Older share codes may carry only a DLL name or GUID, so match those against
+            // metadata too and open the exact Nexus files page when one is found.
+            var metadataMod = FindMetadataForShareCode(metadata, requested);
+            var name = metadataMod?.Name ?? requested.Name;
+            var requirements = DependencyCatalog.GetRequirements([name]);
+
+            mods.Add(new InstalledMod
+            {
+                Name = name,
+                MetadataId = metadataMod?.Id ?? requested.Id,
+                ModGuid = requested.Guid,
+                InstalledVersion = "Not installed",
+                ExpectedVersion = metadataMod?.Version ?? requested.Version,
+                NexusUrl = metadataMod?.NexusDownloadPageUrl
+                           ?? BuildNexusSearchUrl(string.IsNullOrWhiteSpace(requested.Guid) ? requested.Name : requested.Guid),
+                ShareCodeActionLabel = string.IsNullOrWhiteSpace(metadataMod?.NexusDownloadPageUrl) ? "Search Nexus" : "Open Download",
+                UpdateStatusLabel = "Requested by imported modlist.",
+                IsRequestedByModlist = true,
+                IsMissingFromModlist = true,
+                RequiredDependencies = requirements,
+                MissingDependencies = requirements
+                    .Where(dependency => !mods.Any(mod => DependencyCatalog.NamesMatch(mod.Name, dependency.Name)))
+                    .ToList(),
+            });
+        }
+    }
+
+    private static bool ModlistEntryMatches(InstalledMod installed, ModlistEntry entry) =>
+        (!string.IsNullOrWhiteSpace(entry.Id) && entry.Id.Equals(installed.MetadataId, StringComparison.OrdinalIgnoreCase))
+        || (!string.IsNullOrWhiteSpace(entry.Guid) && entry.Guid.Equals(installed.ModGuid, StringComparison.OrdinalIgnoreCase))
+        || entry.Name.Equals(installed.Name, StringComparison.OrdinalIgnoreCase);
+
+    private static MetadataMod? FindMetadataForShareCode(IReadOnlyList<MetadataMod> metadata, ModlistEntry entry) =>
+        metadata.FirstOrDefault(mod => !string.IsNullOrWhiteSpace(entry.Id) && mod.Id.Equals(entry.Id, StringComparison.OrdinalIgnoreCase))
+        ?? metadata.FirstOrDefault(mod => !string.IsNullOrWhiteSpace(entry.Guid)
+            && (entry.Guid.Equals(mod.PluginGuid, StringComparison.OrdinalIgnoreCase)
+                || mod.DllNames.Any(dll => dll.Equals(entry.Guid, StringComparison.OrdinalIgnoreCase))))
+        ?? metadata.FirstOrDefault(mod => mod.Name.Equals(entry.Name, StringComparison.OrdinalIgnoreCase));
+
+    private static string BuildNexusSearchUrl(string term) =>
+        "https://www.nexusmods.com/games/casualtiesunknown/mods?keyword=" + Uri.EscapeDataString(term);
+
+    private void ToggleShareColumn()
+    {
+        var settings = _settingsService.Load();
+        settings.LocalModsShareColumnVisible = !settings.LocalModsShareColumnVisible;
+        _settingsService.Save(settings);
+        UpdateShareColumnVisibility();
+    }
+
+    private void UpdateShareColumnVisibility()
+    {
+        // The user controls this column explicitly. Importing a share code turns it on, but it
+        // can always be hidden again without losing the requested entries.
+        var show = _settingsService.Load().LocalModsShareColumnVisible;
+
+        this.FindControl<Grid>("ColumnsGrid")!.ColumnDefinitions[2].Width =
+            show ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        this.FindControl<Border>("ShareColumnHost")!.IsVisible = show;
+
+        // A bare chevron gave no clue what the button did, so it is labelled.
+        var toggle = this.FindControl<Button>("ShareColumnToggleButton")!;
+        toggle.Content = show ? "< Hide column" : "Add column >";
+        ToolTip.SetTip(toggle, show
+            ? "Hide the third Local Mods column."
+            : "Show a third Local Mods column, which you can point at any view.");
     }
 
     // --- single mod actions ------------------------------------------------
@@ -165,17 +338,46 @@ public partial class ModsPage : UserControl
         }
     }
 
-    private void OnOpenOutOfDate(object? sender, RoutedEventArgs e)
+    private void OnOpenOutOfDate(object? sender, RoutedEventArgs e) => OpenModLink(sender, "update page");
+
+    private void OnInstallRequested(object? sender, RoutedEventArgs e) => OpenModLink(sender, "download page");
+
+    private void OpenModLink(object? sender, string what)
     {
         if ((sender as Button)?.Tag is not ModRow { Mod: var mod }) return;
-        var url = mod.NexusUrl;
-        if (string.IsNullOrWhiteSpace(url))
+
+        if (string.IsNullOrWhiteSpace(mod.NexusUrl))
         {
             _setStatus($"{mod.Name} has no Nexus link in the catalogue.");
             return;
         }
-        LinuxShell.OpenUrl(url);
-        _setStatus($"Opened the Nexus page for {mod.Name}.");
+
+        LinuxShell.OpenUrl(mod.NexusUrl);
+        _setStatus($"Opened the {what} for {mod.Name}.");
+    }
+
+    private async void OnIgnoreModlistEntry(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not ModRow { Mod: { IsMissingFromModlist: true } requested }) return;
+
+        try
+        {
+            _modlistService.Ignore(new ModlistEntry
+            {
+                Id = requested.MetadataId ?? "",
+                Guid = requested.ModGuid ?? "",
+                Name = requested.Name,
+                Version = requested.ExpectedVersion ?? "",
+            });
+            _setStatus($"Removed {requested.Name} from the imported share code.");
+            Reload();
+        }
+        catch (Exception exception)
+        {
+            DebugLogService.Error($"Could not ignore {requested.Name}", exception);
+            if (Owner is not null)
+                await HubDialog.ShowMessageAsync(Owner, "Could not ignore that entry", exception.Message);
+        }
     }
 
     // --- dependency prompts ------------------------------------------------
@@ -217,7 +419,7 @@ public partial class ModsPage : UserControl
         }
     }
 
-    private async void OnIgnoreDependency(object? sender, RoutedEventArgs e)
+    private void OnIgnoreDependency(object? sender, RoutedEventArgs e)
     {
         if ((sender as Button)?.Tag is not ModRow { Mod: { IsDependencyPlaceholder: true } dependency }) return;
 
@@ -228,7 +430,6 @@ public partial class ModsPage : UserControl
 
         Reload();
         _setStatus($"Ignored missing dependency {dependency.Name}.");
-        await Task.CompletedTask;
     }
 
     // --- bulk actions ------------------------------------------------------
@@ -267,7 +468,7 @@ public partial class ModsPage : UserControl
         if (!await HubDialog.ConfirmAsync(owner, "Delete every mod?",
                 "This permanently deletes every file and folder inside BepInEx/plugins.\n\n"
                 + "Custom pixel art, sprites and other personal files go too, unless you saved them "
-                + "in Protected Assets or took a backup first. This cannot be undone.",
+                + "in Protected Assets or took a backup first.",
                 confirm: "Delete everything", destructive: true))
             return;
 
@@ -299,8 +500,8 @@ public partial class ModsPage : UserControl
         var owner = Owner;
         if (owner is null) return;
 
-        var exportable = _allMods
-            .Where(mod => !mod.IsMissingFromModlist && !mod.IsDisabled && !mod.IsDependencyPlaceholder)
+        var exportable = _allDisplayMods
+            .Where(mod => !mod.IsMissingFromModlist && !mod.IsDependencyPlaceholder && !mod.IsDisabled)
             .ToList();
 
         if (exportable.Count == 0)
@@ -314,15 +515,14 @@ public partial class ModsPage : UserControl
         this.FindControl<TextBox>("ModlistCodeBox")!.Text = code;
 
         // Avalonia's clipboard is async and hangs off the TopLevel, unlike WPF's static Clipboard.
-        var clipboard = owner.Clipboard;
-        if (clipboard is not null)
+        if (owner.Clipboard is { } clipboard)
         {
             await clipboard.SetTextAsync(code);
             _setStatus($"Copied a share code for {exportable.Count} mod(s) to the clipboard.");
         }
         else
         {
-            _setStatus("Share code generated. Copy it from the box above.");
+            _setStatus("Share code generated. Copy it from the box.");
         }
     }
 
@@ -350,13 +550,16 @@ public partial class ModsPage : UserControl
         try
         {
             var entries = _modlistService.Import(box.Text);
+
+            // Importing reveals the third column, which is where the requested mods land.
             var settings = _settingsService.Load();
             settings.LocalModsShareColumnVisible = true;
             _settingsService.Save(settings);
+            UpdateShareColumnVisibility();
 
             Reload();
-            var missing = _allMods.Count(mod => mod.IsMissingFromModlist);
-            _setStatus($"Imported {entries.Count} entries. {missing} mod(s) you do not have are highlighted.");
+            var missing = _allDisplayMods.Count(mod => mod.IsMissingFromModlist);
+            _setStatus($"Imported {entries.Count} entries. {missing} mod(s) you do not have are shown in purple.");
         }
         catch (Exception exception)
         {
@@ -400,8 +603,7 @@ public partial class ModsPage : UserControl
         {
             // Inspect first: extraction to staging tells us what the archive actually is before
             // anything is written into the game folder.
-            var plan = await Task.Run(() =>
-                _modService.InspectArchive(settings, path, UniversalMetadataService.LastSuccessfulMods));
+            var plan = await Task.Run(() => _modService.InspectArchive(settings, path, _currentMetadata));
 
             if (plan.Kind == ArchiveInstallKind.Unsupported)
             {
@@ -438,8 +640,7 @@ public partial class ModsPage : UserControl
             if (!await HubDialog.ConfirmAsync(owner, $"Install {Path.GetFileName(path)}?", body, confirm: "Install"))
                 return;
 
-            await Task.Run(() =>
-                _modService.InstallArchive(settings, path, UniversalMetadataService.LastSuccessfulMods, skinSlot));
+            await Task.Run(() => _modService.InstallArchive(settings, path, _currentMetadata, skinSlot));
             _setStatus($"Installed {Path.GetFileName(path)}.");
             Reload();
         }
