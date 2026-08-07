@@ -37,4 +37,23 @@ public static class ThemeApplier
 
         DebugLogService.Activity("Theme", "Applied the saved colour palette.");
     }
+
+    /// <summary>
+    /// Applies the saved text size to the whole shell.
+    /// </summary>
+    /// <remarks>
+    /// Set on the window rather than per control: FontSize inherits down the tree in Avalonia as
+    /// it does in WPF, so one assignment resizes every page. Without this the Settings slider
+    /// saves a value that nothing ever reads.
+    /// </remarks>
+    public static void ApplyTextSize(Settings settings)
+    {
+        if (Application.Current?.ApplicationLifetime
+            is not Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop) return;
+
+        // Clamped the same way SettingsService clamps it, so a hand-edited Settings.json cannot
+        // produce an unreadable or comically large interface.
+        var size = Math.Clamp(settings.TextSize, 10, 20);
+        if (desktop.MainWindow is { } window) window.FontSize = size;
+    }
 }

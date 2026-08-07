@@ -11,7 +11,10 @@
                    Text="Keeps a safe copy of files in your plugins folder that you do not want a mod install to overwrite, such as a skin you edited yourself. Restore puts them back."/>
         <TextBlock x:Name="RootPathText" Classes="dim" TextWrapping="Wrap"/>
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button x:Name="ProtectButton" Classes="accent" Content="Protect files..."/>
+          <Button x:Name="ProtectButton" Classes="accent" Content="Protect files..."
+                  ToolTip.Tip="Keep a saved copy of the chosen files, so a mod update or reinstall cannot lose your versions."/>
+          <Button x:Name="ProtectFolderButton" Classes="accent" Content="Protect folder..."
+                  ToolTip.Tip="Keep a saved copy of a whole folder. For a character skin, pick the entire st# folder so all of its art is preserved."/>
           <Button x:Name="RestoreButton" Content="Restore all"/>
           <Button x:Name="RefreshButton" Content="Refresh"/>
           <Button x:Name="OpenFolderButton" Content="Open folder"/>

@@ -105,7 +105,10 @@ public partial class SettingsPage : UserControl
         {
             if (e.Property.Name != "Value") return;
             this.FindControl<TextBlock>("TextSizeValue")!.Text = ((int)textSize.Value).ToString();
-            if (!_loading) SaveScalars();
+            if (_loading) return;
+            SaveScalars();
+            // Live, so dragging the slider shows the result rather than needing a restart.
+            ThemeApplier.ApplyTextSize(_settingsService.Load());
         };
 
         this.FindControl<TextBox>("GamePathBox")!.LostFocus += (_, _) => SaveScalars();
@@ -358,6 +361,7 @@ public partial class SettingsPage : UserControl
         settings.ThemeColoursInitialized = true;
         _settingsService.Save(settings);
         ThemeApplier.Apply(settings);
+        ThemeApplier.ApplyTextSize(settings);
         _setStatus("Theme applied.");
     }
 
@@ -400,6 +404,7 @@ public partial class SettingsPage : UserControl
         _settingsService.Save(settings);
 
         ThemeApplier.Apply(settings);
+        ThemeApplier.ApplyTextSize(settings);
         ShowSelectedColour();
         UpdatePresetLabel(settings);
         _setStatus($"Loaded {(presetId == UiPresetIds.Default ? "the default look" : preset.Name)}.");

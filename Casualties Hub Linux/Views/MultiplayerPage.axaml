@@ -21,7 +21,10 @@
         <Grid ColumnDefinitions="*,*,Auto" >
           <ComboBox x:Name="RegionBox" Grid.Column="0" HorizontalAlignment="Stretch" Margin="0,0,8,0"/>
           <ComboBox x:Name="PingBox" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,8,0"/>
-          <CheckBox x:Name="HideLockedBox" Grid.Column="2" Content="Hide locked" VerticalAlignment="Center"/>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+            <CheckBox x:Name="HideLockedBox" Content="Hide locked"/>
+            <Button x:Name="RefreshButton" Content="Refresh"/>
+          </StackPanel>
         </Grid>
         <TextBox x:Name="SearchBox" Watermark="Filter by server name"/>
       </StackPanel>
