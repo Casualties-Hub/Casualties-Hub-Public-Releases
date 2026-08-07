@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.SkinsPage">
+
+  <Grid ColumnDefinitions="*,360">
+
+    <DockPanel Grid.Column="0" Margin="0,0,16,0">
+
+      <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,16">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="heading" Text="CustomSprites skins"/>
+          <TextBlock x:Name="RootPathText" Classes="dim" TextWrapping="Wrap"/>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button x:Name="RefreshButton" Content="Refresh"/>
+            <Button x:Name="OpenFolderButton" Content="Open folder"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Classes="muted"
+                 TextWrapping="Wrap" Margin="2,0,0,12"/>
+
+      <ScrollViewer>
+        <ItemsControl x:Name="SlotList">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Classes="raised" Margin="0,0,0,8">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="3">
+                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding SpriteSummary}" Classes="muted"/>
+                    <TextBlock Text="{Binding MissingSummary}"
+                               IsVisible="{Binding HasMissing}"
+                               Foreground="{DynamicResource WarningBrush}"
+                               FontSize="11" TextWrapping="Wrap"/>
+                  </StackPanel>
+                  <Button Grid.Column="1" Content="Preview" Tag="{Binding}" Click="OnPreview"
+                          VerticalAlignment="Center"/>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+
+    </DockPanel>
+
+    <Border Grid.Column="1" Classes="card">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Classes="heading" Text="Preview" Margin="0,0,0,10"/>
+
+        <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+          <TextBlock x:Name="PreviewSlotText" Classes="muted" TextWrapping="Wrap"/>
+          <Grid ColumnDefinitions="70,*">
+            <TextBlock Grid.Column="0" Text="Head" Classes="dim" VerticalAlignment="Center"/>
+            <ComboBox x:Name="HeadBox" Grid.Column="1" HorizontalAlignment="Stretch"/>
+          </Grid>
+          <Grid ColumnDefinitions="70,*">
+            <TextBlock Grid.Column="0" Text="Eyes" Classes="dim" VerticalAlignment="Center"/>
+            <ComboBox x:Name="EyeBox" Grid.Column="1" HorizontalAlignment="Stretch"/>
+          </Grid>
+          <CheckBox x:Name="FacingBox" Content="Face the other way"/>
+        </StackPanel>
+
+        <!--
+          The Canvas sits directly in the Viewbox. Wrapping it in a ContentControl first made the
+          Viewbox measure the wrapper rather than the artwork, so the preview scaled against the
+          wrong bounds.
+        -->
+        <Border Background="{DynamicResource InsetBrush}" CornerRadius="4" Padding="10">
+          <Viewbox x:Name="PreviewHost" Stretch="Uniform" StretchDirection="Both"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+      </DockPanel>
+    </Border>
+
+  </Grid>
+
+</UserControl>

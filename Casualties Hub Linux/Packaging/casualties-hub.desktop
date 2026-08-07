@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Casualties Hub
+GenericName=Mod Manager
+Comment=Mod manager for Casualties Unknown (Linux Edition, pre-alpha)
+# Rewritten to an absolute path by install-desktop-entry.sh, since a .desktop
+# file cannot resolve a relative Exec and the tarball can be extracted anywhere.
+Exec=casualties-hub
+Icon=casualties-hub
+Terminal=false
+Categories=Game;Utility;
+StartupWMClass=casualties-hub
+Keywords=mod;bepinex;casualties;

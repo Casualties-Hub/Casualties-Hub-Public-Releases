@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Starting values only. Every one of these is replaced at runtime by ThemeApplier from
+    ThemePalette.Build(settings), which derives the whole set from the four colours a player
+    picks. They are declared here so the designer and first paint have something to bind to,
+    and so a missing key fails loudly at build rather than silently at runtime.
+
+    Keys match the Windows Hub's App.xaml exactly, so the two editions stay in step.
+  -->
+
+  <SolidColorBrush x:Key="PrimaryTextBrush">#FFF1EFEE</SolidColorBrush>
+  <SolidColorBrush x:Key="ControlTextBrush">#FFF1EFEE</SolidColorBrush>
+  <SolidColorBrush x:Key="ControlSurfaceBrush">#FF272C34</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentBrush">#FFC81E3C</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentTextBrush">#FFFFFFFF</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentSoftBrush">#FF3A1F27</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentSoftTextBrush">#FFE8637A</SolidColorBrush>
+  <SolidColorBrush x:Key="WindowBackgroundBrush">#FF14161A</SolidColorBrush>
+  <SolidColorBrush x:Key="ChromeBrush">#FF0F1115</SolidColorBrush>
+  <SolidColorBrush x:Key="CardBrush">#FF1B1F26</SolidColorBrush>
+  <SolidColorBrush x:Key="RaisedBrush">#FF23272F</SolidColorBrush>
+  <SolidColorBrush x:Key="CardBorderBrush">#FF2A2F38</SolidColorBrush>
+  <SolidColorBrush x:Key="InsetBrush">#FF171A20</SolidColorBrush>
+  <SolidColorBrush x:Key="InputBackgroundBrush">#FF1F242B</SolidColorBrush>
+  <SolidColorBrush x:Key="InputBorderBrush">#FF343A44</SolidColorBrush>
+  <SolidColorBrush x:Key="ControlBorderBrush">#FF3A4049</SolidColorBrush>
+  <SolidColorBrush x:Key="ControlHoverBrush">#FF333944</SolidColorBrush>
+  <SolidColorBrush x:Key="ControlPressedBrush">#FF3E4550</SolidColorBrush>
+  <SolidColorBrush x:Key="MutedTextBrush">#FF9AA3AF</SolidColorBrush>
+  <SolidColorBrush x:Key="DimTextBrush">#FF6B7280</SolidColorBrush>
+  <SolidColorBrush x:Key="DividerBrush">#FF2A2F38</SolidColorBrush>
+  <SolidColorBrush x:Key="SuccessBrush">#FF3FB950</SolidColorBrush>
+  <SolidColorBrush x:Key="WarningBrush">#FFD29922</SolidColorBrush>
+  <SolidColorBrush x:Key="DangerBrush">#FFC81E3C</SolidColorBrush>
+
+</ResourceDictionary>

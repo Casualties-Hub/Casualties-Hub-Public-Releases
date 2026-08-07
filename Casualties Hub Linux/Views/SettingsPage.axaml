@@ -1,0 +1,180 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.SettingsPage">
+
+  <ScrollViewer>
+    <StackPanel Spacing="16">
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Folders"/>
+
+          <TextBlock Classes="muted" Text="Game folder"/>
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <TextBox x:Name="GamePathBox" Grid.Column="0" Margin="0,0,8,0"
+                     Watermark="Not set - press Browse or use Detect"/>
+            <Button x:Name="BrowseGameButton" Grid.Column="1" Content="Browse..." Margin="0,0,6,0"/>
+            <Button x:Name="DetectGameButton" Grid.Column="2" Content="Detect"/>
+          </Grid>
+          <TextBlock x:Name="GamePathStatus" Classes="dim" TextWrapping="Wrap"/>
+
+          <TextBlock Classes="muted" Text="Downloads folder (watched for mod archives)" Margin="0,6,0,0"/>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox x:Name="DownloadPathBox" Grid.Column="0" Margin="0,0,8,0"/>
+            <Button x:Name="BrowseDownloadButton" Grid.Column="1" Content="Browse..."/>
+          </Grid>
+
+          <CheckBox x:Name="DadipfBox" Margin="0,4,0,0"
+                    Content="Keep imported archives in the downloads folder"
+                    ToolTip.Tip="Off by default: after installing, the Hub moves the archive out of your downloads folder so it is not offered again."/>
+
+          <TextBlock x:Name="StorageText" Classes="dim" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Appearance"/>
+
+          <Grid ColumnDefinitions="140,*,52">
+            <TextBlock Grid.Column="0" Text="Text size" Classes="muted" VerticalAlignment="Center"/>
+            <Slider x:Name="TextSizeSlider" Grid.Column="1" Minimum="10" Maximum="20" TickFrequency="1"
+                    IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
+            <TextBlock x:Name="TextSizeValue" Grid.Column="2" Classes="muted" VerticalAlignment="Center"
+                       HorizontalAlignment="Right"/>
+          </Grid>
+
+          <Border Height="1" Background="{DynamicResource DividerBrush}"/>
+
+          <TextBlock Text="Saved looks" Classes="muted"/>
+          <TextBlock x:Name="ActivePresetText" Classes="dim"/>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button x:Name="DefaultPresetButton" Content="Default"/>
+            <Button x:Name="Preset1Button" Content="Slot 1"/>
+            <Button x:Name="Preset2Button" Content="Slot 2"/>
+            <Button x:Name="Preset3Button" Content="Slot 3"/>
+            <Button x:Name="Preset4Button" Content="Slot 4"/>
+          </StackPanel>
+          <TextBlock Classes="dim" TextWrapping="Wrap"
+                     Text="Click a slot to load it. Use Save to slot to store the colours you have now."/>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ComboBox x:Name="SaveSlotBox" MinWidth="120"/>
+            <Button x:Name="SavePresetButton" Content="Save to slot"/>
+            <Button x:Name="AnimatedRgbButton" Content="Animated RGB: off"/>
+          </StackPanel>
+
+          <Border Height="1" Background="{DynamicResource DividerBrush}"/>
+
+          <TextBlock Text="Colours" Classes="muted"/>
+          <TextBlock Classes="dim" TextWrapping="Wrap"
+                     Text="Everything else in the interface is derived from these four, and unreadable combinations are corrected automatically."/>
+
+          <Grid ColumnDefinitions="Auto,*">
+            <StackPanel Grid.Column="0" Spacing="8" Margin="0,0,16,0">
+              <ComboBox x:Name="ColourTargetBox" MinWidth="150"/>
+              <Border x:Name="ColourSwatch" Width="150" Height="46" CornerRadius="4"
+                      BorderThickness="1" BorderBrush="{DynamicResource ControlBorderBrush}"/>
+              <TextBox x:Name="ColourHexBox" Width="150" Watermark="#RRGGBB"/>
+              <Button x:Name="ApplyHexButton" Content="Apply hex" HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="6">
+              <Grid ColumnDefinitions="24,*,40">
+                <TextBlock Grid.Column="0" Text="R" Classes="dim" VerticalAlignment="Center"/>
+                <Slider x:Name="RedSlider" Grid.Column="1" Minimum="0" Maximum="255"/>
+                <TextBlock x:Name="RedValue" Grid.Column="2" Classes="dim" VerticalAlignment="Center"/>
+              </Grid>
+              <Grid ColumnDefinitions="24,*,40">
+                <TextBlock Grid.Column="0" Text="G" Classes="dim" VerticalAlignment="Center"/>
+                <Slider x:Name="GreenSlider" Grid.Column="1" Minimum="0" Maximum="255"/>
+                <TextBlock x:Name="GreenValue" Grid.Column="2" Classes="dim" VerticalAlignment="Center"/>
+              </Grid>
+              <Grid ColumnDefinitions="24,*,40">
+                <TextBlock Grid.Column="0" Text="B" Classes="dim" VerticalAlignment="Center"/>
+                <Slider x:Name="BlueSlider" Grid.Column="1" Minimum="0" Maximum="255"/>
+                <TextBlock x:Name="BlueValue" Grid.Column="2" Classes="dim" VerticalAlignment="Center"/>
+              </Grid>
+              <Grid ColumnDefinitions="24,*,40" Margin="0,6,0,0">
+                <TextBlock Grid.Column="0" Text="V" Classes="dim" VerticalAlignment="Center"
+                           ToolTip.Tip="Brightness"/>
+                <Slider x:Name="ValueSlider" Grid.Column="1" Minimum="0" Maximum="100"/>
+                <TextBlock x:Name="ValueValue" Grid.Column="2" Classes="dim" VerticalAlignment="Center"/>
+              </Grid>
+            </StackPanel>
+          </Grid>
+
+          <TextBlock Text="Colour wheel" Classes="muted" Margin="0,6,0,0"/>
+          <Border Background="{DynamicResource InsetBrush}" CornerRadius="6" Padding="10"
+                  HorizontalAlignment="Left">
+            <Panel>
+              <Image x:Name="ColourWheelImage" Width="220" Height="220" Cursor="Hand"
+                     PointerPressed="OnWheelPressed" PointerMoved="OnWheelMoved"/>
+              <Ellipse x:Name="ColourWheelMarker" Width="12" Height="12"
+                       Stroke="White" StrokeThickness="2" Fill="Transparent"
+                       HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+            </Panel>
+          </Border>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+            <Button x:Name="ApplyThemeButton" Classes="accent" Content="Apply colours"/>
+            <Button x:Name="ResetThemeButton" Content="Reset to default"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Nexus Mods"/>
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="A personal API key from a Nexus Premium account enables direct downloads. Optional."/>
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <TextBox x:Name="ApiKeyBox" Grid.Column="0" Margin="0,0,8,0"
+                     PasswordChar="•" Watermark="Paste your personal API key"/>
+            <Button x:Name="SaveKeyButton" Grid.Column="1" Content="Save" Margin="0,0,6,0"/>
+            <Button x:Name="ClearKeyButton" Grid.Column="2" Classes="danger" Content="Clear"/>
+          </Grid>
+          <TextBlock x:Name="ApiKeyStatus" Classes="dim" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="heading" Text="Extras"/>
+          <CheckBox x:Name="EasterEggsBox" Content="Enable easter eggs"
+                    ToolTip.Tip="Optional visual and clickable extras hidden around the Hub."/>
+          <TextBlock Classes="dim" TextWrapping="Wrap"
+                     Text="Takes effect next time the Hub starts."/>
+        </StackPanel>
+      </Border>
+
+      <!--
+        Not in the Windows Hub. This build is the first to run on Linux, so a one-press way to
+        capture what was detected is worth the space; it is what a bug report needs.
+      -->
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="heading" Text="Diagnostics"/>
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Reports which Steam libraries were found, whether your game was detected, and the exact capitalisation of your BepInEx folders."/>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button x:Name="CopyReportButton" Content="Copy report"/>
+            <Button x:Name="OpenLogsButton" Content="Open logs folder"/>
+          </StackPanel>
+          <TextBlock x:Name="DiagnosticsText" Classes="mono" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" BorderBrush="{DynamicResource DangerBrush}">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="heading" Text="Remove Casualties Hub"/>
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Deletes the Hub's own files. You choose exactly what goes, and your mods and game are never touched."/>
+          <Button x:Name="UninstallButton" Classes="danger" Content="Remove Casualties Hub..."
+                  HorizontalAlignment="Left"/>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.BackupsPage">
+
+  <DockPanel>
+
+    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,16">
+      <StackPanel Spacing="12">
+        <TextBlock Classes="heading" Text="Backups"/>
+        <TextBlock Classes="muted" TextWrapping="Wrap"
+                   Text="A backup copies everything in your plugins folder. Your mods are left in place, so taking one is always safe."/>
+        <TextBlock x:Name="BackupRootText" Classes="dim" TextWrapping="Wrap"/>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="CreateButton" Classes="accent" Content="Back up now"/>
+          <Button x:Name="RefreshButton" Content="Refresh"/>
+          <Button x:Name="OpenFolderButton" Content="Open backups folder"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Classes="muted"
+               TextWrapping="Wrap" Margin="2,0,0,12"/>
+
+    <ScrollViewer>
+      <ItemsControl x:Name="BackupList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="raised" Margin="0,0,0,8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding Summary}" Classes="muted"/>
+                  <TextBlock Text="{Binding Path}" Classes="dim" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <Button Content="Open" Tag="{Binding}" Click="OnOpenBackup"/>
+                  <Button Content="Restore" Tag="{Binding}" Click="OnRestore"/>
+                  <Button Content="Delete" Classes="danger" Tag="{Binding}" Click="OnDeleteBackup"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+
+</UserControl>

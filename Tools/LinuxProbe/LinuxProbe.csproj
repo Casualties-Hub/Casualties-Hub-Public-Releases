@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Throwaway diagnostic tool for the Linux Edition port. Deliberately NOT part of
+    Casualties Hub.slnx: it ships to Linux testers as a standalone binary, references
+    nothing from the Hub, and is expected to be deleted once the port has answers.
+
+    Publish:
+      dotnet publish "Tools\LinuxProbe\LinuxProbe.csproj" -c Release -o <out>
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>casualties-hub-probe</AssemblyName>
+    <RootNamespace>CasualtiesHub.LinuxProbe</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+
+</Project>

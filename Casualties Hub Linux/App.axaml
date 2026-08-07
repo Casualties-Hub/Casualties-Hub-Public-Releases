@@ -1,0 +1,24 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.App"
+             RequestedThemeVariant="Dark">
+
+  <!--
+    The Windows Hub keeps its whole theme in one 395-line App.xaml. Here it is split per control
+    under Themes\ as those get ported, so a single control's styling can be reworked without
+    touching the rest.
+  -->
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://casualties-hub/Themes/Brushes.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://casualties-hub/Themes/Controls.axaml"/>
+  </Application.Styles>
+
+</Application>

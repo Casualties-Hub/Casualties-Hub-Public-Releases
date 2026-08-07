@@ -1,0 +1,9 @@
+{
+  "incompatibilities": [
+    {
+      "modA": "Example Mod A",
+      "modB": "Example Mod B",
+      "note": "Replace this example with verified incompatibilities."
+    }
+  ]
+}
