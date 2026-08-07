@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Casualties_Hub.Models;
@@ -65,18 +66,80 @@ public partial class DashboardPage : UserControl
         this.FindControl<Button>("PrevButton")!.Click += (_, _) => ChangePage(-1);
         this.FindControl<Button>("NextButton")!.Click += (_, _) => ChangePage(1);
         this.FindControl<Button>("DetectButton")!.Click += async (_, _) => await DetectAsync();
+        this.FindControl<Button>("ChooseFolderButton")!.Click += async (_, _) => await ChooseFolderAsync();
         this.FindControl<Button>("OpenSettingsButton")!.Click += (_, _) => _openSettings?.Invoke();
 
-        RefreshGameFolderCard();
+        // Installing or toggling a mod anywhere in the Hub should be reflected here without the
+        // user having to press Refresh.
+        ModService.PluginFilesChanged += OnPluginFilesChanged;
+        DetachedFromVisualTree += (_, _) => ModService.PluginFilesChanged -= OnPluginFilesChanged;
+
+        RefreshLocalCounts();
         _ = LoadAsync(force: false);
+    }
+
+    private void OnPluginFilesChanged(object? sender, EventArgs e)
+    {
+        // Raised from whichever thread did the file work, so hop to the UI thread first.
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => OnPluginFilesChanged(sender, e));
+            return;
+        }
+
+        RefreshLocalCounts();
+        if (_allMods.Count > 0)
+        {
+            MarkLocalStatus();
+            ApplyFilters();
+        }
+        _setStatus("Local mod files changed. Dashboard refreshed.");
+    }
+
+    private async Task ChooseFolderAsync()
+    {
+        var owner = Owner;
+        if (owner is null) return;
+
+        var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Select your Casualties Unknown folder",
+            AllowMultiple = false,
+        });
+
+        var path = folders.FirstOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(path)) return;
+
+        var settings = _settingsService.Load();
+        settings.GamePath = path;
+        _settingsService.Save(settings);
+
+        RefreshLocalCounts();
+        MarkLocalStatus();
+        ApplyFilters();
+        _setStatus("Game folder set.");
     }
 
     private Window? Owner => TopLevel.GetTopLevel(this) as Window;
 
-    private void RefreshGameFolderCard()
+    /// <summary>Updates the installed count, the game path, and the "no folder set" prompt.</summary>
+    private void RefreshLocalCounts()
     {
-        var configured = _modService.HasConfiguredGameFolder(_settingsService.Load());
+        var settings = _settingsService.Load();
+        var configured = _modService.HasConfiguredGameFolder(settings);
+
         this.FindControl<Border>("GameFolderCard")!.IsVisible = !configured;
+        this.FindControl<TextBlock>("GamePathText")!.Text =
+            string.IsNullOrWhiteSpace(settings.GamePath) ? "Not configured" : settings.GamePath;
+
+        var count = 0;
+        try { if (configured) count = _modService.GetInstalledMods(settings).Count; }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            DebugLogService.Info($"Could not count installed mods: {exception.Message}");
+        }
+
+        this.FindControl<TextBlock>("ModCountText")!.Text = count.ToString();
     }
 
     private async Task DetectAsync()
@@ -92,7 +155,7 @@ public partial class DashboardPage : UserControl
         var settings = _settingsService.Load();
         settings.GamePath = found;
         _settingsService.Save(settings);
-        RefreshGameFolderCard();
+        RefreshLocalCounts();
         MarkLocalStatus();
         ApplyFilters();
         _setStatus("Game folder detected.");

@@ -61,6 +61,13 @@ public partial class MultiplayerPage : UserControl
         pingBox.SelectionChanged += (_, _) => ApplyFilters();
         this.FindControl<CheckBox>("HideLockedBox")!.IsCheckedChanged += (_, _) => ApplyFilters();
         this.FindControl<TextBox>("SearchBox")!.TextChanged += (_, _) => ApplyFilters();
+        this.FindControl<Button>("RefreshButton")!.Click += (_, _) =>
+        {
+            // Nothing to re-fetch: the rows are built locally. Re-applying the filters keeps the
+            // button honest rather than having it pretend to contact a service.
+            ApplyFilters();
+            _setStatus("Sample data reloaded. There is no multiplayer service to query yet.");
+        };
 
         ApplyFilters();
         DebugLogService.Activity("Multiplayer", "Opened the multiplayer server browser preview.");

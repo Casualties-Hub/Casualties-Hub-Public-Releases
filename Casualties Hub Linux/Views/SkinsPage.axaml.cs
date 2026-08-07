@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -22,6 +23,10 @@ public partial class SkinsPage : UserControl
 
     private string _root = "";
     private string? _selectedSlotPath;
+    private bool _facingBack;
+    private bool _panning;
+    private Point _panOrigin;
+    private Vector _panOffset;
 
     public SkinsPage() : this(_ => { }) { }
 
@@ -64,7 +69,51 @@ public partial class SkinsPage : UserControl
 
         headBox.SelectionChanged += (_, _) => RenderPreview();
         eyeBox.SelectionChanged += (_, _) => RenderPreview();
-        this.FindControl<CheckBox>("FacingBox")!.IsCheckedChanged += (_, _) => RenderPreview();
+
+        this.FindControl<Button>("TurnAroundButton")!.Click += (_, _) =>
+        {
+            _facingBack = !_facingBack;
+            RenderPreview();
+        };
+
+        this.FindControl<Button>("ReturnToCentreButton")!.Click += (_, _) => ReturnToCentre();
+
+        var zoom = this.FindControl<Slider>("ZoomSlider")!;
+        zoom.PropertyChanged += (_, e) =>
+        {
+            if (e.Property.Name == "Value") RenderPreview();
+        };
+
+        // Drag to pan once the art is bigger than the panel. Avalonia has no MouseCapture; a
+        // pointer capture on the scroller does the same job.
+        var scroller = this.FindControl<ScrollViewer>("PreviewScroller")!;
+        scroller.PointerPressed += (_, e) =>
+        {
+            _panOrigin = e.GetPosition(scroller);
+            _panOffset = scroller.Offset;
+            _panning = true;
+            e.Pointer.Capture(scroller);
+        };
+        scroller.PointerMoved += (_, e) =>
+        {
+            if (!_panning) return;
+            var now = e.GetPosition(scroller);
+            scroller.Offset = new Vector(
+                _panOffset.X - (now.X - _panOrigin.X),
+                _panOffset.Y - (now.Y - _panOrigin.Y));
+        };
+        scroller.PointerReleased += (_, e) =>
+        {
+            _panning = false;
+            e.Pointer.Capture(null);
+        };
+    }
+
+    private void ReturnToCentre()
+    {
+        this.FindControl<Slider>("ZoomSlider")!.Value = 6;
+        this.FindControl<ScrollViewer>("PreviewScroller")!.Offset = default;
+        RenderPreview();
     }
 
     /// <summary>"HalfClosed" -> "Half closed".</summary>
@@ -126,23 +175,54 @@ public partial class SkinsPage : UserControl
 
         var head = (this.FindControl<ComboBox>("HeadBox")!.SelectedItem as Choice<SkinHeadShape>)?.Value ?? SkinHeadShape.Normal;
         var eyes = (this.FindControl<ComboBox>("EyeBox")!.SelectedItem as Choice<SkinEyeExpression>)?.Value ?? SkinEyeExpression.Open;
-        var facingBack = this.FindControl<CheckBox>("FacingBox")!.IsChecked == true;
+
+        var zoom = Math.Max(1, this.FindControl<Slider>("ZoomSlider")!.Value);
+        this.FindControl<TextBlock>("ZoomLabel")!.Text = $"{zoom:F0}x";
 
         try
         {
-            var canvas = SkinPreviewComposer.Compose(_selectedSlotPath, head, eyes, facingBack);
+            var canvas = SkinPreviewComposer.Compose(_selectedSlotPath, head, eyes, _facingBack);
             if (canvas.Children.Count == 0)
             {
                 ClearPreview("This slot has no sprites the preview can draw.");
                 return;
             }
-            this.FindControl<Viewbox>("PreviewHost")!.Child = canvas;
+
+            // Size the Viewbox to an exact multiple of the canvas so each source pixel lands on a
+            // whole number of screen pixels. Letting it stretch to fill produces fractional
+            // scaling, which is what makes pixel art look smeared.
+            var host = this.FindControl<Viewbox>("PreviewHost")!;
+            host.Width = canvas.Width * zoom;
+            host.Height = canvas.Height * zoom;
+            host.Child = canvas;
+
+            ShowMissingSprites();
         }
         catch (Exception exception)
         {
             DebugLogService.Error("Could not build the skin preview", exception);
             ClearPreview("The preview could not be drawn; see the log.");
         }
+    }
+
+    /// <summary>
+    /// Names the sprites a slot is missing. A skin can render and still be incomplete, so this is
+    /// the only way to tell a deliberate art choice from a file that failed to install.
+    /// </summary>
+    private void ShowMissingSprites()
+    {
+        var warning = this.FindControl<TextBlock>("MissingSpriteText")!;
+        if (string.IsNullOrWhiteSpace(_selectedSlotPath))
+        {
+            warning.IsVisible = false;
+            return;
+        }
+
+        var missing = SkinRig.FindMissingRequiredSprites(_selectedSlotPath);
+        warning.IsVisible = missing.Count > 0;
+        warning.Text = missing.Count == 0
+            ? ""
+            : $"Missing {missing.Count} required sprite(s): {string.Join(", ", missing)}";
     }
 
     private void ClearPreview(string message)
@@ -154,7 +234,13 @@ public partial class SkinsPage : UserControl
             Width = 220,
         };
         note.Classes.Add("dim");
-        this.FindControl<Viewbox>("PreviewHost")!.Child = note;
+
+        var host = this.FindControl<Viewbox>("PreviewHost")!;
+        host.Width = double.NaN;
+        host.Height = double.NaN;
+        host.Child = note;
+
+        this.FindControl<TextBlock>("MissingSpriteText")!.IsVisible = false;
     }
 
     private void OnOpenFolder(object? sender, RoutedEventArgs e)

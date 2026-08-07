@@ -96,6 +96,24 @@
   </Style>
 
   <!-- Cards: the panel every page is built out of. -->
+  <!--
+    Mod card rows. Without this the container sizes itself to its content, so one long status
+    line makes a card wider than its neighbours. The Windows Hub solves the same problem with a
+    StretchedModCardContainer item style.
+  -->
+  <Style Selector="ListBox.modcards > ListBoxItem">
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="ListBox.modcards > ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="ListBox.modcards > ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+
   <Style Selector="Border.card">
     <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>

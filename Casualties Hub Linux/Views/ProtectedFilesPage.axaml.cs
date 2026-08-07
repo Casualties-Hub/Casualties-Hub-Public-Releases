@@ -26,6 +26,7 @@ public partial class ProtectedFilesPage : UserControl
         AvaloniaXamlLoader.Load(this);
 
         this.FindControl<Button>("ProtectButton")!.Click += async (_, _) => await ProtectAsync();
+        this.FindControl<Button>("ProtectFolderButton")!.Click += async (_, _) => await ProtectFolderAsync();
         this.FindControl<Button>("RestoreButton")!.Click += async (_, _) => await RestoreAsync();
         this.FindControl<Button>("RefreshButton")!.Click += (_, _) => Reload();
         this.FindControl<Button>("OpenFolderButton")!.Click += OnOpenFolder;
@@ -118,6 +119,73 @@ public partial class ProtectedFilesPage : UserControl
         {
             DebugLogService.Error("Could not protect the selected files", exception);
             await HubDialog.ShowMessageAsync(owner, "Could not protect those files", exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// Protects a whole folder. This is the one that matters for skins: a character lives in an
+    /// entire st# folder, and protecting its files one by one would miss anything added later.
+    /// </summary>
+    private async Task ProtectFolderAsync()
+    {
+        var owner = Owner;
+        if (owner is null) return;
+
+        var settings = _settingsService.Load();
+        var plugins = _modService.GetPluginsPath(settings);
+        if (!Directory.Exists(plugins))
+        {
+            await HubDialog.ShowMessageAsync(owner, "No plugins folder",
+                "Set your game folder in Settings before protecting anything.");
+            return;
+        }
+
+        IStorageFolder? start = null;
+        try { start = await owner.StorageProvider.TryGetFolderFromPathAsync(plugins); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { }
+
+        var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Choose a folder inside your plugins folder to protect",
+            AllowMultiple = true,
+            SuggestedStartLocation = start,
+        });
+
+        var paths = folders.Select(folder => folder.TryGetLocalPath())
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Select(path => path!)
+            .ToList();
+        if (paths.Count == 0) return;
+
+        var outside = paths.Where(path => !LinuxPaths.IsInside(path, plugins)).ToList();
+        if (outside.Count > 0)
+        {
+            await HubDialog.ShowMessageAsync(owner, "That folder is outside your plugins folder",
+                "Only folders inside the BepInEx plugins folder can be protected, because that is the "
+                + "only place a mod install writes to.\n\n" + string.Join("\n", outside.Select(path => "  " + path)));
+            return;
+        }
+
+        // Refuse the plugins folder itself: protecting everything would copy the whole mod
+        // install into the Hub's data directory, which is a backup, not a protected asset.
+        if (paths.Any(path => LinuxPaths.IsInside(plugins, path)))
+        {
+            await HubDialog.ShowMessageAsync(owner, "Choose a folder inside plugins",
+                "Protecting the whole plugins folder would duplicate your entire mod install. "
+                + "Use Backups for that, and protect individual skin or config folders here.");
+            return;
+        }
+
+        try
+        {
+            _protectedFiles.Protect(settings, paths);
+            _setStatus($"Protected {paths.Count} folder(s).");
+            Reload();
+        }
+        catch (Exception exception)
+        {
+            DebugLogService.Error("Could not protect the selected folders", exception);
+            await HubDialog.ShowMessageAsync(owner, "Could not protect those folders", exception.Message);
         }
     }
 

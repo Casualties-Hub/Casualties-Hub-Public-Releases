@@ -32,6 +32,9 @@ public partial class MainWindow : Window
 
         var settings = _settingsService.Load();
         ThemeApplier.Apply(settings);
+        // Deferred: MainWindow is not yet the lifetime's MainWindow while its constructor runs,
+        // so setting FontSize now would apply to nothing.
+        Opened += (_, _) => ThemeApplier.ApplyTextSize(_settingsService.Load());
 
         this.FindControl<TextBlock>("SidebarFooterText")!.Text =
             $"v{HubVersion.Current()} · Community metadata";
@@ -70,7 +73,7 @@ public partial class MainWindow : Window
 
         StartDownloadWatcher();
 
-        if (string.IsNullOrWhiteSpace(settings.GamePath)) _ = AutoDetectAsync();
+        if (string.IsNullOrWhiteSpace(settings.GamePath)) _ = AutoDetectAsync(OpenSettings);
 
         Closed += (_, _) =>
         {
@@ -106,7 +109,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task AutoDetectAsync()
+    private async Task AutoDetectAsync(Action openSettings)
     {
         SetStatus("Looking for your Casualties Unknown install...");
         try
@@ -115,6 +118,12 @@ public partial class MainWindow : Window
             if (string.IsNullOrWhiteSpace(found))
             {
                 SetStatus("No Casualties Unknown install found. Set the folder in Settings.");
+
+                // Shown once per launch, and only when nothing was found. Without it a failed
+                // detection is just an empty dashboard with no explanation.
+                var dialog = new GameDetectionDialog();
+                await dialog.ShowDialog(this);
+                if (dialog.OpenSettingsRequested) openSettings();
                 return;
             }
 

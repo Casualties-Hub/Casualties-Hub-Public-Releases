@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Casualties_Hub.Views.GameDetectionDialog"
+        Title="Casualties Hub"
+        Width="480" SizeToContent="Height"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+  <StackPanel Margin="22" Spacing="16">
+    <TextBlock Text="Cannot detect Casualties Unknown" FontSize="20" FontWeight="SemiBold"
+               TextWrapping="Wrap"/>
+
+    <TextBlock TextWrapping="Wrap"
+               Text="Please set your game folder in Settings. You can select the game folder, BepInEx, or the plugins folder inside it."/>
+
+    <!-- Linux-specific: the Windows copy talks about drive letters, which do not exist here, and
+         a Flatpak or non-default Steam library is the usual reason detection comes up empty. -->
+    <TextBlock Classes="dim" TextWrapping="Wrap"
+               Text="The Hub looks through the libraries Steam itself lists. If your game lives somewhere Steam does not know about, or Steam is installed through Flatpak with a custom data folder, it will not be found automatically."/>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+      <Button x:Name="IgnoreButton" Content="Ignore" Width="100"/>
+      <Button x:Name="OpenSettingsButton" Classes="accent" Content="Open Settings" Width="140"/>
+    </StackPanel>
+  </StackPanel>
+
+</Window>

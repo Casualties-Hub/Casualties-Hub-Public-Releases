@@ -4,20 +4,26 @@ using Casualties_Hub.Models;
 namespace Casualties_Hub.Views;
 
 /// <summary>
-/// One row in the Local Mods list, wrapping an <see cref="InstalledMod"/> for display.
+/// One card in the Local Mods columns, wrapping an <see cref="InstalledMod"/> for display.
 /// </summary>
 /// <remarks>
-/// The Windows list colours rows with DataTriggers, which Avalonia does not have. Rather than
-/// scatter converters through the XAML, the trigger conditions become plain bound properties here.
-/// Keeping them off <see cref="InstalledMod"/> also keeps Avalonia types out of the model.
+/// The Windows card drives its colours with DataTriggers. Avalonia has none, so each trigger
+/// condition becomes a bound property here. WPF applies the LAST matching trigger, so the
+/// precedence below is deliberately reversed relative to the order they appear in ModsPage.xaml.
+/// Keeping this out of <see cref="InstalledMod"/> also keeps Avalonia types out of the model.
 /// </remarks>
 public sealed class ModRow
 {
-    private static readonly IBrush Missing = new SolidColorBrush(Color.FromRgb(0xB4, 0x8E, 0xFF));
-    private static readonly IBrush OutOfDate = new SolidColorBrush(Color.FromRgb(0xF1, 0xC4, 0x53));
-    private static readonly IBrush Danger = new SolidColorBrush(Color.FromRgb(0xC8, 0x1E, 0x3C));
-    private static readonly IBrush Neutral = new SolidColorBrush(Color.FromRgb(0xE5, 0xE7, 0xEB));
-    private static readonly IBrush NeutralBorder = new SolidColorBrush(Color.FromRgb(0x2A, 0x2F, 0x38));
+    // Taken verbatim from the Windows CompactModCard so both editions read identically.
+    private static readonly IBrush DisabledEdge = Parse("#7A3038");
+    private static readonly IBrush ModlistEdge = Parse("#6A4A94");
+    private static readonly IBrush NeutralEdge = Parse("#2A2F38");
+    private static readonly IBrush UpToDateText = Parse("#67E480");
+    private static readonly IBrush OutOfDateText = Parse("#F1C453");
+    private static readonly IBrush DisabledText = Parse("#D58B8B");
+    private static readonly IBrush NeutralText = Parse("#F1EFEE");
+
+    private static IBrush Parse(string hex) => new SolidColorBrush(Color.Parse(hex));
 
     public ModRow(InstalledMod mod) => Mod = mod;
 
@@ -29,32 +35,35 @@ public sealed class ModRow
     public string UpdateStatusLabel => Mod.UpdateStatusLabel;
     public string ToggleButtonLabel => Mod.ToggleButtonLabel;
     public string DependencyActionLabel => Mod.DependencyActionLabel;
-    public string RequiredDependenciesLabel => Mod.RequiredDependenciesLabel;
+    public string ShareCodeActionLabel => Mod.ShareCodeActionLabel;
     public string MissingDependenciesLabel => Mod.MissingDependenciesLabel;
     public string IncompatibilityLabel => Mod.IncompatibilityLabel;
     public string KnownBugsLabel => Mod.KnownBugsLabel;
     public string? DependencyRequiredByLabel => Mod.DependencyRequiredByLabel;
 
-    public bool IsDisabled => Mod.IsDisabled;
-    public bool IsOutOfDate => Mod.IsOutOfDate;
-    public bool IsDependencyPlaceholder => Mod.IsDependencyPlaceholder;
-    public bool HasRequiredDependencies => Mod.HasRequiredDependencies;
     public bool HasMissingDependencies => Mod.HasMissingDependencies;
     public bool HasIncompatibilities => Mod.HasIncompatibilities;
     public bool HasKnownBugs => Mod.HasKnownBugs;
+    public bool IsDependencyPlaceholder => Mod.IsDependencyPlaceholder;
+    public bool IsMissingFromModlist => Mod.IsMissingFromModlist;
 
     /// <summary>
-    /// True for rows backed by files on disk. A dependency placeholder or a modlist entry the
-    /// player does not have is listed for information only, so enable and delete would have
-    /// nothing to act on.
+    /// True for cards backed by real files. A dependency placeholder or a share-code entry the
+    /// player does not have is listed for information only, so Enable and Delete are hidden.
     /// </summary>
     public bool IsManageable => !Mod.IsDependencyPlaceholder && !Mod.IsMissingFromModlist;
 
-    public IBrush NameBrush => Mod.IsMissingFromModlist ? Missing : Neutral;
+    /// <summary>The Windows MultiDataTrigger: offer the update link only for a mod that is actually running.</summary>
+    public bool ShowOutOfDateAction => Mod.IsOutOfDate && !Mod.IsDisabled;
 
-    public IBrush RowBorderBrush =>
-        Mod.HasIncompatibilities ? Danger
-        : Mod.IsMissingFromModlist ? Missing
-        : Mod.IsOutOfDate || Mod.HasMissingDependencies ? OutOfDate
-        : NeutralBorder;
+    public IBrush CardBorderBrush =>
+        Mod.IsMissingFromModlist ? ModlistEdge
+        : Mod.IsDisabled ? DisabledEdge
+        : NeutralEdge;
+
+    public IBrush StatusBrush =>
+        Mod.IsDisabled ? DisabledText
+        : Mod.IsOutOfDate ? OutOfDateText
+        : Mod.IsUpToDate ? UpToDateText
+        : NeutralText;
 }

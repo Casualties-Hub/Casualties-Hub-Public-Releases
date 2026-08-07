@@ -2,108 +2,158 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Casualties_Hub.Views.ModsPage">
 
-  <DockPanel>
+  <UserControl.Resources>
+    <!--
+      The compact mod card. State is carried by the card's edge and by the colour of the status
+      line rather than a heavy fill, so rows stay legible against the dark shell. Avalonia has no
+      DataTriggers, so what WPF expresses as triggers is bound to properties on ModRow.
+    -->
+    <DataTemplate x:Key="CompactModCard">
+      <Border Margin="3" Padding="10" CornerRadius="10"
+              Background="{DynamicResource RaisedBrush}"
+              BorderThickness="1" BorderBrush="{Binding CardBorderBrush}">
+        <!-- The action column is a fixed width so every card keeps the same shape no matter
+             which buttons a given mod happens to show. -->
+        <Grid ColumnDefinitions="*,104">
+          <StackPanel Grid.Column="0">
+            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding Name}"/>
+            <TextBlock Text="{Binding VersionLabel}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding VersionEvidenceLabel}"/>
+            <TextBlock Text="{Binding UpdateStatusLabel}" Foreground="{Binding StatusBrush}"
+                       Margin="0,3,0,0" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding UpdateStatusLabel}"/>
+            <TextBlock Text="{Binding MissingDependenciesLabel}" IsVisible="{Binding HasMissingDependencies}"
+                       Foreground="#5DB8FF" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding MissingDependenciesLabel}"/>
+            <TextBlock Text="{Binding DependencyRequiredByLabel}" IsVisible="{Binding IsDependencyPlaceholder}"
+                       Foreground="#5DB8FF" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding DependencyRequiredByLabel}"/>
+            <TextBlock Text="{Binding IncompatibilityLabel}" IsVisible="{Binding HasIncompatibilities}"
+                       Foreground="#FF5A5A" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding IncompatibilityLabel}"/>
+            <TextBlock Text="{Binding KnownBugsLabel}" IsVisible="{Binding HasKnownBugs}"
+                       Foreground="#A5182F" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding KnownBugsLabel}"/>
+            <TextBlock Text="Requested by imported share code. Download from Nexus."
+                       IsVisible="{Binding IsMissingFromModlist}"
+                       Foreground="#D58BFF" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+          </StackPanel>
 
-    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,14">
-      <StackPanel Spacing="12">
-        <TextBlock Classes="heading" Text="Local mods"/>
-        <TextBlock x:Name="PluginsPathText" Classes="dim" TextWrapping="Wrap"/>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+            <Button Content="{Binding ToggleButtonLabel}" Tag="{Binding}" Click="OnToggle"
+                    IsVisible="{Binding IsManageable}" HorizontalAlignment="Stretch"
+                    ToolTip.Tip="Disable renames the DLL to .dll.disabled; Enable restores it."/>
+            <Button Content="{Binding DependencyActionLabel}" Tag="{Binding}" Click="OnDownloadDependency"
+                    IsVisible="{Binding IsDependencyPlaceholder}" Foreground="#5DB8FF"
+                    Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+            <Button Content="Ignore" Tag="{Binding}" Click="OnIgnoreDependency"
+                    IsVisible="{Binding IsDependencyPlaceholder}"
+                    Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+            <Button Content="Out of date" Tag="{Binding}" Click="OnOpenOutOfDate"
+                    IsVisible="{Binding ShowOutOfDateAction}" Foreground="#F1C453"
+                    Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+            <Button Content="{Binding ShareCodeActionLabel}" Tag="{Binding}" Click="OnInstallRequested"
+                    IsVisible="{Binding IsMissingFromModlist}"
+                    Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+            <Button Content="Ignore" Tag="{Binding}" Click="OnIgnoreModlistEntry"
+                    IsVisible="{Binding IsMissingFromModlist}"
+                    Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+            <Button Content="Delete" Tag="{Binding}" Click="OnDelete"
+                    IsVisible="{Binding IsManageable}"
+                    Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </DataTemplate>
+  </UserControl.Resources>
 
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button x:Name="InstallButton" Classes="accent" Content="Install from file..."/>
-          <Button x:Name="RefreshButton" Content="Refresh"/>
-          <Button x:Name="OpenFolderButton" Content="Open folder"/>
-          <Border Width="1" Background="{DynamicResource DividerBrush}" Margin="4,2"/>
-          <Button x:Name="EnableAllButton" Content="Enable all"/>
-          <Button x:Name="DisableAllButton" Content="Disable all"/>
-          <Button x:Name="DeleteAllButton" Classes="danger" Content="Delete all"/>
-        </StackPanel>
+  <Grid RowDefinitions="Auto,*">
 
-        <Border Height="1" Background="{DynamicResource DividerBrush}"/>
+    <Border Grid.Row="0" Background="{DynamicResource CardBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,12">
+      <Grid ColumnDefinitions="*,Auto">
 
-        <StackPanel Spacing="8">
-          <TextBlock Text="Modlist share code" Classes="muted"/>
-          <TextBlock Classes="dim" TextWrapping="Wrap"
-                     Text="Share what you have installed, or paste someone else's code to see what you are missing."/>
-          <Grid ColumnDefinitions="*,Auto,Auto">
-            <TextBox x:Name="ModlistCodeBox" Grid.Column="0" Margin="0,0,8,0"
-                     Watermark="Paste a share code here"/>
-            <Button x:Name="ExportModlistButton" Grid.Column="1" Content="Copy my list" Margin="0,0,6,0"/>
-            <Button x:Name="ImportModlistButton" Grid.Column="2" Content="Import"/>
-          </Grid>
-        </StackPanel>
-      </StackPanel>
+        <Border Grid.Column="0" Background="{DynamicResource InsetBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="6">
+          <WrapPanel VerticalAlignment="Center">
+            <Button x:Name="InstallButton" Content="Install mod" Width="112" Margin="0,0,7,0"
+                    ToolTip.Tip="Install a mod archive from disk into BepInEx/plugins."/>
+            <Button x:Name="RefreshButton" Content="Refresh" Width="82" Margin="0,0,7,0"
+                    ToolTip.Tip="Re-scan the plugins folder and re-check every mod against the community metadata."/>
+            <Button x:Name="DeleteAllButton" Content="Delete all" Width="90" Margin="0,0,7,0"
+                    ToolTip.Tip="Permanently deletes every mod file. Protected assets and your saved settings are not touched."/>
+            <Button x:Name="DisableAllButton" Content="Disable all" Width="88" Margin="0,0,7,0"
+                    ToolTip.Tip="Renames every enabled mod to .dll.disabled. Nothing is deleted and Enable all puts them back."/>
+            <Button x:Name="EnableAllButton" Content="Enable all" Width="88" Margin="0,0,9,0"
+                    ToolTip.Tip="Restores every .dll.disabled mod back to an active .dll."/>
+            <TextBox x:Name="LocalSearchBox" Width="190" Height="28" Watermark="Search Mods"
+                     VerticalContentAlignment="Center"/>
+          </WrapPanel>
+        </Border>
+
+        <Border Grid.Column="1" Background="{DynamicResource InsetBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="6" Margin="10,0,0,0"
+                ToolTip.Tip="Create or import a compact list of enabled mods.">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Button x:Name="ShareCodeButton" Content="Share code" Width="92" Height="28" Margin="0,0,6,0"
+                    ToolTip.Tip="A share code is a compact text list of your enabled mods and their versions. This copies yours to the clipboard."/>
+            <TextBox x:Name="ModlistCodeBox" Width="190" Height="28" Watermark="Paste share code"
+                     VerticalContentAlignment="Center"/>
+            <Button x:Name="ImportButton" Content="Import" Width="72" Height="28" Margin="6,0,6,0"
+                    ToolTip.Tip="Reads the pasted share code and lists the mods it asks for. Nothing is downloaded automatically."/>
+            <Button x:Name="ShareColumnToggleButton" MinWidth="118" Height="28" Margin="6,0,0,0"
+                    Content="Add column &gt;"/>
+          </StackPanel>
+        </Border>
+      </Grid>
     </Border>
 
-    <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Classes="muted"
-               TextWrapping="Wrap" Margin="2,0,0,12"/>
+    <!-- Two columns by default, each pointed at any of the eight views; a third is opt-in. -->
+    <Grid Grid.Row="1" x:Name="ColumnsGrid" ColumnDefinitions="*,*,0">
 
-    <ScrollViewer>
-      <ItemsControl x:Name="ModsList">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Border Classes="raised" Margin="0,0,0,8" BorderThickness="1"
-                    BorderBrush="{Binding RowBorderBrush}">
-              <Grid ColumnDefinitions="*,Auto">
+      <Border Grid.Column="0" Margin="0,0,8,0" Background="{DynamicResource CardBrush}" Padding="10" CornerRadius="6">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top">
+            <ComboBox x:Name="FirstColumnView" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+            <TextBlock x:Name="FirstColumnEmpty" Foreground="{DynamicResource DimTextBrush}"
+                       Opacity="0.72" TextWrapping="Wrap"/>
+          </StackPanel>
+          <ListBox x:Name="FirstModsList" Margin="0,8,0,0" Classes="modcards" Background="Transparent" BorderThickness="0"
+                   ItemTemplate="{StaticResource CompactModCard}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+        </DockPanel>
+      </Border>
 
-                <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,12,0">
-                  <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
-                             Foreground="{Binding NameBrush}"/>
-                  <TextBlock Text="{Binding VersionLabel}" Classes="muted"/>
-                  <TextBlock Text="{Binding VersionEvidenceLabel}" Classes="dim"/>
-                  <TextBlock Text="{Binding UpdateStatusLabel}" Classes="dim" TextWrapping="Wrap"/>
+      <Border Grid.Column="1" Background="{DynamicResource CardBrush}" Padding="10" CornerRadius="6">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top">
+            <ComboBox x:Name="SecondColumnView" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+            <TextBlock x:Name="SecondColumnEmpty" Foreground="{DynamicResource DimTextBrush}"
+                       Opacity="0.72" TextWrapping="Wrap"/>
+          </StackPanel>
+          <ListBox x:Name="SecondModsList" Margin="0,8,0,0" Classes="modcards" Background="Transparent" BorderThickness="0"
+                   ItemTemplate="{StaticResource CompactModCard}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+        </DockPanel>
+      </Border>
 
-                  <!-- Avalonia has no DataTriggers, so each conditional row binds IsVisible
-                       to a bool on the model instead of toggling Visibility from a trigger. -->
-                  <TextBlock Text="{Binding RequiredDependenciesLabel}"
-                             IsVisible="{Binding HasRequiredDependencies}"
-                             Classes="dim" TextWrapping="Wrap"/>
-                  <TextBlock Text="{Binding MissingDependenciesLabel}"
-                             IsVisible="{Binding HasMissingDependencies}"
-                             Foreground="{DynamicResource WarningBrush}"
-                             FontSize="11" TextWrapping="Wrap"/>
-                  <TextBlock Text="{Binding IncompatibilityLabel}"
-                             IsVisible="{Binding HasIncompatibilities}"
-                             Foreground="{DynamicResource DangerBrush}"
-                             FontSize="11" TextWrapping="Wrap"/>
-                  <TextBlock Text="{Binding KnownBugsLabel}"
-                             IsVisible="{Binding HasKnownBugs}"
-                             Foreground="{DynamicResource WarningBrush}"
-                             FontSize="11" TextWrapping="Wrap"/>
-                  <TextBlock Text="{Binding DependencyRequiredByLabel}"
-                             IsVisible="{Binding IsDependencyPlaceholder}"
-                             Foreground="{DynamicResource WarningBrush}"
-                             FontSize="11" TextWrapping="Wrap"/>
-                </StackPanel>
+      <Border x:Name="ShareColumnHost" Grid.Column="2" Margin="8,0,0,0" IsVisible="False"
+              Background="{DynamicResource CardBrush}" Padding="10" CornerRadius="6">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top">
+            <ComboBox x:Name="ThirdColumnView" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+            <TextBlock x:Name="ThirdColumnEmpty" Foreground="{DynamicResource DimTextBrush}"
+                       Opacity="0.72" TextWrapping="Wrap"/>
+          </StackPanel>
+          <ListBox x:Name="ThirdModsList" Margin="0,8,0,0" Classes="modcards" Background="Transparent" BorderThickness="0"
+                   ItemTemplate="{StaticResource CompactModCard}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+        </DockPanel>
+      </Border>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                  <Border Background="{DynamicResource InsetBrush}" CornerRadius="3" Padding="7,3"
-                          IsVisible="{Binding IsDisabled}" VerticalAlignment="Center">
-                    <TextBlock Text="Disabled" Classes="dim"/>
-                  </Border>
-
-                  <!-- A dependency placeholder is not installed, so it gets install actions
-                       rather than enable/delete. -->
-                  <Button Content="{Binding DependencyActionLabel}" Tag="{Binding}" Click="OnDownloadDependency"
-                          IsVisible="{Binding IsDependencyPlaceholder}"/>
-                  <Button Content="Ignore" Tag="{Binding}" Click="OnIgnoreDependency"
-                          IsVisible="{Binding IsDependencyPlaceholder}"/>
-
-                  <Button Content="Get update" Tag="{Binding}" Click="OnOpenOutOfDate"
-                          IsVisible="{Binding IsOutOfDate}"/>
-                  <Button Content="{Binding ToggleButtonLabel}" Tag="{Binding}" Click="OnToggle"
-                          IsVisible="{Binding IsManageable}" MinWidth="84"/>
-                  <Button Content="Delete" Classes="danger" Tag="{Binding}" Click="OnDelete"
-                          IsVisible="{Binding IsManageable}"/>
-                </StackPanel>
-
-              </Grid>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </ScrollViewer>
-
-  </DockPanel>
+    </Grid>
+  </Grid>
 
 </UserControl>
