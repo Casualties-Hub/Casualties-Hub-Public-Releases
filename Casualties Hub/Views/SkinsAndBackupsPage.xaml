@@ -1,0 +1,109 @@
+<Page x:Class="Casualties_Hub.Views.SkinsAndBackupsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:views="clr-namespace:Casualties_Hub.Views"
+      Background="{DynamicResource WindowBackgroundBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,26,32,32">
+
+            <!-- Backups: what used to be the Protected Assets page. -->
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                    CornerRadius="16" Padding="22">
+                <StackPanel>
+                    <TextBlock Text="Backups" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="17" FontWeight="Bold"/>
+                    <TextBlock Margin="0,6,0,16" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" MaxWidth="840" HorizontalAlignment="Left"
+                               Text="Choose the files or folders you want to keep. For character skins, select the entire ST# folder to preserve its contents. Restore All puts saved copies back in their original locations after a mod is updated or reinstalled."/>
+                    <WrapPanel Margin="0,0,0,16">
+                        <Button Content="Protect Files" Margin="0,0,10,8" Click="ProtectFiles_Click" ToolTip="Keep a saved copy of the chosen files, so a mod update or reinstall cannot lose your versions."/>
+                        <Button Content="Protect Folder" Margin="0,0,10,8" Click="ProtectFolder_Click" ToolTip="Keep a saved copy of a whole folder. For a character skin, pick the entire ST# folder so all of its art is preserved."/>
+                        <Button Content="Restore All" Margin="0,0,10,8" Click="Restore_Click" ToolTip="Overwrites the live game files with your saved copies. The current versions in the game folder are replaced and cannot be recovered."/>
+                        <Button Content="Remove selected" Margin="0,0,10,8" Click="RemoveSelected_Click" ToolTip="Stops protecting the selected item and deletes only its saved copy. The live game file is left alone."/>
+                        <Button Content="Open protected folder" Margin="0,0,0,8" Click="OpenProtectedFolder_Click" ToolTip="Open the folder where the Hub stores your saved copies."/>
+                    </WrapPanel>
+                    <Border Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="6">
+                        <Grid>
+                            <ListBox x:Name="ProtectedList" Background="Transparent" Foreground="{DynamicResource PrimaryTextBrush}"
+                                     BorderThickness="0" MaxHeight="220"/>
+                            <TextBlock x:Name="NoProtectedMessage" Foreground="{DynamicResource DimTextBrush}" Margin="10,14"
+                                       TextWrapping="Wrap" Visibility="Collapsed"
+                                       Text="Nothing is protected yet. Use Protect Files or Protect Folder to keep a copy of anything you do not want a mod update to overwrite."/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Skin Preview: what used to be its own sidebar page. -->
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                    CornerRadius="16" Padding="22" Margin="0,22,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="22"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Skin Preview" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="17" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <Border Grid.Row="1" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1" CornerRadius="10" Padding="6" MinHeight="240">
+                            <Grid>
+                                <ListBox x:Name="SlotList" Background="Transparent" Foreground="{DynamicResource PrimaryTextBrush}" BorderThickness="0"
+                                         MaxHeight="320" SelectionChanged="SlotList_SelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayLabel}" ToolTip="{Binding StatusTooltip}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <!-- A slot missing required art is called out in red so a bad install is obvious. -->
+                                                            <DataTrigger Binding="{Binding IsIncomplete}" Value="True">
+                                                                <Setter Property="Foreground" Value="#FF6B6B"/>
+                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource HubListBoxItemStyle}">
+                                            <!-- Without this the tooltip only shows over the text, not the whole row. -->
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                </ListBox>
+
+                                <TextBlock x:Name="EmptySlotsMessage" Foreground="{DynamicResource DimTextBrush}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center" Margin="8" Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+
+                        <StackPanel Grid.Row="2" Margin="0,14,0,0">
+                            <Button Content="Refresh" Height="34" Margin="0,0,0,8" Click="RefreshSkins_Click"/>
+                            <Button Content="Open CustomSprites folder" Height="34" Click="OpenFolder_Click"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" FontSize="12" Margin="2,16,0,0">
+                                <Run Text="Looking for more skins?"/>
+                                <LineBreak/>
+                                <Hyperlink NavigateUri="https://skin.cat-bot.de/" Foreground="#7FA9E8"
+                                           RequestNavigate="SkinSite_RequestNavigate"
+                                           ToolTip="skin.cat-bot.de, the main community site where most Casualties Unknown skins are uploaded">
+                                    Browse skin.cat-bot.de
+                                </Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+
+                    <views:SkinPreviewControl x:Name="Preview" Grid.Column="2" MinHeight="420"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

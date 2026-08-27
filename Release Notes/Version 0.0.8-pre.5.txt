@@ -1,0 +1,20 @@
+Casualties Hub v0.0.8-pre.5
+
+What changed
+
+In-app uninstaller
+
+- Settings now has an Uninstall Casualties Hub section.
+- Opens a checklist of exactly what to remove: the install folder, Settings, Protected assets, your saved Nexus API key, and logs/crash reports, each toggled independently.
+- Typing DELETE is required before the Uninstall button becomes active.
+- Confirming closes the Hub, then finishes deleting the selected items after it exits, so nothing is left locked mid-removal.
+
+Reclaim space from old updates
+
+- Every downloaded or locally installed Hub update leaves its ZIP and extracted copy behind in Temp. Nothing removed that automatically before this build.
+- On launch, the Hub now checks for those leftovers and, only when it finds any, offers a checklist to delete the ones you choose.
+- Nothing appears if there is nothing to reclaim.
+
+Testing note
+
+This is a pre-release build intended for testing toward Casualties Hub v0.0.8. Please confirm the Uninstall dialog in Settings lists the right items and actually removes only what you select, and that the reclaim-space prompt appears after an update and correctly clears the selected Temp folders.

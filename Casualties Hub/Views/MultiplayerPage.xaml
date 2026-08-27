@@ -1,0 +1,78 @@
+<Page x:Class="Casualties_Hub.Views.MultiplayerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource WindowBackgroundBrush}">
+    <Grid Margin="28,24,28,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- The server list is sample data. Nothing here talks to a live service
+             yet, so the banner has to stay until a real backend is wired up. -->
+        <Border Grid.Row="0" Background="#3A3226" BorderBrush="#7A6432" BorderThickness="1" CornerRadius="7" Padding="14,11">
+            <StackPanel>
+                <TextBlock Text="Preview only" Foreground="#E8C878" FontWeight="SemiBold"/>
+                <TextBlock Margin="0,4,0,0" Foreground="#D6CFC0" TextWrapping="Wrap"
+                           Text="This is a layout preview of the planned server browser. The servers below are sample entries, no connection is made, and Join does nothing yet."/>
+            </StackPanel>
+        </Border>
+
+        <WrapPanel Grid.Row="1" Margin="0,16,0,0" ItemHeight="32">
+            <TextBlock Text="Region" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox x:Name="RegionBox" Width="150" Margin="0,0,14,0" SelectionChanged="Filter_Changed"/>
+            <TextBlock Text="Max ping" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox x:Name="PingBox" Width="110" Margin="0,0,14,0" SelectionChanged="Filter_Changed"/>
+            <CheckBox x:Name="HideLockedBox" Content="Hide password-locked" Foreground="{DynamicResource PrimaryTextBrush}"
+                      VerticalAlignment="Center" Margin="0,0,14,0" Checked="Filter_Changed" Unchecked="Filter_Changed"/>
+            <!-- WPF has no placeholder attribute, so the hint is a TextBlock that
+                 hides itself as soon as anything is typed. -->
+            <Grid Width="220" Margin="0,0,10,0">
+                <TextBox x:Name="SearchBox" VerticalContentAlignment="Center"
+                         ToolTip="Search servers by name" TextChanged="Filter_Changed"/>
+                <TextBlock Text="Search servers" Foreground="{DynamicResource DimTextBrush}" VerticalAlignment="Center" Margin="10,0" IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+            <Button Content="Refresh" Width="96" Click="Refresh_Click"
+                    ToolTip="Reloads the sample list. No network request is made."/>
+        </WrapPanel>
+
+        <TextBlock x:Name="ResultsText" Grid.Row="2" Margin="0,14,0,10" Foreground="{DynamicResource DimTextBrush}"/>
+
+        <Border Grid.Row="3" Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="6">
+            <DataGrid x:Name="ServerGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                      Background="Transparent" RowBackground="Transparent" AlternatingRowBackground="{DynamicResource RaisedBrush}"
+                      BorderThickness="0" HorizontalGridLinesBrush="#2F2F2F" CanUserSortColumns="True"
+                      Foreground="{DynamicResource PrimaryTextBrush}" RowHeight="34">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Server" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Layer" Binding="{Binding LayerLabel}" Width="80"/>
+                    <DataGridTextColumn Header="Mood" Binding="{Binding Mood}" Width="110"/>
+                    <DataGridTextColumn Header="Lock" Binding="{Binding LockLabel}" Width="80"/>
+                    <DataGridTextColumn Header="Population" Binding="{Binding PopulationLabel}" Width="100"/>
+                    <DataGridTextColumn Header="Ping" Binding="{Binding PingLabel}" Width="80"/>
+                    <DataGridTextColumn Header="Mods" Binding="{Binding ModCount}" Width="70"/>
+                    <DataGridTemplateColumn Header="" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Join" Height="24" Margin="4,0" Click="Join_Click"
+                                        Background="{DynamicResource AccentSoftBrush}" Foreground="{DynamicResource AccentSoftTextBrush}" BorderBrush="{DynamicResource AccentSoftTextBrush}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</Page>

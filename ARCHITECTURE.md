@@ -9,10 +9,8 @@
 | `Casualties Hub/Models/` | Settings, metadata, mod, and installation models. |
 | `Casualties Hub/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
 | `Casualties Hub Installer/` | Standalone Windows setup wizard. |
-| `Developer Console/` | Local development commands for a running Hub instance. |
 | `Nexus Mod Package/` | Nexus package marker project. |
 | `Release Packaging/` | Scripts and inputs used to assemble releases. |
-| `Supabase Setup/` | SQL and operator documentation for optional online services. |
 | `Release Notes/` | In-application version history. |
 | `GitHub Release Notes/` | Public release-page copy. |
 
@@ -31,8 +29,8 @@ Windows user and must never be committed, logged, or sent to Casualties Hub serv
 - **Nexus Mods:** metadata/pages for mods and an opt-in authorized API flow. The normal
   fallback is the original Nexus browser page. See `PROJECT_RULES.md`.
 - **GitHub:** source, release metadata, and approved application updates.
-- **Supabase:** optional announcements, compatibility/status data, and aggregate
-  community activity described in `README.md`.
+- **GitHub content:** public announcements and release information from `HubContent.json`,
+  cached locally with conditional requests.
 - **Steam:** launches Casualties Unknown through its registered Steam application ID.
 
 All remote responses are untrusted input. Network failures must leave local mod

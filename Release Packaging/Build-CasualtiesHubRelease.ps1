@@ -1,9 +1,10 @@
 <#
-Builds a clean, unzipped GitHub-release folder without changing the Hub source
-project. The publisher can ZIP this one folder afterwards if desired.
+Builds a GitHub-release folder containing the single Casualties Hub EXE, and a matching ZIP
+beside it. The EXE carries its own catalogs, Hub content, and release notes, so nothing else
+belongs in the release folder.
 
-The root stays intentionally small: the Hub EXE, two helper CMD files, the
-read-me, and a Data folder for editable catalogs and local release notes.
+A separate developer console and uninstaller are planned as their own downloads. Neither is
+bundled here, and the Hub does not depend on either one.
 #>
 
 [CmdletBinding()]
@@ -18,49 +19,52 @@ param(
 
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string]$OutputDirectory
+    [string]$OutputDirectory,
+
+    [switch]$Replace
 )
 
 $ErrorActionPreference = 'Stop'
 
-$workspace = Split-Path -Parent $PSScriptRoot
-$uninstaller = Join-Path $workspace 'CH Uninstaller.cmd'
 $normalizedVersion = $Version.TrimStart('v')
 $releaseName = "Casualties Hub v$normalizedVersion"
 $resolvedHubPublish = (Resolve-Path -LiteralPath $HubPublishDirectory).Path
+$publishedExe = Join-Path $resolvedHubPublish 'Casualties Hub.exe'
 
-if (-not (Test-Path -LiteralPath $uninstaller)) {
-    throw "CH Uninstaller.cmd was not found: $uninstaller"
+if (-not (Test-Path -LiteralPath $publishedExe)) {
+    throw 'HubPublishDirectory must be the published Hub folder containing Casualties Hub.exe.'
 }
 
-if (-not (Test-Path -LiteralPath (Join-Path $resolvedHubPublish 'Casualties Hub.exe'))) {
-    throw 'HubPublishDirectory must be the published Hub folder containing Casualties Hub.exe.'
+# A single-file publish leaves no loose managed DLLs. Anything else here means the publish was
+# not self-contained single-file, which would make the shipped EXE fail on a clean machine.
+$strayDlls = @(Get-ChildItem -LiteralPath $resolvedHubPublish -Filter '*.dll' -File -ErrorAction SilentlyContinue)
+if ($strayDlls.Count -gt 0) {
+    throw "The published folder contains $($strayDlls.Count) loose DLL(s). Publish with -c Release so PublishSingleFile applies."
 }
 
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $outputDirectory = (Resolve-Path -LiteralPath $OutputDirectory).Path
 $releaseDirectory = Join-Path $outputDirectory $releaseName
+$zipPath = Join-Path $outputDirectory "$releaseName.zip"
 
-if (Test-Path -LiteralPath $releaseDirectory) {
-    throw "Release output already exists. Choose a new output folder or remove the old release folder: $releaseName"
+foreach ($existing in @($releaseDirectory, $zipPath)) {
+    if ((Test-Path -LiteralPath $existing) -and -not $Replace) {
+        throw "Release output already exists. Re-run with -Replace to overwrite it: $existing"
+    }
 }
+
+if (Test-Path -LiteralPath $releaseDirectory) { Remove-Item -LiteralPath $releaseDirectory -Recurse -Force }
+if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
 
 New-Item -ItemType Directory -Path $releaseDirectory | Out-Null
+Copy-Item -LiteralPath $publishedExe -Destination (Join-Path $releaseDirectory 'Casualties Hub.exe') -Force
 
-$requiredRootFiles = @('Casualties Hub.exe', 'Developer Console.cmd', '00 - READ ME FIRST.txt')
-foreach ($file in $requiredRootFiles) {
-    $source = Join-Path $resolvedHubPublish $file
-    if (-not (Test-Path -LiteralPath $source)) {
-        throw "The published Hub folder is missing required release file: $file"
-    }
-    Copy-Item -LiteralPath $source -Destination (Join-Path $releaseDirectory $file) -Force
+$reportedVersion = (Get-Item -LiteralPath $publishedExe).VersionInfo.ProductVersion
+if ($reportedVersion -and ($reportedVersion -split '\+')[0] -ne $normalizedVersion) {
+    throw "The published EXE reports version '$reportedVersion' but the release is '$normalizedVersion'. Bump the csproj and republish."
 }
 
-$dataSource = Join-Path $resolvedHubPublish 'Data'
-if (-not (Test-Path -LiteralPath $dataSource)) {
-    throw 'The published Hub folder is missing Data. Publish the Release configuration before packaging.'
-}
-Copy-Item -LiteralPath $dataSource -Destination (Join-Path $releaseDirectory 'Data') -Recurse -Force
-Copy-Item -LiteralPath $uninstaller -Destination (Join-Path $releaseDirectory 'CH Uninstaller.cmd') -Force
+Compress-Archive -Path (Join-Path $releaseDirectory '*') -DestinationPath $zipPath -Force
 
 Write-Host "Release folder created: $releaseDirectory" -ForegroundColor Green
+Write-Host "Release ZIP created:    $zipPath" -ForegroundColor Green

@@ -1,0 +1,27 @@
+Casualties Hub v0.0.8-pre.3
+
+What changed
+
+Skin Preview
+
+- Added a Skin Preview page to the left-side navigation, between Protected Assets and Hub Home.
+- Every CustomSprites skin slot installed in BepInEx is detected and listed, with a count of the head and body sprites each one contains.
+- Selecting a slot draws the character in the game's own idle pose, built from the real in-game limb positions, rotations, and sprite draw order.
+- The Head list switches between the normal head, its two talking mouth shapes, and all three disfigured heads, healed and unhealed.
+- The Expression list switches between open, closed, half-closed, happy, sad, scared, panic, and missing eyes.
+- Turn Around mirrors the whole character between forward facing and backward facing.
+- The preview fits the whole character in the frame automatically. Drag it to move it around, use the zoom slider or the mouse wheel to get closer, and press Return to center to fit it back.
+- A link to the community skin site is included for finding more skins to install.
+
+Skin slot handling
+
+- Slot lists are no longer limited to st0 through st9. Slots created by other sprite mods, such as st10 and above, are detected and can be installed to.
+- Slots are listed in numeric order, so st10 no longer sorts between st1 and st2.
+- A slot missing sprites the character needs is shown in red in Skin Preview, with hover text naming the files that were not found.
+- Sprites are found in either the Head or Body folder, matching how the game itself loads them, so a skin that files a sprite under the other folder still previews correctly.
+- Choosing a skin slot when installing now shows which slots are already in use and how many sprites each holds, so an occupied slot is not overwritten by accident.
+- Installing into an empty slot no longer shows a warning about replacing existing files.
+
+Testing note
+
+This is a pre-release build intended for testing toward Casualties Hub v0.0.8.

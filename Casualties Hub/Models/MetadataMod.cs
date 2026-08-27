@@ -36,6 +36,8 @@ public sealed class MetadataMod
     public bool IsDescriptionExpanded { get; set; }
     public bool IsLocallyInstalled { get; set; }
     public bool IsLocallyDisabled { get; set; }
+    /// <summary>Installed, but the local copy is behind the metadata version.</summary>
+    public bool IsLocallyOutOfDate { get; set; }
     public string LocalStatusLabel { get; set; } = "Not installed";
     public string DependenciesLabel { get; set; } = "No known dependencies";
     public string TotalDownloadsLabel => $"{TotalDownloads:N0} total downloads";

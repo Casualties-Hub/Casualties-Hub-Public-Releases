@@ -4,11 +4,16 @@ CASUALTIES HUB MOD MANAGER
 2. On first launch, choose your Casualties Unknown game folder in Settings if the Hub cannot find it automatically.
 3. Use Nexus Dashboard to browse mods, Local Mods to manage your installed plugins, and Protected Assets to save custom files before removing mods.
 
-FILES IN THIS FOLDER
+ABOUT THIS RELEASE
 
-- Developer Console.cmd: optional troubleshooting tool for testers and support.
-- CH Uninstaller.cmd: removes the Hub and offers to keep or delete Hub data.
+Casualties Hub is a single standalone EXE. There is nothing to unpack and no other file needs to sit beside it.
+
+The dependency catalog, incompatibility catalog, Hub content, and release notes travel inside the EXE. If you want to hand-edit the catalogs, create a Data folder beside the EXE and the Hub will prefer those copies:
+
 - Data\Catalogs: editable dependency and incompatibility catalog files.
-- Data\Release Notes: local summaries used by Hub Center's What Changed panel.
+- Data\Release Notes: local summaries used by Hub Home's What Changed panel.
+- Data\HubContent.json: offline announcements and release information. Updated public content is cached from the official GitHub repository.
 
-Keep this folder outside Program Files so the Hub can update its local data normally.
+Settings, logs, crash reports, and protected assets are kept in %LOCALAPPDATA%\CasualtiesHub, not in this folder.
+
+Keep the EXE outside Program Files so the Hub can update its local data normally.

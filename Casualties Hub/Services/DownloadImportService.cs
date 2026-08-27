@@ -109,7 +109,8 @@ public sealed class DownloadImportService : IDisposable
         if (!plan.RequiresSkinSlot) return (true, null);
         var slotDialog = new SkinSlotDialog { Owner = Application.Current.MainWindow };
         if (slotDialog.ShowDialog() != true) return (false, null);
-        if (MessageBox.Show($"The current CustomSprites\\{slotDialog.SelectedSlot} contents will be permanently replaced. Continue?", "Replace sprite slot", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        if (slotDialog.SelectedSlotIsOccupied
+            && MessageBox.Show($"The current CustomSprites\\{slotDialog.SelectedSlot} contents will be permanently replaced. Continue?", "Replace sprite slot", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return (false, null);
         return (true, slotDialog.SelectedSlot);
     }

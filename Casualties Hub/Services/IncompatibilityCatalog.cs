@@ -3,11 +3,12 @@ using System.Text.Json;
 
 namespace Casualties_Hub.Services;
 
-/// <summary>Loads the editable incompatibility list beside the application.</summary>
+/// <summary>Loads the incompatibility list, preferring an editable copy beside the application.</summary>
 public static class IncompatibilityCatalog
 {
     private static readonly object Sync = new();
     private static DateTime _lastWriteUtc;
+    private static string? _lastSource;
     private static IReadOnlyList<IncompatibilityEntry> _entries = [];
 
     public static IReadOnlyList<string> GetConflicts(string modName, IEnumerable<string> installedModNames)
@@ -24,20 +25,21 @@ public static class IncompatibilityCatalog
 
     private static IReadOnlyList<IncompatibilityEntry> Load()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Data", "Catalogs", "IncompatibilityCatalog.json");
-        if (!File.Exists(path))
-            path = Path.Combine(AppContext.BaseDirectory, "Services", "IncompatibilityCatalog.json"); // legacy builds
-        if (!File.Exists(path)) return _entries;
-        var modified = File.GetLastWriteTimeUtc(path);
+        var loaded = BundledData.Read(
+            "Bundled/Catalogs/IncompatibilityCatalog.json",
+            Path.Combine("Data", "Catalogs", "IncompatibilityCatalog.json"),
+            Path.Combine("Services", "IncompatibilityCatalog.json")); // legacy builds
+        if (loaded is not { } file) return _entries;
         lock (Sync)
         {
-            if (modified == _lastWriteUtc) return _entries;
+            if (file.Source == _lastSource && file.StampUtc == _lastWriteUtc) return _entries;
             try
             {
-                _entries = JsonSerializer.Deserialize<IncompatibilityDocument>(File.ReadAllText(path), new JsonSerializerOptions { PropertyNameCaseInsensitive = true })?.Incompatibilities
+                _entries = JsonSerializer.Deserialize<IncompatibilityDocument>(file.Text, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })?.Incompatibilities
                     ?.Where(entry => !string.IsNullOrWhiteSpace(entry.ModA) && !string.IsNullOrWhiteSpace(entry.ModB))
                     .ToList() ?? [];
-                _lastWriteUtc = modified;
+                _lastWriteUtc = file.StampUtc;
+                _lastSource = file.Source;
                 DebugLogService.Info($"Loaded {_entries.Count} incompatibility entries.");
             }
             catch (Exception exception)

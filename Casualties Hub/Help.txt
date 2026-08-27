@@ -28,11 +28,9 @@ Support logs
 - Create Log writes a diagnostic file containing the last ten minutes of Hub activity, plus the Hub version, PC runtime details, configured paths, and the current top-level Plugins contents.
 - The normal session log records meaningful Hub operations too: startup/shutdown, game detection, metadata loading, Nexus actions, archive installs, local mod changes, protected asset actions, share codes, settings changes, and errors. API-key values are never written to logs.
 
-Developer Console.cmd
-- This is an optional developer/admin CMD control panel.
-- Start Casualties Hub first, then run Developer Console.cmd from the same folder.
-- It can trigger safe failure tests, refresh live Hub pages, open Settings, and create a diagnostic log.
-- It does not directly modify game files.
+Developer Console page
+- The Developer Console page in the Hub shows live activity and can copy the log, open the current session log, open the BepInEx crash log, and create a support-ready crash report.
+- This is the page to use when support asks for logs. Nothing extra needs to be downloaded or run.
 
 Pre-Alpha notice
 This is a work in progress. Report issues and feedback through the CH Discord.

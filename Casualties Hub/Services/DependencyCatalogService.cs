@@ -5,13 +5,15 @@ using Casualties_Hub.Models;
 namespace Casualties_Hub.Services;
 
 /// <summary>
-/// Loads the user-editable DependencyCatalog.json beside the application.
-/// Each JSON entry is directional: the "mod" requires every library in its "requires" list.
+/// Loads DependencyCatalog.json, preferring a user-editable copy beside the application over
+/// the copy bundled in the EXE. Each JSON entry is directional: the "mod" requires every
+/// library in its "requires" list.
 /// </summary>
 public static class DependencyCatalog
 {
     private static readonly object Sync = new();
     private static DateTime _lastWriteUtc;
+    private static string? _lastSource;
     private static IReadOnlyDictionary<string, IReadOnlyList<DependencyRequirement>> _requirements =
         new Dictionary<string, IReadOnlyList<DependencyRequirement>>(StringComparer.Ordinal);
 
@@ -35,23 +37,23 @@ public static class DependencyCatalog
 
     private static IReadOnlyDictionary<string, IReadOnlyList<DependencyRequirement>> Load()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Data", "Catalogs", "DependencyCatalog.json");
-        if (!File.Exists(path))
-            path = Path.Combine(AppContext.BaseDirectory, "Services", "DependencyCatalog.json"); // legacy builds
-        if (!File.Exists(path))
+        var loaded = BundledData.Read(
+            "Bundled/Catalogs/DependencyCatalog.json",
+            Path.Combine("Data", "Catalogs", "DependencyCatalog.json"),
+            Path.Combine("Services", "DependencyCatalog.json")); // legacy builds
+        if (loaded is not { } file)
         {
             DebugLogService.Info("DependencyCatalog.json was not found; dependency prompts will ask players to check Nexus.");
             return _requirements;
         }
 
-        var modified = File.GetLastWriteTimeUtc(path);
         lock (Sync)
         {
-            if (modified == _lastWriteUtc) return _requirements;
+            if (file.Source == _lastSource && file.StampUtc == _lastWriteUtc) return _requirements;
 
             try
             {
-                var document = JsonSerializer.Deserialize<DependencyCatalogDocument>(File.ReadAllText(path), new JsonSerializerOptions
+                var document = JsonSerializer.Deserialize<DependencyCatalogDocument>(file.Text, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 }) ?? new DependencyCatalogDocument();
@@ -65,7 +67,8 @@ public static class DependencyCatalog
                             .Where(requirement => !string.IsNullOrWhiteSpace(requirement.Name))
                             .ToList(),
                         StringComparer.Ordinal);
-                _lastWriteUtc = modified;
+                _lastWriteUtc = file.StampUtc;
+                _lastSource = file.Source;
                 DebugLogService.Info($"Loaded {_requirements.Count} dependency entries from DependencyCatalog.json.");
             }
             catch (Exception exception)

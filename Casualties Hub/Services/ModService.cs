@@ -279,8 +279,9 @@ public class ModService
 
     private static void InstallCustomSprite(string pluginsPath, string stagingPath, string? skinSlot)
     {
-        if (string.IsNullOrWhiteSpace(skinSlot) || !System.Text.RegularExpressions.Regex.IsMatch(skinSlot, "^st[0-9]$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-            throw new InvalidDataException("Choose a CustomSprites skin slot from st0 through st9.");
+        // Slots above st9 are valid: other sprite mods create them, and the picker offers them.
+        if (string.IsNullOrWhiteSpace(skinSlot) || !System.Text.RegularExpressions.Regex.IsMatch(skinSlot, @"^st\d+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            throw new InvalidDataException("Choose a CustomSprites skin slot such as st0 or st12.");
 
         var sourceFile = Directory.EnumerateFiles(stagingPath, "experimentCrus.png", SearchOption.AllDirectories)
             .FirstOrDefault(path => Path.GetFileName(path).Equals("experimentCrus.png", StringComparison.OrdinalIgnoreCase));

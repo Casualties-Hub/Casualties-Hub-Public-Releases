@@ -17,7 +17,7 @@ when possible. Test only against systems, accounts, and files you are authorized
 - Archive inspection, extraction, and installation paths.
 - File deletion, replacement, protected-asset restoration, and uninstallation.
 - Update discovery, download, validation, and process launching.
-- Supabase configuration, remote metadata, and other network responses.
+- GitHub content, remote metadata, and other network responses.
 - Diagnostic logs and settings that may contain local paths or user information.
 
 ## Contributor requirements
