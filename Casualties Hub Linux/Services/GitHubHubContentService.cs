@@ -10,7 +10,7 @@ namespace Casualties_Hub.Services;
 /// <summary>Loads public Hub Home content from GitHub with a local cache and HTTP validators.</summary>
 public sealed class GitHubHubContentService
 {
-    public const string ContentUrl = "https://raw.githubusercontent.com/MarlyZ89/Casualties-Hub-Public-Releases/main/HubContent.json";
+    public const string ContentUrl = "https://raw.githubusercontent.com/Casualties-Hub/Casualties-Hub-Public-Releases/main/HubContent.json";
     public static readonly TimeSpan RefreshInterval = TimeSpan.FromMinutes(30);
     private static readonly HttpClient Client = CreateClient();
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);

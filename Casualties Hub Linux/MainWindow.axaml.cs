@@ -15,7 +15,7 @@ namespace Casualties_Hub;
 
 public partial class MainWindow : Window
 {
-    private const string ReportIssuesUrl = "https://github.com/MarlyZ89/Casualties-Hub-Public-Releases/issues";
+    private const string ReportIssuesUrl = "https://github.com/Casualties-Hub/Casualties-Hub-Public-Releases/issues";
     private const string SurpriseUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     private readonly SettingsService _settingsService = new();
