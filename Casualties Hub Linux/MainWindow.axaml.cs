@@ -174,7 +174,7 @@ public partial class MainWindow : Window
 
         var body = plan.Description
                    + (plan.ExistingFilesToReplace.Count > 0
-                       ? $"\n\n{plan.ExistingFilesToReplace.Count} existing file(s) will be replaced."
+                       ? $"\n\n{plan.ExistingFilesToReplace.Count} existing files will be replaced."
                        : "")
                    + plan.DependencyPrompt;
 

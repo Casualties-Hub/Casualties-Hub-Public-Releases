@@ -101,7 +101,7 @@ public partial class SkinSlotDialog : Window
         }
 
         hint.Text = choice.IsOccupied
-            ? $"Installing here permanently replaces the {choice.HeadCount + choice.BodyCount} sprite(s) already in {choice.Name}."
+            ? $"Installing here permanently replaces the {choice.HeadCount + choice.BodyCount} sprites already in {choice.Name}."
             : $"{choice.Name} is empty, so nothing will be overwritten.";
 
         confirm.Content = choice.IsOccupied ? "Replace slot" : "Use slot";

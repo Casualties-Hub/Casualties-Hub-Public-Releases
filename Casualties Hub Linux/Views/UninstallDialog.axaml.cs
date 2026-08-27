@@ -63,7 +63,7 @@ public partial class UninstallDialog : Window
                    + string.Join("\n", paths.Select(path => "  " + path))
                    + "\n\nThe Hub will close immediately after starting the removal.";
 
-        if (!await HubDialog.ConfirmAsync(this, $"Remove {paths.Count} item(s)?", body,
+        if (!await HubDialog.ConfirmAsync(this, $"Remove {paths.Count} items?", body,
                 confirm: "Remove and quit", destructive: true))
             return;
 

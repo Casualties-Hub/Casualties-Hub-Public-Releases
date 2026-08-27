@@ -31,6 +31,6 @@ public class SkinSlot
     public bool HasMissing => IsIncomplete;
 
     public string MissingSummary => IsIncomplete
-        ? $"Missing {MissingSprites.Count} required sprite(s): {string.Join(", ", MissingSprites)}"
+        ? $"Missing {MissingSprites.Count} required sprites: {string.Join(", ", MissingSprites)}"
         : "";
 }

@@ -170,7 +170,7 @@ public partial class DashboardPage : UserControl
             MarkLocalStatus();
             _currentPage = 1;
             ApplyFilters();
-            _setStatus($"{_allMods.Count} mod(s) in the community catalogue.");
+            _setStatus($"{_allMods.Count} mods in the community catalogue.");
         }
         catch (Exception exception)
         {
@@ -279,7 +279,7 @@ public partial class DashboardPage : UserControl
         // Icons load after the cards are on screen, so the page never waits on the network.
         foreach (var card in rows) _ = card.LoadIconAsync();
 
-        this.FindControl<TextBlock>("PageText")!.Text = $"Page {_currentPage} of {pageCount}   ·   {_filtered.Count} mod(s)";
+        this.FindControl<TextBlock>("PageText")!.Text = $"Page {_currentPage} of {pageCount}   ·   {_filtered.Count} mods";
         this.FindControl<Button>("PrevButton")!.IsEnabled = _currentPage > 1;
         this.FindControl<Button>("NextButton")!.IsEnabled = _currentPage < pageCount;
 
