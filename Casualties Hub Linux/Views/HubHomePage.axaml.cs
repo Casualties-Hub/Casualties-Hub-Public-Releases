@@ -18,7 +18,7 @@ namespace Casualties_Hub.Views;
 /// </remarks>
 public partial class HubHomePage : UserControl
 {
-    private const string ReleasesUrl = "https://github.com/MarlyZ89/Casualties-Hub-Public-Releases/releases";
+    private const string ReleasesUrl = "https://github.com/Casualties-Hub/Casualties-Hub-Public-Releases/releases";
     private const string NexusUrl = "https://www.nexusmods.com/casualtiesunknown";
     private const string DiscordUrl = "https://discord.gg/casualties";
 
