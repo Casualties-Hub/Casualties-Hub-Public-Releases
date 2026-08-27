@@ -87,7 +87,7 @@
     </Border>
 
     <Border Grid.Row="2" Grid.Column="1" Background="{DynamicResource ChromeBrush}" ZIndex="20" ClipToBounds="True">
-      <TextBlock x:Name="StatusText" Text="Ready" Foreground="{DynamicResource MutedTextBrush}" FontSize="12"
+      <TextBlock x:Name="StatusText" Foreground="{DynamicResource MutedTextBrush}" FontSize="12"
                  VerticalAlignment="Center" Margin="36,0,16,0" TextTrimming="CharacterEllipsis"/>
     </Border>
 

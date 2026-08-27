@@ -27,16 +27,18 @@ public partial class SkinsAndBackupsPage : UserControl
         var protectedTab = this.FindControl<Button>("ProtectedTab")!;
         var backupsTab = this.FindControl<Button>("BackupsTab")!;
 
-        skinsTab.Click += (_, _) => Show(new SkinsPage(_setStatus), skinsTab);
-        protectedTab.Click += (_, _) => Show(new ProtectedFilesPage(_setStatus), protectedTab);
-        backupsTab.Click += (_, _) => Show(new BackupsPage(_setStatus), backupsTab);
+        skinsTab.Click += (_, _) => Show(() => new SkinsPage(_setStatus), skinsTab);
+        protectedTab.Click += (_, _) => Show(() => new ProtectedFilesPage(_setStatus), protectedTab);
+        backupsTab.Click += (_, _) => Show(() => new BackupsPage(_setStatus), backupsTab);
 
-        Show(new SkinsPage(_setStatus), skinsTab);
+        Show(() => new SkinsPage(_setStatus), skinsTab);
     }
 
-    private void Show(UserControl section, Button tab)
+    private void Show(Func<UserControl> buildSection, Button tab)
     {
-        this.FindControl<ContentControl>("SectionHost")!.Content = section;
+        if (_activeTab is not null) _setStatus(MainWindow.IdleStatus);
+
+        this.FindControl<ContentControl>("SectionHost")!.Content = buildSection();
 
         // Style classes rather than triggers, the same approach the sidebar uses.
         _activeTab?.Classes.Remove("accent");
