@@ -4,9 +4,8 @@ using Xunit;
 namespace Casualties_Hub.Tests;
 
 /// <summary>
-/// Case handling and containment. These back the two behaviours that decide whether the Linux
-/// build works at all: finding folders whose casing differs, and refusing to treat a path outside
-/// a container as inside it.
+/// Case handling and containment: finding folders whose casing differs, and refusing to treat a
+/// path outside a container as inside it.
 /// </summary>
 public sealed class LinuxPathsTests : IDisposable
 {
@@ -21,11 +20,10 @@ public sealed class LinuxPathsTests : IDisposable
     /// True when the test is running on a case-sensitive filesystem.
     /// </summary>
     /// <remarks>
-    /// These tests describe Linux behaviour but the development machine is Windows, where NTFS
-    /// resolves "Plugins" to a folder named "plugins" by itself. On NTFS the exact-match fast path
-    /// succeeds and returns the requested casing; on ext4 the enumeration fallback runs and returns
-    /// the real on-disk name. Asserting one fixed answer would make the suite fail on whichever
-    /// platform it was not written for, so the expected casing is chosen from the filesystem.
+    /// The suite runs on both case-sensitive and case-insensitive filesystems. On a case-insensitive
+    /// one the exact-match fast path succeeds and returns the requested casing; otherwise the
+    /// enumeration fallback runs and returns the real on-disk name. Asserting one fixed answer would
+    /// fail on whichever filesystem it was not written for, so the expected casing is probed.
     /// </remarks>
     private bool IsCaseSensitive
     {

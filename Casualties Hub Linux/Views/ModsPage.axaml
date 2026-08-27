@@ -5,8 +5,7 @@
   <UserControl.Resources>
     <!--
       The compact mod card. State is carried by the card's edge and by the colour of the status
-      line rather than a heavy fill, so rows stay legible against the dark shell. Avalonia has no
-      DataTriggers, so what WPF expresses as triggers is bound to properties on ModRow.
+      line rather than a heavy fill, so rows stay legible against the dark shell.
     -->
     <DataTemplate x:Key="CompactModCard">
       <Border Margin="3" Padding="10" CornerRadius="10"

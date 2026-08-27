@@ -8,10 +8,8 @@ namespace Casualties_Hub.Views;
 /// The Hub's replacement for MessageBox, which Avalonia does not provide.
 /// </summary>
 /// <remarks>
-/// Every method here is async, because Avalonia's ShowDialog is. That is the single biggest
-/// behavioural difference from the Windows Hub, where MessageBox.Show blocks and its 49 call
-/// sites read the result inline. Anything that asks the user a question on this side has to be
-/// awaited, so callers are written async from the start rather than retrofitted.
+/// Every method here is async, because Avalonia's ShowDialog is. Anything that asks the user a
+/// question has to be awaited, so callers are written async from the start.
 /// </remarks>
 public partial class HubDialog : Window
 {

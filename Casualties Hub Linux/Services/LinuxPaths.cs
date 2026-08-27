@@ -3,18 +3,17 @@ using System.IO;
 namespace Casualties_Hub.Services;
 
 /// <summary>
-/// Path handling for a case-sensitive filesystem.
+/// Path handling that works on a case-sensitive filesystem.
 ///
-/// The Windows Hub builds paths like <c>BepInEx/Plugins</c> with fixed casing and relies on NTFS
-/// to match whatever is really on disk. ext4 does not, so a BepInEx install that created
-/// <c>BepInEx/plugins</c> would be invisible and the Hub would report "no plugins folder" while
-/// pointing at a perfectly good game directory.
+/// A BepInEx install may create either <c>BepInEx/Plugins</c> or <c>BepInEx/plugins</c>. On ext4
+/// only one of those matches a hardcoded spelling, so fixed-casing lookups report "no plugins
+/// folder" while pointing at a perfectly good game directory.
 ///
-/// The rule used throughout the Linux Edition:
+/// The rule used throughout:
 ///   DISCOVERY (finding something that exists)  -> case-insensitive
 ///   IDENTITY  (is this the same file?)         -> ordinal, always
 ///
-/// Case-insensitive identity is not merely unnecessary here, it is unsafe: on a case-sensitive
+/// Case-insensitive identity is not merely unnecessary, it is unsafe: on a case-sensitive
 /// filesystem two genuinely different files compare equal, which matters where paths guard
 /// deletion or containment.
 /// </summary>

@@ -7,10 +7,9 @@ namespace Casualties_Hub.Tests;
 /// Detecting when a download has actually finished.
 /// </summary>
 /// <remarks>
-/// This is the Linux bug with the least visible symptom. The Windows check opens the file with
-/// FileShare.None and treats success as "finished", which is sound on Windows because the writer
-/// holds a mandatory lock. Linux locking is advisory, so that open succeeds while a browser is
-/// still writing, and the Hub would extract a truncated archive into somebody's game folder.
+/// The failure here is near-invisible. Treating a successful exclusive open as "finished" is
+/// unsound where locking is advisory: the open succeeds while a browser is still writing, and the
+/// Hub would extract a truncated archive into somebody's game folder.
 /// </remarks>
 public sealed class DownloadImportTests : IDisposable
 {

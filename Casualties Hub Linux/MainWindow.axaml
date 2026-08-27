@@ -10,11 +10,7 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
 
-  <!--
-    Same shell as the Windows Hub: 248px sidebar, 82px topbar, 28px status bar. WPF hosts pages in
-    a Frame; Avalonia has no Frame or Page, so the content area is a ContentControl holding a
-    UserControl. That is also simpler, with no navigation journal to suppress.
-  -->
+  <!-- 248px sidebar, 82px topbar, 28px status bar. -->
   <Grid ColumnDefinitions="248,*" RowDefinitions="82,*,28">
 
     <Border x:Name="SidebarBar" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" ZIndex="30"

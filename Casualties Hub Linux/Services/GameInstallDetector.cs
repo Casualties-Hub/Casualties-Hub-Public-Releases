@@ -3,14 +3,9 @@ using System.IO;
 namespace Casualties_Hub.Services;
 
 /// <summary>
-/// Locates the Casualties Unknown install on Linux.
+/// Locates the Casualties Unknown install by asking Steam where its libraries are, rather than
+/// guessing at well-known paths.
 /// </summary>
-/// <remarks>
-/// The Windows Hub walks drive letters C: to H: looking for "Program Files\Steam\steamapps\...".
-/// On Linux every one of those Directory.Exists checks is false, so detection returned null every
-/// time without raising an error: the Hub simply behaved as though the game were not installed.
-/// This asks Steam where its libraries are instead.
-/// </remarks>
 public sealed class GameInstallDetector
 {
     public async Task<string?> FindGameInstallAsync(TimeSpan timeout)

@@ -28,8 +28,7 @@ public partial class UninstallDialog : Window
 
         _items = UninstallService.GetItems(settingsService).ToList();
 
-        // Nothing is ticked by default. The Windows dialog pre-selects everything, which is a
-        // poor default for an action that cannot be undone.
+        // Nothing is ticked by default: this action cannot be undone.
         foreach (var item in _items) item.IsSelected = false;
 
         this.FindControl<ItemsControl>("ItemList")!.ItemsSource = _items;

@@ -11,9 +11,8 @@ namespace Casualties_Hub.Views;
 /// page makes no network request and Join is inert until a real multiplayer service exists.
 /// </summary>
 /// <remarks>
-/// Ported from the Windows page, with one addition: the fake data is called out in the interface
-/// rather than only in a source comment. A tester cannot read the comment, and a list of servers
-/// that looks real but cannot be joined reads as a bug.
+/// The sample data is called out in the interface rather than only here. A tester cannot read a
+/// source comment, and a list of servers that looks real but cannot be joined reads as a bug.
 /// </remarks>
 public partial class MultiplayerPage : UserControl
 {

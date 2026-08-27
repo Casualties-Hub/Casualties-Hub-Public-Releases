@@ -13,14 +13,12 @@ namespace Casualties_Hub.Services;
 /// "*Back" head/eye sprites, which belong to a separate camera-facing state, are never used here.
 /// </summary>
 /// <remarks>
-/// The Avalonia counterpart of the WPF composer. Sprite naming and lookup live in
-/// <see cref="SkinRig"/>; only the drawing differs. Three details carried real risk in the port:
+/// Sprite naming and lookup live in <see cref="SkinRig"/>; this only draws. Two details matter:
 /// <list type="bullet">
-/// <item>Interpolation must be off, or every skin renders as blurred mush. WPF spells this
-/// BitmapScalingMode.NearestNeighbor; Avalonia spells it BitmapInterpolationMode.None.</item>
-/// <item>Sizes come from PixelSize, never from Bitmap.Size. Avalonia derives Size from the file's
-/// DPI just as WPF does, so a 72-DPI sprite would lay out ~33% too large.</item>
-/// <item>Avalonia has no Freezable, so the WPF Freeze calls simply disappear.</item>
+/// <item>Interpolation must be BitmapInterpolationMode.None, or every skin renders as blurred
+/// mush.</item>
+/// <item>Sizes come from PixelSize, never from Bitmap.Size, which is DPI-derived: a 72-DPI sprite
+/// would lay out ~33% too large.</item>
 /// </list>
 /// </remarks>
 public static class SkinPreviewComposer

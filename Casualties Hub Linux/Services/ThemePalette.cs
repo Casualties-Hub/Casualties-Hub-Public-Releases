@@ -1,7 +1,3 @@
-// Ported from the Windows Hub with one change: the Color type comes from Avalonia.Media
-// instead of System.Windows.Media. Everything else - the WCAG contrast maths, the readable-text
-// fallback, the accent-button derivation - is toolkit-independent and copied verbatim, so both
-// editions derive identical colours from the same four user choices.
 using Avalonia.Media;
 using Casualties_Hub.Models;
 

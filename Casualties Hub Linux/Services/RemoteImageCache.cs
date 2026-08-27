@@ -8,10 +8,10 @@ namespace Casualties_Hub.Services;
 /// Fetches mod icons over HTTP and keeps them on disk between runs.
 /// </summary>
 /// <remarks>
-/// WPF's Image control downloads an http(s) URI assigned to Source by itself. Avalonia's does not:
-/// binding a URL string there silently yields no image, which is why the dashboard cards need this.
-/// Icons are cached under the Hub data folder so a second visit to the page costs nothing, and a
-/// failed fetch is remembered for the session so a broken URL is not retried on every scroll.
+/// Avalonia's Image does not fetch http(s) URIs: binding a URL string to Source silently yields no
+/// image, which is why the dashboard cards need this. Icons are cached under the Hub data folder so
+/// a second visit to the page costs nothing, and a failed fetch is remembered for the session so a
+/// broken URL is not retried on every scroll.
 /// </remarks>
 public static class RemoteImageCache
 {

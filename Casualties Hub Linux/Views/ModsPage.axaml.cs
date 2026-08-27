@@ -13,13 +13,12 @@ namespace Casualties_Hub.Views;
 /// any of eight views of the same mod list.
 /// </summary>
 /// <remarks>
-/// The Windows page reads MessageBox results inline, so its handlers are synchronous. Avalonia
-/// dialogs are async, so anything that asks a question is async here and confirm-then-act is
+/// Dialogs are async, so anything that asks a question is async here and confirm-then-act is
 /// awaited rather than inlined.
 /// </remarks>
 public partial class ModsPage : UserControl
 {
-    /// <summary>The eight column views, in the order the Windows dropdowns list them.</summary>
+    /// <summary>The eight column views, in the order the dropdowns list them.</summary>
     private static readonly string[] Views =
     [
         "Enabled Mods",
@@ -514,7 +513,6 @@ public partial class ModsPage : UserControl
         var code = _modlistService.CreateShareCode(exportable);
         this.FindControl<TextBox>("ModlistCodeBox")!.Text = code;
 
-        // Avalonia's clipboard is async and hangs off the TopLevel, unlike WPF's static Clipboard.
         if (owner.Clipboard is { } clipboard)
         {
             await clipboard.SetTextAsync(code);
@@ -533,8 +531,7 @@ public partial class ModsPage : UserControl
 
         var box = this.FindControl<TextBox>("ModlistCodeBox")!;
 
-        // Fall back to the clipboard when the box is empty, matching the Windows "paste and
-        // import in one press" behaviour.
+        // Fall back to the clipboard when the box is empty, so paste and import is one press.
         if (string.IsNullOrWhiteSpace(box.Text) && owner.Clipboard is { } clipboard)
         {
             try { box.Text = await clipboard.TryGetTextAsync(); }

@@ -4,11 +4,7 @@
              x:Class="Casualties_Hub.App"
              RequestedThemeVariant="Dark">
 
-  <!--
-    The Windows Hub keeps its whole theme in one 395-line App.xaml. Here it is split per control
-    under Themes\ as those get ported, so a single control's styling can be reworked without
-    touching the rest.
-  -->
+  <!-- Theming is split per control under Themes\ so one control can be reworked in isolation. -->
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>

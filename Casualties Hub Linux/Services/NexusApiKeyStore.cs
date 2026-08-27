@@ -9,7 +9,7 @@ namespace Casualties_Hub.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The Windows Hub uses DPAPI (<c>ProtectedData</c>), which has no Unix implementation and throws
+/// AES-GCM rather than DPAPI, which has no Unix implementation and throws
 /// <see cref="PlatformNotSupportedException"/> the moment it is touched. Because HasKey calls Load,
 /// that exception would surface just from opening the Settings page.
 /// </para>
@@ -90,8 +90,7 @@ public sealed class NexusApiKeyStore
     public string? Load()
     {
         // Deliberately broad: this runs from HasKey, which the Settings page hits on load. A
-        // failure here must degrade to "no key saved", never take down the page. The Windows
-        // version caught only CryptographicException, which is what made it fatal on Linux.
+        // failure here must degrade to "no key saved", never take down the page.
         try
         {
             if (!File.Exists(_dataPath) || !File.Exists(_keyPath)) return null;
@@ -99,8 +98,8 @@ public sealed class NexusApiKeyStore
             var payload = File.ReadAllBytes(_dataPath);
             if (payload.Length < Magic.Length + NonceSize + TagSize) return null;
 
-            // A .dat copied from a Windows install is DPAPI-encrypted and unreadable here.
-            // Fail closed with a clear message instead of returning garbage to the Nexus API.
+            // A .dat in another format (a DPAPI-encrypted one, say) is unreadable here. Fail
+            // closed with a clear message instead of returning garbage to the Nexus API.
             if (!payload.AsSpan(0, Magic.Length).SequenceEqual(Magic))
             {
                 DebugLogService.Info("The saved Nexus key is not in this platform's format; re-enter it in Settings.");

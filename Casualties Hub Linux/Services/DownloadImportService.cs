@@ -9,15 +9,12 @@ namespace Casualties_Hub.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Two things had to change from the Windows version. It decided a download had finished by
-/// opening the file with <c>FileShare.None</c> and seeing whether the open succeeded; Linux uses
-/// advisory locking, so that open succeeds while a browser is still writing and the Hub would
-/// hand a truncated archive to the installer. Completion is now judged by the file size holding
-/// steady instead.
+/// Completion is judged by the file size holding steady, not by whether an exclusive open
+/// succeeds. Under advisory locking that open succeeds while a browser is still writing, which
+/// would hand a truncated archive to the installer.
 /// </para>
 /// <para>
-/// The install prompt is also a callback rather than an inline MessageBox, because Avalonia
-/// dialogs are async and this runs on a pool thread.
+/// The install prompt is a callback because dialogs are async and this runs on a pool thread.
 /// </para>
 /// </remarks>
 public sealed class DownloadImportService : IDisposable
@@ -66,8 +63,8 @@ public sealed class DownloadImportService : IDisposable
                 EnableRaisingEvents = true,
             };
             _watcher.Created += (_, e) => QueueImport(e.FullPath);
-            // Renames matter more here than on Windows: browsers download to "file.zip.part"
-            // and rename on completion, so the rename is often the first supported-name event.
+            // Browsers download to "file.zip.part" and rename on completion, so the rename is
+            // often the first event with a supported name.
             _watcher.Renamed += (_, e) => QueueImport(e.FullPath);
             _watcher.Error += (_, e) =>
                 DebugLogService.Error("Download import watcher stopped; inotify may be out of watches "
@@ -171,10 +168,9 @@ public sealed class DownloadImportService : IDisposable
     /// Waits until a file's size stops changing, which is how a finished download is recognised here.
     /// </summary>
     /// <remarks>
-    /// Windows can simply try an exclusive open, because the writer holds a mandatory lock. Linux
-    /// locking is advisory, so that same open succeeds mid-download and the archive would be
-    /// installed half-written. Requiring several identical size readings in a row costs a few
-    /// seconds and does not depend on the writer cooperating.
+    /// An exclusive open is not enough: where locking is advisory it succeeds mid-download and the
+    /// archive would be installed half-written. Requiring several identical size readings in a row
+    /// costs a few seconds and does not depend on the writer cooperating.
     /// Internal so the timing can be shortened in tests.
     /// </remarks>
     internal static async Task<bool> WaitForStableSizeAsync(

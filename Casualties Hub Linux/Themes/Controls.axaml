@@ -1,14 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!--
-    Control styling for the Linux Edition.
-
-    The Windows Hub expresses hover, press and disabled states with Style.Triggers, which
-    Avalonia removed entirely. The equivalent here is pseudo-classes (:pointerover, :pressed,
-    :disabled, :checked), which is why this reads differently even though the result matches.
-  -->
-
   <Style Selector="TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
     <Setter Property="FontSize" Value="13"/>
@@ -98,8 +90,7 @@
   <!-- Cards: the panel every page is built out of. -->
   <!--
     Mod card rows. Without this the container sizes itself to its content, so one long status
-    line makes a card wider than its neighbours. The Windows Hub solves the same problem with a
-    StretchedModCardContainer item style.
+    line makes a card wider than its neighbours.
   -->
   <Style Selector="ListBox.modcards > ListBoxItem">
     <Setter Property="HorizontalAlignment" Value="Stretch"/>

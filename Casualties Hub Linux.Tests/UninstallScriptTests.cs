@@ -8,7 +8,7 @@ namespace Casualties_Hub.Tests;
 /// The uninstall helper script.
 /// </summary>
 /// <remarks>
-/// This is the highest-consequence code in the Linux Edition. Paths reach it from
+/// This is the highest-consequence code in the Hub. Paths reach it from
 /// ProtectedFilesPath and BackupPath, which live in a JSON file the user can edit by hand, and
 /// they are interpolated into a script that runs rm -rf. Getting the quoting or the containment
 /// check wrong deletes somebody's home directory, so both are pinned down here rather than
@@ -70,9 +70,9 @@ public sealed class UninstallScriptTests
     {
         var script = ScriptFor("/tmp/CasualtiesHub/x");
 
-        // Path.GetFullPath is platform-dependent, and this suite runs on Windows where a
-        // driveless "/tmp/..." resolves against the current drive. Compare against the same
-        // normalisation the code performs rather than the literal input.
+        // Path.GetFullPath is platform-dependent: a driveless "/tmp/..." resolves against the
+        // current drive on Windows. Compare against the same normalisation the code performs
+        // rather than the literal input.
         var expected = UninstallService.ShellQuote(
             Path.GetFullPath(Staging).TrimEnd(Path.DirectorySeparatorChar));
 

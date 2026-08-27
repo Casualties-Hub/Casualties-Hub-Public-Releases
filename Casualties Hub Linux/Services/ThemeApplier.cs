@@ -8,11 +8,6 @@ namespace Casualties_Hub.Services;
 /// Pushes the palette derived from the player's colours into the application resources, so every
 /// DynamicResource binding in the UI updates at once.
 /// </summary>
-/// <remarks>
-/// The Windows Hub does the same thing by assigning into Application.Current.Resources, and
-/// Avalonia propagates DynamicResource the same way, so this is one of the few pieces of the
-/// theming layer that ports almost unchanged.
-/// </remarks>
 public static class ThemeApplier
 {
     public static void Apply(Settings settings)
@@ -42,9 +37,9 @@ public static class ThemeApplier
     /// Applies the saved text size to the whole shell.
     /// </summary>
     /// <remarks>
-    /// Set on the window rather than per control: FontSize inherits down the tree in Avalonia as
-    /// it does in WPF, so one assignment resizes every page. Without this the Settings slider
-    /// saves a value that nothing ever reads.
+    /// Set on the window rather than per control: FontSize inherits down the tree, so one
+    /// assignment resizes every page. Without this the Settings slider saves a value that nothing
+    /// ever reads.
     /// </remarks>
     public static void ApplyTextSize(Settings settings)
     {

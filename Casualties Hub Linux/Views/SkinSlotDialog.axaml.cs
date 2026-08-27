@@ -8,10 +8,9 @@ namespace Casualties_Hub.Views;
 /// Picks which CustomSprites st# folder a skin archive should be installed into.
 /// </summary>
 /// <remarks>
-/// Ported from the Windows SkinSlotDialog. The behaviour that matters is unchanged: slots already
-/// holding art are listed first and clearly marked, because choosing one silently destroys the
-/// sprites in it. Avalonia's ShowDialog is async, so the result is read from a property after the
-/// await rather than from DialogResult.
+/// Slots already holding art are listed first and clearly marked, because choosing one silently
+/// destroys the sprites in it. ShowDialog is async, so the result is read from a property after
+/// the await.
 /// </remarks>
 public partial class SkinSlotDialog : Window
 {

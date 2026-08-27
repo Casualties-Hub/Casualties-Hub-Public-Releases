@@ -7,10 +7,9 @@ namespace Casualties_Hub;
 /// <summary>
 /// A startup self-check that runs without a display, via <c>casualties-hub --diagnostics</c>.
 ///
-/// The Linux Edition is developed on Windows, so "it built" and "it opened a window" are the
-/// only things easy to confirm. This proves the parts that fail silently instead: embedded
-/// resources resolving out of the single-file binary, and the data directory being absolute.
-/// It is also what a tester can paste back when something misbehaves.
+/// Covers the parts that fail silently rather than loudly: embedded resources resolving out of
+/// the single-file binary, and the data directory being absolute. It is also what a tester can
+/// paste back when something misbehaves.
 /// </summary>
 public static class Diagnostics
 {
@@ -104,8 +103,8 @@ public static class Diagnostics
         report.AppendLine($"    path: {install.Path}");
         report.AppendLine();
 
-        // Report the REAL casing. The Windows Hub hardcodes "BepInEx/Plugins"; if Proton created
-        // "plugins" lowercase, that assumption is what would have made the port find nothing.
+        // Report the REAL casing: Proton may have created "plugins" lowercase, and on a
+        // case-sensitive filesystem that is what makes a hardcoded spelling find nothing.
         report.AppendLine("game layout (real on-disk casing):");
         var bepInEx = LinuxPaths.FindChild(install.Path, "BepInEx");
         report.AppendLine($"  BepInEx : {(bepInEx is null ? "not present" : "\"" + Path.GetFileName(bepInEx) + "\"")}");

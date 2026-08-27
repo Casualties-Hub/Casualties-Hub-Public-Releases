@@ -5,11 +5,8 @@ namespace Casualties_Hub.Services;
 
 /// <summary>
 /// The toolkit-independent half of skin preview: which sprite file backs a given head shape or
-/// eye expression, where to find it on disk, and which sprites a slot is missing.
-///
-/// Split out of SkinPreviewComposer so both the Windows Hub and the Linux Edition share one
-/// answer. The other half — turning these into a drawn preview — is inherently UI-toolkit
-/// specific and lives in each app.
+/// eye expression, where to find it on disk, and which sprites a slot is missing. Drawing the
+/// preview itself lives in SkinPreviewComposer.
 /// </summary>
 public static class SkinRig
 {
