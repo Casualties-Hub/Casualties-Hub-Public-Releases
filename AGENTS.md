@@ -28,7 +28,7 @@ Read this file, `PROJECT_RULES.md`, `ARCHITECTURE.md`, `SECURITY.md`, and
 - Use disposable directories and game copies for installation/deletion testing.
 - Keep generated output, local builds, archives, and reference material out of Git.
 - Update documentation when behavior, setup, privacy, or release steps change.
-- Do not claim Nexus Mods, Casualties Unknown, Steam, GitHub, BepInEx, or Supabase
+- Do not claim Nexus Mods, Casualties Unknown, Steam, GitHub, or BepInEx
   endorses this project.
 
 ## Nexus-related changes
