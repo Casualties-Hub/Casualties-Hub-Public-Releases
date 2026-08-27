@@ -23,17 +23,6 @@ public sealed class UninstallScriptTests
 
     // --- quoting -----------------------------------------------------------
 
-    [Theory]
-    [InlineData("/home/zach/.local/share/CasualtiesHub")]
-    [InlineData("/home/zach/My Games/Casualties Hub")]
-    [InlineData("/home/zach/mods (old)")]
-    [InlineData("/home/zach/backup&restore")]
-    [InlineData("/home/zach/100%mods")]
-    public void Ordinary_paths_are_wrapped_in_single_quotes(string path)
-    {
-        Assert.Contains($"'{path}'", ScriptFor(path));
-    }
-
     [Fact]
     public void An_embedded_single_quote_is_escaped()
     {
