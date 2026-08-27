@@ -15,9 +15,8 @@ namespace Casualties_Hub.Views;
 /// Folders, appearance, saved looks, the Nexus key, extras, and removal.
 /// </summary>
 /// <remarks>
-/// The game folder picker matters more here than on Windows: if Steam discovery fails on a
-/// tester's machine, this is the only way to point the Hub at the game, and without it a failed
-/// detection makes the whole app useless to them.
+/// If Steam discovery fails on a tester's machine, the game folder picker is the only way to point
+/// the Hub at the game, and without it a failed detection makes the whole app useless to them.
 /// </remarks>
 public partial class SettingsPage : UserControl
 {
@@ -141,7 +140,6 @@ public partial class SettingsPage : UserControl
 
     private async Task CopyReportAsync()
     {
-        // Avalonia's clipboard is async and hangs off the TopLevel, unlike WPF's static Clipboard.
         var clipboard = Owner?.Clipboard;
         if (clipboard is null)
         {
@@ -325,7 +323,6 @@ public partial class SettingsPage : UserControl
 
     private void OnWheelMoved(object? sender, PointerEventArgs e)
     {
-        // Dragging across the wheel updates continuously, matching the Windows behaviour.
         if (e.GetCurrentPoint(this.FindControl<Image>("ColourWheelImage")).Properties.IsLeftButtonPressed)
             PickFromWheel(e);
     }

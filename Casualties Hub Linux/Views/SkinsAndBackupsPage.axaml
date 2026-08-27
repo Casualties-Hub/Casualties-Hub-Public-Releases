@@ -4,9 +4,8 @@
 
   <DockPanel>
     <!--
-      One sidebar entry, matching the Windows Hub, which also keeps skins and protected files on
-      a single "Skins & Backups" page. The sections are switched here rather than laid out side
-      by side, because the skin preview needs the full width to be legible.
+      Sections are switched here rather than laid out side by side, because the skin preview needs
+      the full width to be legible.
     -->
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,14">
       <Button x:Name="SkinsTab" Content="Skin Preview"/>

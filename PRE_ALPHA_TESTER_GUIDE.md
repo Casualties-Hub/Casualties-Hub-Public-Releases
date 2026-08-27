@@ -85,7 +85,7 @@ Use **Modlist Share Code** to create and copy a readable `CUH1:` code containing
 
 Expected behavior:
 
-- The share code is copied to the Windows clipboard.
+- The share code is copied to the clipboard.
 - Paste a code into **Paste sharecode here** and use **Paste and Import**.
 - Missing mods from the imported list appear in purple.
 - Missing entries can open Nexus or be ignored.

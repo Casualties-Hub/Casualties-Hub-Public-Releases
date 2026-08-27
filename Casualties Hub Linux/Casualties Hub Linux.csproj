@@ -1,12 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Casualties Hub - Linux Edition.
-
-    A standalone fork of the Windows Hub at 0.0.8-pre.6.1, rebuilt on Avalonia. It shares no
-    code or project references with the WPF app: the two are maintained separately so each can
-    follow its own platform's conventions. Files under Models\ and Services\ began as copies of
-    the Windows sources and are free to diverge.
+    Casualties Hub: an Avalonia desktop application targeting Linux and Windows from one codebase.
 
     Publish:
       dotnet publish "Casualties Hub Linux\Casualties Hub Linux.csproj" -c Release -o <out>
@@ -20,15 +15,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
     <!--
-      The WPF views this port is based on bind against plain POCO models with no x:DataType.
-      Compiled bindings would reject those outright, so they stay reflection-based while the
-      pages are ported over one at a time.
+      Views bind against plain POCO models with no x:DataType, which compiled bindings would
+      reject outright.
     -->
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
-    <!--
-      Only for the HSV colour wheel, which writes pixels through Avalonia's locked framebuffer.
-      That is the direct equivalent of the Windows Hub's WriteableBitmap.WritePixels call.
-    -->
+    <!-- Only for the HSV colour wheel, which writes pixels through a locked framebuffer. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Version>0.0.8-pre.6.1</Version>
     <AssemblyVersion>0.0.8.61</AssemblyVersion>
@@ -37,8 +28,8 @@
   </PropertyGroup>
 
   <!--
-    One portable executable, matching the shape the Windows release already ships. A tarball
-    (not a zip) carries it, because zip does not preserve the executable bit.
+    One portable executable. The Linux release is carried by a tarball rather than a zip, because
+    zip does not preserve the executable bit.
   -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">linux-x64</RuntimeIdentifier>
@@ -73,8 +64,7 @@
     <PackageReference Include="Avalonia.Diagnostics" Version="11.3.18" Condition="'$(Configuration)' == 'Debug'" />
     <!--
       Ships Inter inside the binary. Without a bundled font the app renders as tofu boxes on
-      distros that lack whatever the default resolves to, which is not something this project
-      can reproduce or debug from Windows.
+      distros that lack whatever the default resolves to.
     -->
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.18" />
     <!-- Backs the selftest command line switch, which constructs every page with no display attached. -->
@@ -88,10 +78,6 @@
     Catalogs, Hub content, and release notes travel inside the binary so a release stays a single
     file. BundledData still prefers a matching file under Data/ beside the executable, which keeps
     the catalogs hand-editable on an unpacked install.
-  -->
-  <!--
-    Copies, not links into the WPF project's folder. The two editions are maintained separately,
-    so the Linux build must not break if the Windows assets move.
   -->
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />

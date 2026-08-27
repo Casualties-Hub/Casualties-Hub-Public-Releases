@@ -11,10 +11,9 @@ namespace Casualties_Hub.Views;
 /// in this build.
 /// </summary>
 /// <remarks>
-/// The Windows page takes five callbacks so the shell can own the data and the link handling.
-/// Here the page reads the services directly, which is simpler and means the shell does not have
-/// to know what Hub Home displays. Remote content is treated as untrusted: it only ever becomes
-/// TextBlock text, and links go through LinuxShell, which allow-lists the scheme.
+/// The page reads its services directly, so the shell does not have to know what Hub Home displays.
+/// Remote content is treated as untrusted: it only ever becomes TextBlock text, and links go
+/// through LinuxShell, which allow-lists the scheme.
 /// </remarks>
 public partial class HubHomePage : UserControl
 {

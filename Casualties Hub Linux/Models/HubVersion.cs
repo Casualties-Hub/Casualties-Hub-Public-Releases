@@ -24,10 +24,8 @@ public sealed class HubVersion : IComparable<HubVersion>
     /// The version of the running application.
     /// </summary>
     /// <remarks>
-    /// This deliberately reads the ENTRY assembly, not this one. HubVersion lives in the Core
-    /// library, which both the Windows Hub and the Linux Edition reference; reading its own
-    /// assembly would report Core's version for every app. That matters beyond the label in the
-    /// sidebar: ReleaseNotesService keys the bundled notes file off this string, so a mismatch
+    /// This deliberately reads the ENTRY assembly, not this one. That matters beyond the label in
+    /// the sidebar: ReleaseNotesService keys the bundled notes file off this string, so a mismatch
     /// silently turns Hub Home into "notes are not available for this build".
     /// Falls back to this assembly when there is no entry assembly (unit test hosts).
     /// </remarks>

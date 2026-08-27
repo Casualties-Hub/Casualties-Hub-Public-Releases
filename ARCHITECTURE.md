@@ -4,12 +4,12 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `Casualties Hub Linux/` | The Hub: an Avalonia launcher and mod manager, running on Linux and Windows. |
+| `Casualties Hub Linux/` | The Hub: an Avalonia launcher and mod manager. |
 | `Casualties Hub Linux/Views/` | UI pages and their event-handling code. |
 | `Casualties Hub Linux/Models/` | Settings, metadata, mod, and installation models. |
 | `Casualties Hub Linux/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
 | `Casualties Hub Linux.Tests/` | Tests for the destructive and silent-failure paths. |
-| `Tools/LinuxProbe/` | Standalone probe used when investigating Linux installs. |
+| `Tools/LinuxProbe/` | Standalone probe used when investigating Linux installs. Not in the solution. |
 | `Nexus Mod Package/` | Nexus package marker project. |
 | `Release Packaging/` | Scripts and inputs used to assemble releases. |
 | `Release Notes/` | In-application version history. |

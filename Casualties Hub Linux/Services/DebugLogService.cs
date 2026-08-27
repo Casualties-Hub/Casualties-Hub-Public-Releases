@@ -193,9 +193,8 @@ public static class DebugLogService
 
     /// <summary>
     /// How the log marshals onto the UI thread so <see cref="Entries"/> can be bound directly.
-    /// Each app installs its own at startup (WPF: Application.Current.Dispatcher; Avalonia:
-    /// Dispatcher.UIThread). An implementation must run <c>action</c> inline when already on
-    /// the UI thread, and post it otherwise.
+    /// Installed at startup from Dispatcher.UIThread. An implementation must run <c>action</c>
+    /// inline when already on the UI thread, and post it otherwise.
     /// </summary>
     /// <remarks>
     /// Defaults to running inline. That keeps logging safe before any UI exists — during startup,

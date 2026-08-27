@@ -8,11 +8,10 @@ namespace Casualties_Hub.Services;
 /// Starts Casualties Unknown through Steam.
 /// </summary>
 /// <remarks>
-/// Linux always goes through <c>steam://rungameid/</c>. The Windows Hub falls back to running the
-/// game's .exe directly, which is meaningless here: the game runs under Proton, and starting the
-/// .exe outside Steam skips the compatibility tool, the Wine prefix, and the WINEDLLOVERRIDES
-/// entry BepInEx needs to load at all. Without Steam we tell the user rather than launch something
-/// that would appear to work and then run unmodded.
+/// Always through <c>steam://rungameid/</c>, never the game's executable directly. Under Proton,
+/// starting the .exe outside Steam skips the compatibility tool, the Wine prefix, and the
+/// WINEDLLOVERRIDES entry BepInEx needs to load at all. Without Steam we tell the user rather than
+/// launch something that would appear to work and then run unmodded.
 /// </remarks>
 public sealed class GameLaunchService
 {

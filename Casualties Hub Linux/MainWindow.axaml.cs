@@ -56,11 +56,11 @@ public partial class MainWindow : Window
         var settingsNav = this.FindControl<Button>("SettingsNav")!;
 
         void OpenSettings() => Navigate(() => new SettingsPage(SetStatus), settingsNav, "Settings");
-        // Credits has no sidebar entry on Windows either; Hub Home links to it.
+        // Credits has no sidebar entry; Hub Home links to it.
         void OpenCredits() => Navigate(() => new CreditsPage(), homeNav, "Credits");
 
-        // A fresh page per click, matching the Windows Hub. Pages read settings in their
-        // constructor, so rebuilding is also how a change made in Settings shows up elsewhere.
+        // A fresh page per click. Pages read settings in their constructor, so rebuilding is also
+        // how a change made in Settings shows up elsewhere.
         dashboardNav.Click += (_, _) => Navigate(() => new DashboardPage(SetStatus, OpenSettings), dashboardNav, "Nexus Dashboard");
         modsNav.Click += (_, _) => Navigate(() => new ModsPage(SetStatus), modsNav, "Local Mods");
         multiplayerNav.Click += (_, _) => Navigate(() => new MultiplayerPage(SetStatus), multiplayerNav, "Multiplayer");
@@ -73,7 +73,6 @@ public partial class MainWindow : Window
 
         SetUpMascot(settings);
 
-        // Windows opens on the Nexus Dashboard.
         Navigate(() => new DashboardPage(SetStatus, OpenSettings), dashboardNav, "Nexus Dashboard");
 
         // Restores the sweep if it was left on. It only drives the accent brush, so the player's
@@ -98,8 +97,6 @@ public partial class MainWindow : Window
 
         this.FindControl<ContentControl>("PageHost")!.Content = buildPage();
 
-        // Avalonia styles off pseudo-classes and style classes rather than WPF's triggers, so
-        // "which nav button is active" is expressed by adding and removing a class.
         _activeNav?.Classes.Remove("active");
         navButton.Classes.Add("active");
         _activeNav = navButton;
@@ -170,8 +167,7 @@ public partial class MainWindow : Window
     {
         var name = System.IO.Path.GetFileName(archivePath);
 
-        // Focus is requested, never forced: the Topmost toggle the Windows Hub uses to steal
-        // focus is ignored on Wayland by design, so there is no point imitating it.
+        // Requested, never forced: Wayland ignores focus stealing by design.
         Activate();
 
         if (plan.Kind == ArchiveInstallKind.Unsupported)
@@ -263,12 +259,6 @@ public partial class MainWindow : Window
     /// <summary>
     /// The PapaZuck easter egg: three clicks pop, five open a surprise.
     /// </summary>
-    /// <remarks>
-    /// One deliberate difference from Windows. The WPF version plays SystemSounds.Beep on the pop,
-    /// which has no cross-platform equivalent and no sensible Linux stand-in: the terminal bell is
-    /// usually muted, and pulling in an audio stack for one joke is not worth the dependency.
-    /// The animation is the same.
-    /// </remarks>
     private void SetUpMascot(Settings settings)
     {
         var mascot = this.FindControl<Image>("PapaZuck")!;
@@ -300,8 +290,6 @@ public partial class MainWindow : Window
 
         if (_mascotClicks % 3 != 0) return;
 
-        // WPF drives this with BeginAnimation, which Avalonia does not have; an Animation run
-        // against the control does the same 90ms pop.
         var pop = new Animation
         {
             Duration = TimeSpan.FromMilliseconds(90),

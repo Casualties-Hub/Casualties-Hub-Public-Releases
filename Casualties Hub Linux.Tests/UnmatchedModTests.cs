@@ -8,7 +8,7 @@ namespace Casualties_Hub.Tests;
 /// Mods that are not in the community catalogue.
 /// </summary>
 /// <remarks>
-/// Regression cover for a bug a Linux tester hit: pressing Enable/Disable threw
+/// Regression cover: pressing Enable/Disable threw
 /// "This mod has no managed DLL file to enable or disable". CreateInstalledMod returned a
 /// name-only stub whenever no metadata entry matched, leaving PluginDllPaths and SourceEntryPath
 /// empty and IsDisabled false, so toggling and deleting both failed and a disabled mod displayed

@@ -147,10 +147,7 @@
         </StackPanel>
       </Border>
 
-      <!--
-        Not in the Windows Hub. This build is the first to run on Linux, so a one-press way to
-        capture what was detected is worth the space; it is what a bug report needs.
-      -->
+      <!-- A one-press way to capture what was detected; it is what a bug report needs. -->
       <Border Classes="card">
         <StackPanel Spacing="10">
           <TextBlock Classes="heading" Text="Diagnostics"/>

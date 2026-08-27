@@ -7,11 +7,9 @@ namespace Casualties_Hub.Services;
 /// Opening links, folders and files on the desktop.
 /// </summary>
 /// <remarks>
-/// Replaces the Windows Hub's nine hardcoded <c>explorer.exe</c> and <c>notepad.exe</c> launches
-/// with xdg-open, and adds a scheme allow-list. That last part is not cosmetic: Hub content is
-/// fetched from GitHub and treated as untrusted input, yet its URLs reach Process.Start with
-/// UseShellExecute directly. On a desktop, xdg-open will happily act on file:// or a registered
-/// custom scheme, so a hostile feed could open something unintended.
+/// The scheme allow-list is not cosmetic: Hub content is fetched from GitHub and treated as
+/// untrusted input, yet its URLs reach Process.Start. Both xdg-open and ShellExecute will happily
+/// act on file:// or a registered custom scheme, so a hostile feed could open something unintended.
 /// </remarks>
 public static class LinuxShell
 {
@@ -44,8 +42,8 @@ public static class LinuxShell
     }
 
     /// <summary>
-    /// Shows a file to the user. There is no portable "reveal and select" on Linux, so this opens
-    /// the containing folder rather than pretending otherwise.
+    /// Shows a file to the user by opening its containing folder. There is no portable way to
+    /// select the file itself, so this does not pretend otherwise.
     /// </summary>
     public static void RevealFile(string path)
     {
@@ -74,8 +72,8 @@ public static class LinuxShell
             ProcessStartInfo startInfo;
             if (OperatingSystem.IsWindows())
             {
-                // No xdg-open on Windows. Safe because callers pass the scheme allow-list above
-                // or an existence check, never raw input.
+                // Safe because callers pass the scheme allow-list above or an existence check,
+                // never raw input.
                 startInfo = new ProcessStartInfo(target) { UseShellExecute = true };
             }
             else

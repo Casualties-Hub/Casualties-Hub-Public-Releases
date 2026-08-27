@@ -4,12 +4,12 @@ using Avalonia.Markup.Xaml;
 namespace Casualties_Hub.Views;
 
 /// <summary>
-/// The single "Skins &amp; Backups" sidebar entry, matching the Windows Hub's navigation.
+/// The single "Skins &amp; Backups" sidebar entry.
 /// </summary>
 /// <remarks>
-/// Windows keeps protected files and the skin preview on one page. This holds the same material,
-/// plus plugin-folder backups, switched between rather than tiled: the preview needs the width.
-/// Sections are the existing pages, so each stays independently testable.
+/// Protected files, the skin preview and plugin-folder backups, switched between rather than
+/// tiled: the preview needs the width. Sections are the existing pages, so each stays
+/// independently testable.
 /// </remarks>
 public partial class SkinsAndBackupsPage : UserControl
 {

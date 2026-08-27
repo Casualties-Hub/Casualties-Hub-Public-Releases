@@ -6,12 +6,9 @@ namespace Casualties_Hub.Services;
 public sealed record SteamGameInstall(string AppId, string InstallDir, string Path, string LibraryPath);
 
 /// <summary>
-/// Finds Steam libraries and installed games on Linux.
-///
-/// The Windows Hub scans drive letters C: through H: for "Program Files\Steam\...", which finds
-/// nothing on Linux and fails silently. This replaces that with the way Steam actually records
-/// its own layout: read libraryfolders.vdf for every library, then read each appmanifest_*.acf
-/// for the app id and install directory.
+/// Finds Steam libraries and installed games the way Steam itself records its layout: read
+/// libraryfolders.vdf for every library, then read each appmanifest_*.acf for the app id and
+/// install directory.
 ///
 /// Being manifest-driven rather than folder-name-driven matters twice over. It survives Valve
 /// renaming the game's folder, and it yields the app id directly, which is what lets the game be

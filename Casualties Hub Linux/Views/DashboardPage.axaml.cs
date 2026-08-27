@@ -15,8 +15,7 @@ namespace Casualties_Hub.Views;
 /// <remarks>
 /// Remote data is untrusted: every field lands in a TextBlock, and links go through
 /// <see cref="LinuxShell"/>, which allow-lists the URL scheme. Direct download stays restricted to
-/// accounts with a Nexus Premium key; everyone else is sent to the mod's files page in a browser,
-/// which is the same rule the Windows Hub applies.
+/// accounts with a Nexus Premium key; everyone else is sent to the mod's files page in a browser.
 /// </remarks>
 public partial class DashboardPage : UserControl
 {
@@ -59,7 +58,7 @@ public partial class DashboardPage : UserControl
 
         filterBox.SelectionChanged += (_, _) => ApplyFilters();
         sortBox.SelectionChanged += (_, _) => ApplyFilters();
-        // Adult content is hidden unless explicitly asked for, matching the Windows default.
+        // Adult content is hidden unless explicitly asked for.
         this.FindControl<CheckBox>("AdultContentBox")!.IsCheckedChanged += (_, _) => { _currentPage = 1; ApplyFilters(); };
         this.FindControl<TextBox>("SearchBox")!.TextChanged += (_, _) => { _currentPage = 1; ApplyFilters(); };
         this.FindControl<Button>("RefreshButton")!.Click += async (_, _) => await LoadAsync(force: true);

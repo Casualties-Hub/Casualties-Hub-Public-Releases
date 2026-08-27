@@ -6,8 +6,6 @@
     ThemePalette.Build(settings), which derives the whole set from the four colours a player
     picks. They are declared here so the designer and first paint have something to bind to,
     and so a missing key fails loudly at build rather than silently at runtime.
-
-    Keys match the Windows Hub's App.xaml exactly, so the two editions stay in step.
   -->
 
   <SolidColorBrush x:Key="PrimaryTextBrush">#FFF1EFEE</SolidColorBrush>

@@ -10,7 +10,7 @@ namespace Casualties_Hub.Views;
 /// Create, inspect, restore and remove backups of the plugins folder.
 /// </summary>
 /// <remarks>
-/// This exists because the Linux build can permanently delete mods. Taking a backup is purely
+/// This exists because the Hub can permanently delete mods. Taking a backup is purely
 /// additive and never touches the originals, so it is safe to offer without warnings; restoring
 /// and deleting both ask first, because they are not.
 /// </remarks>

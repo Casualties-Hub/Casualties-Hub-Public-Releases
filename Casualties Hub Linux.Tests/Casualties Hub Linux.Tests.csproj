@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Covers the Linux Edition logic that cannot be verified by clicking: path containment guards,
+    Covers the logic that cannot be verified by clicking: path containment guards,
     Valve KeyValues parsing, and backup/restore file handling. These are the parts where a bug is
     silent or destructive rather than visible.
   -->

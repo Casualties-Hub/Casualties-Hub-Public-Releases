@@ -7,10 +7,9 @@ namespace Casualties_Hub.Services;
 /// Sweeps the accent colour through the hue circle while Animated RGB is switched on.
 /// </summary>
 /// <remarks>
-/// The Windows Hub ticks this every 80ms. Linux commonly falls back to software rendering
-/// (llvmpipe under a VM or WSL), where repainting the whole shell that often is wasteful, so this
-/// runs at 20 FPS and advances by wall-clock time rather than per tick. The visible speed is
-/// therefore identical on both editions even though the frame rate is not.
+/// Runs at 20 FPS and advances by wall-clock time rather than per tick, so the visible speed does
+/// not depend on the frame rate. That matters where the machine falls back to software rendering
+/// (llvmpipe under a VM), because repainting the whole shell more often is wasteful there.
 ///
 /// The player's saved colours are never overwritten: the sweep only pushes brushes into the
 /// application resources, so switching it off restores the stored palette untouched.

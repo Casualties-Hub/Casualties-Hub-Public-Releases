@@ -24,7 +24,6 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // WPF wires these in the App constructor; Avalonia has no equivalent hook, so they go here.
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 

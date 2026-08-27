@@ -11,13 +11,12 @@ namespace Casualties_Hub.Services;
 /// waits for this process to exit, deletes the chosen paths, then deletes itself.
 /// </summary>
 /// <remarks>
-/// The Windows Hub writes a cmd.exe batch using tasklist, rd and del. This is the POSIX
-/// equivalent, and two details in it are load-bearing:
+/// Two details in the script matter:
 /// <list type="number">
 /// <item>Every path is single-quoted with embedded quotes escaped, because these strings come
 /// from a user-editable settings file and are interpolated into a script that runs rm -rf.</item>
-/// <item>Paths are checked against a containment guard first. The Windows version has no such
-/// guard, so a malformed ProtectedFilesPath already reaches rd /s /q there.</item>
+/// <item>Paths are checked against a containment guard first, so a malformed ProtectedFilesPath
+/// cannot reach the deletion.</item>
 /// </list>
 /// </remarks>
 public sealed class UninstallService

@@ -7,14 +7,11 @@ namespace Casualties_Hub.Views;
 /// One card in the Local Mods columns, wrapping an <see cref="InstalledMod"/> for display.
 /// </summary>
 /// <remarks>
-/// The Windows card drives its colours with DataTriggers. Avalonia has none, so each trigger
-/// condition becomes a bound property here. WPF applies the LAST matching trigger, so the
-/// precedence below is deliberately reversed relative to the order they appear in ModsPage.xaml.
-/// Keeping this out of <see cref="InstalledMod"/> also keeps Avalonia types out of the model.
+/// Each colour condition is a bound property here rather than in <see cref="InstalledMod"/>, which
+/// keeps Avalonia types out of the model.
 /// </remarks>
 public sealed class ModRow
 {
-    // Taken verbatim from the Windows CompactModCard so both editions read identically.
     private static readonly IBrush DisabledEdge = Parse("#7A3038");
     private static readonly IBrush ModlistEdge = Parse("#6A4A94");
     private static readonly IBrush NeutralEdge = Parse("#2A2F38");
@@ -53,7 +50,7 @@ public sealed class ModRow
     /// </summary>
     public bool IsManageable => !Mod.IsDependencyPlaceholder && !Mod.IsMissingFromModlist;
 
-    /// <summary>The Windows MultiDataTrigger: offer the update link only for a mod that is actually running.</summary>
+    /// <summary>Offer the update link only for a mod that is actually running.</summary>
     public bool ShowOutOfDateAction => Mod.IsOutOfDate && !Mod.IsDisabled;
 
     public IBrush CardBorderBrush =>

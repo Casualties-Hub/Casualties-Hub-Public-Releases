@@ -10,9 +10,7 @@ namespace Casualties_Hub.Views;
 /// Contributor credits.
 /// </summary>
 /// <remarks>
-/// The Windows page hardcodes each card as a block of XAML. This drives them from a list instead,
-/// so adding a contributor is one line rather than a copied 20-element element tree. Images load
-/// through avares:// rather than WPF's pack:// scheme.
+/// Cards are driven from a list rather than hardcoded in XAML, so adding a contributor is one line.
 /// </remarks>
 public partial class CreditsPage : UserControl
 {

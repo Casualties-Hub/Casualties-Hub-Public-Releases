@@ -16,10 +16,9 @@ public class ModService
     // The player can select the game root, BepInEx, or BepInEx/plugins.
     //
     // Every segment is resolved case-insensitively against what is really on disk. BepInEx under
-    // Proton commonly creates "plugins" lowercase while the Windows Hub hardcodes "Plugins", and
-    // on ext4 that mismatch makes Directory.Exists false: the Hub would report "no plugins folder"
-    // while pointing at a correctly installed game. Resolving by discovery removes the guess
-    // entirely, so either casing works.
+    // Proton commonly creates "plugins" lowercase, and on a case-sensitive filesystem a hardcoded
+    // "Plugins" makes Directory.Exists false: the Hub would report "no plugins folder" while
+    // pointing at a correctly installed game.
     public string GetPluginsPath(Settings settings)
     {
         var selectedPath = settings.GamePath;
@@ -425,9 +424,8 @@ public class ModService
     /// Where backups are kept. Under the Hub's data directory, not beside the executable.
     /// </summary>
     /// <remarks>
-    /// The Windows Hub writes to AppContext.BaseDirectory, which works because it installs into a
-    /// writable folder. On Linux the binary is commonly extracted somewhere read-only, or into a
-    /// download folder the user later cleans out, so backups belong with the rest of the app data.
+    /// A portable binary is commonly extracted somewhere read-only, or into a download folder the
+    /// user later cleans out, so backups belong with the rest of the app data.
     /// </remarks>
     public static string BackupRoot(Settings settings) =>
         Path.IsPathRooted(settings.BackupPath)
@@ -579,10 +577,10 @@ public class ModService
         // No metadata entry matched. The mod still exists on disk and the player must be able to
         // act on it, so populate everything the UI needs rather than returning a name-only stub.
         //
-        // Reported by a Linux tester: pressing Enable/Disable threw "This mod has no managed DLL
-        // file to enable or disable", because the stub left PluginDllPaths empty. SourceEntryPath
-        // was empty too, which broke Delete the same way, and IsDisabled defaulted to false, so an
-        // already-disabled mod displayed as enabled and offered the wrong action.
+        // A name-only stub left PluginDllPaths empty, so Enable/Disable threw "This mod has no
+        // managed DLL file to enable or disable". SourceEntryPath was empty too, which broke Delete
+        // the same way, and IsDisabled defaulted to false, so an already-disabled mod displayed as
+        // enabled and offered the wrong action.
         //
         // Community mods routinely predate the catalog, so this is the common path, not an edge case.
         var disabledDlls = dllPaths.Where(IsDisabledDll).ToList();

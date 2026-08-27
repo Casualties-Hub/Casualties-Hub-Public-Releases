@@ -11,11 +11,9 @@ namespace Casualties_Hub.Views;
 /// One dashboard card, wrapping a <see cref="MetadataMod"/> for display.
 /// </summary>
 /// <remarks>
-/// The Windows cards bind straight to the model and drive their colours with DataTriggers.
-/// Avalonia has no DataTriggers, and the model raises no change notifications, so the icon (which
-/// arrives asynchronously) and the expanded/collapsed state would never reach the screen. This
-/// wrapper adds the notifications and turns the trigger conditions into plain bound properties,
-/// which also keeps UI state off the shared model.
+/// The model raises no change notifications, so the icon (which arrives asynchronously) and the
+/// expanded/collapsed state would never reach the screen. This wrapper adds them, and keeps UI
+/// state off the shared model.
 /// </remarks>
 public sealed class DashboardCard : INotifyPropertyChanged
 {
@@ -45,8 +43,7 @@ public sealed class DashboardCard : INotifyPropertyChanged
     public string RenderedDescription => Mod.RenderedDescription;
     public string DashboardActionLabel => Mod.DashboardActionLabel;
 
-    // Out-of-date is checked first so it wins over plain "installed", matching the Windows
-    // trigger order where the later DataTrigger takes precedence.
+    // Out-of-date is checked first so it wins over plain "installed".
     public IBrush CardBorderBrush =>
         Mod.IsLocallyOutOfDate ? OutOfDate : Mod.IsLocallyInstalled ? Installed : NeutralBorder;
 

@@ -76,9 +76,8 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <!--
-              Fixed-size cards in a wrap panel, matching the Windows dashboard. Every card keeps
-              the same surface; state shows in the border and the status line rather than a tinted
-              background, which reads far better on the dark shell.
+              Every card keeps the same surface; state shows in the border and the status line
+              rather than a tinted background, which reads far better on the dark shell.
             -->
             <Border Width="270" Height="495" CornerRadius="16" Margin="0,0,14,14" Padding="12"
                     Background="{DynamicResource CardBrush}" BorderThickness="1"

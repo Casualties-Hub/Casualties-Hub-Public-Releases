@@ -9,10 +9,8 @@ namespace Casualties_Hub.Services;
 /// The HSV colour wheel on the Settings page: hue around the circle, saturation from the centre out.
 /// </summary>
 /// <remarks>
-/// The Windows Hub paints this with WriteableBitmap.WritePixels. Avalonia exposes the same idea
-/// through <see cref="ILockedFramebuffer"/> instead, so the maths is unchanged and only the way
-/// pixels are written differs. Premultiplied BGRA is used because that is what Avalonia's default
-/// pixel format expects; writing straight BGRA would tint the edges.
+/// Pixels are written through <see cref="ILockedFramebuffer"/>. Premultiplied BGRA is used because
+/// that is what Avalonia's default pixel format expects; writing straight BGRA would tint the edges.
 /// </remarks>
 public static class ColourWheel
 {
