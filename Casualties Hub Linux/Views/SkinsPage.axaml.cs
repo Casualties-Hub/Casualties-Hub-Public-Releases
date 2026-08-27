@@ -154,7 +154,7 @@ public partial class SkinsPage : UserControl
         if (slots.Count > 0) ShowSlot(slots[0]);
         else ClearPreview("Select a skin slot to preview it.");
 
-        _setStatus($"{slots.Count} skin slot(s) found.");
+        _setStatus($"{slots.Count} skin slots found.");
     }
 
     private void OnPreview(object? sender, RoutedEventArgs e)
@@ -222,7 +222,7 @@ public partial class SkinsPage : UserControl
         warning.IsVisible = missing.Count > 0;
         warning.Text = missing.Count == 0
             ? ""
-            : $"Missing {missing.Count} required sprite(s): {string.Join(", ", missing)}";
+            : $"Missing {missing.Count} required sprites: {string.Join(", ", missing)}";
     }
 
     private void ClearPreview(string message)

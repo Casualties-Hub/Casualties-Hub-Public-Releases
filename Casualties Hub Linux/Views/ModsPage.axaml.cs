@@ -115,7 +115,7 @@ public partial class ModsPage : UserControl
 
         var real = _allDisplayMods.Count(mod => !mod.IsMissingFromModlist && !mod.IsDependencyPlaceholder);
         _setStatus(configured
-            ? $"{real} mod(s) installed."
+            ? $"{real} mods installed."
             : "No BepInEx plugins folder found. Set your game folder in Settings.");
     }
 
@@ -448,7 +448,7 @@ public partial class ModsPage : UserControl
         try
         {
             var count = _modService.SetAllModsDisabled(_settingsService.Load(), disabled);
-            _setStatus($"{action}d {count} plugin file(s).");
+            _setStatus($"{action}d {count} plugin files.");
             Reload();
         }
         catch (Exception exception)
@@ -518,7 +518,7 @@ public partial class ModsPage : UserControl
         if (owner.Clipboard is { } clipboard)
         {
             await clipboard.SetTextAsync(code);
-            _setStatus($"Copied a share code for {exportable.Count} mod(s) to the clipboard.");
+            _setStatus($"Copied a share code for {exportable.Count} mods to the clipboard.");
         }
         else
         {
@@ -559,7 +559,7 @@ public partial class ModsPage : UserControl
 
             Reload();
             var missing = _allDisplayMods.Count(mod => mod.IsMissingFromModlist);
-            _setStatus($"Imported {entries.Count} entries. {missing} mod(s) you do not have are shown in purple.");
+            _setStatus($"Imported {entries.Count} entries. {missing} mods you do not have are shown in purple.");
         }
         catch (Exception exception)
         {
@@ -633,7 +633,7 @@ public partial class ModsPage : UserControl
             var body = plan.Description
                        + (skinSlot is not null ? $"\n\nTarget slot: {skinSlot}" : "")
                        + (plan.ExistingFilesToReplace.Count > 0
-                           ? $"\n\n{plan.ExistingFilesToReplace.Count} existing file(s) will be replaced."
+                           ? $"\n\n{plan.ExistingFilesToReplace.Count} existing files will be replaced."
                            : "")
                        + plan.DependencyPrompt;
 

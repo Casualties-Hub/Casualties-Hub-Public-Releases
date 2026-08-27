@@ -64,7 +64,7 @@ public partial class ProtectedFilesPage : UserControl
         this.FindControl<Button>("ProtectButton")!.IsEnabled =
             _modService.HasConfiguredPluginsFolder(_settingsService.Load());
 
-        _setStatus($"{items.Count} protected item(s).");
+        _setStatus($"{items.Count} protected items.");
     }
 
     private async Task ProtectAsync()
@@ -112,7 +112,7 @@ public partial class ProtectedFilesPage : UserControl
         try
         {
             _protectedFiles.Protect(settings, paths);
-            _setStatus($"Protected {paths.Count} item(s).");
+            _setStatus($"Protected {paths.Count} items.");
             Reload();
         }
         catch (Exception exception)
@@ -179,7 +179,7 @@ public partial class ProtectedFilesPage : UserControl
         try
         {
             _protectedFiles.Protect(settings, paths);
-            _setStatus($"Protected {paths.Count} folder(s).");
+            _setStatus($"Protected {paths.Count} folders.");
             Reload();
         }
         catch (Exception exception)
@@ -203,7 +203,7 @@ public partial class ProtectedFilesPage : UserControl
         try
         {
             var restored = _protectedFiles.Restore(_settingsService.Load());
-            _setStatus($"Restored {restored} protected item(s).");
+            _setStatus($"Restored {restored} protected items.");
             Reload();
         }
         catch (Exception exception)

@@ -63,7 +63,7 @@ public partial class BackupsPage : UserControl
                     entries.Add(new BackupEntry(
                         directory,
                         Path.GetFileName(directory).Replace('_', ' '),
-                        $"{files.Count} file(s) · {bytes / 1024.0 / 1024.0:F1} MB"));
+                        $"{files.Count} files · {bytes / 1024.0 / 1024.0:F1} MB"));
                 }
             }
         }
@@ -128,7 +128,7 @@ public partial class BackupsPage : UserControl
             if (!Directory.Exists(plugins)) throw new DirectoryNotFoundException("The plugins folder was not found.");
 
             var restored = await Task.Run(() => ModService.RestoreBackup(entry.Path, plugins));
-            _setStatus($"Restored {restored} file(s) from {entry.Title}.");
+            _setStatus($"Restored {restored} files from {entry.Title}.");
         }
         catch (Exception exception)
         {
