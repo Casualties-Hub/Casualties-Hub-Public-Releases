@@ -47,17 +47,17 @@ public partial class MainWindow : Window
         var homeNav = this.FindControl<Button>("HomeNav")!;
         var settingsNav = this.FindControl<Button>("SettingsNav")!;
 
-        void OpenSettings() => Navigate(new SettingsPage(SetStatus), settingsNav, "Settings");
+        void OpenSettings() => Navigate(() => new SettingsPage(SetStatus), settingsNav, "Settings");
         // Credits has no sidebar entry on Windows either; Hub Home links to it.
-        void OpenCredits() => Navigate(new CreditsPage(), homeNav, "Credits");
+        void OpenCredits() => Navigate(() => new CreditsPage(), homeNav, "Credits");
 
         // A fresh page per click, matching the Windows Hub. Pages read settings in their
         // constructor, so rebuilding is also how a change made in Settings shows up elsewhere.
-        dashboardNav.Click += (_, _) => Navigate(new DashboardPage(SetStatus, OpenSettings), dashboardNav, "Nexus Dashboard");
-        modsNav.Click += (_, _) => Navigate(new ModsPage(SetStatus), modsNav, "Local Mods");
-        multiplayerNav.Click += (_, _) => Navigate(new MultiplayerPage(SetStatus), multiplayerNav, "Multiplayer");
-        skinsNav.Click += (_, _) => Navigate(new SkinsAndBackupsPage(SetStatus), skinsNav, "Skins & Backups");
-        homeNav.Click += (_, _) => Navigate(new HubHomePage(SetStatus, OpenCredits), homeNav, "Hub Home");
+        dashboardNav.Click += (_, _) => Navigate(() => new DashboardPage(SetStatus, OpenSettings), dashboardNav, "Nexus Dashboard");
+        modsNav.Click += (_, _) => Navigate(() => new ModsPage(SetStatus), modsNav, "Local Mods");
+        multiplayerNav.Click += (_, _) => Navigate(() => new MultiplayerPage(SetStatus), multiplayerNav, "Multiplayer");
+        skinsNav.Click += (_, _) => Navigate(() => new SkinsAndBackupsPage(SetStatus), skinsNav, "Skins & Backups");
+        homeNav.Click += (_, _) => Navigate(() => new HubHomePage(SetStatus, OpenCredits), homeNav, "Hub Home");
         settingsNav.Click += (_, _) => OpenSettings();
 
         this.FindControl<Button>("LaunchGameButton")!.Click += (_, _) => LaunchGame();
@@ -66,7 +66,7 @@ public partial class MainWindow : Window
         SetUpMascot(settings);
 
         // Windows opens on the Nexus Dashboard.
-        Navigate(new DashboardPage(SetStatus, OpenSettings), dashboardNav, "Nexus Dashboard");
+        Navigate(() => new DashboardPage(SetStatus, OpenSettings), dashboardNav, "Nexus Dashboard");
 
         // Restores the sweep if it was left on. It only drives the accent brush, so the player's
         // saved colours survive a restart either way.
@@ -83,9 +83,11 @@ public partial class MainWindow : Window
         };
     }
 
-    private void Navigate(UserControl page, Button navButton, string title)
+    private void Navigate(Func<UserControl> buildPage, Button navButton, string title)
     {
-        this.FindControl<ContentControl>("PageHost")!.Content = page;
+        SetStatus(IdleStatus);
+
+        this.FindControl<ContentControl>("PageHost")!.Content = buildPage();
 
         // Avalonia styles off pseudo-classes and style classes rather than WPF's triggers, so
         // "which nav button is active" is expressed by adding and removing a class.
@@ -305,6 +307,8 @@ public partial class MainWindow : Window
         try { await pop.RunAsync(mascot); }
         catch (Exception exception) { DebugLogService.Info($"Mascot animation failed: {exception.Message}"); }
     }
+
+    internal const string IdleStatus = "";
 
     private void SetStatus(string message)
     {
