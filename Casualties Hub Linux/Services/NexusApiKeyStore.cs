@@ -14,17 +14,15 @@ namespace Casualties_Hub.Services;
 /// that exception would surface just from opening the Settings page.
 /// </para>
 /// <para>
-/// <b>What actually protects the key here is file permissions, not the encryption.</b> The key file
-/// is 0600 inside a 0700 directory, so another user cannot read it, but anything running as this
-/// user can. Encrypting with a key stored beside the ciphertext does not change that, and it would
-/// be dishonest to describe it as though it did.
+/// <b>What protects the key is file permissions, not the encryption.</b> The key file is 0600
+/// inside a 0700 directory, so another user cannot read it, but anything running as this user can.
+/// The encryption key sits beside the ciphertext, so it does not change that.
 /// </para>
 /// <para>
-/// The encryption still earns its place for three narrower reasons: the key never sits in
-/// plaintext where a backup, a cloud-sync folder, a screen share or a stray grep would expose it;
-/// the AES-GCM authentication tag makes a truncated or corrupted file fail closed rather than send
-/// a malformed key to Nexus; and deleting the small .key file instantly renders the stored
-/// credential unrecoverable, which is a usable panic button.
+/// The encryption still buys three narrower things: the key never sits in plaintext where a backup,
+/// a cloud-sync folder, a screen share or a stray grep would expose it; the AES-GCM authentication
+/// tag makes a truncated or corrupted file fail closed rather than send a malformed key to Nexus;
+/// and deleting the small .key file instantly renders the stored credential unrecoverable.
 /// </para>
 /// </remarks>
 public sealed class NexusApiKeyStore

@@ -7,9 +7,9 @@ namespace Casualties_Hub.Services;
 /// Opening links, folders and files on the desktop.
 /// </summary>
 /// <remarks>
-/// The scheme allow-list is not cosmetic: Hub content is fetched from GitHub and treated as
-/// untrusted input, yet its URLs reach Process.Start. Both xdg-open and ShellExecute will happily
-/// act on file:// or a registered custom scheme, so a hostile feed could open something unintended.
+/// Hub content is fetched from GitHub and treated as untrusted input, yet its URLs reach
+/// Process.Start. Both xdg-open and ShellExecute will act on file:// or a registered custom
+/// scheme, so without the allow-list a hostile feed could open something unintended.
 /// </remarks>
 public static class LinuxShell
 {
