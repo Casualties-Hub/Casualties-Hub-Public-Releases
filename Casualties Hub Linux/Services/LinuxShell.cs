@@ -89,8 +89,7 @@ public static class LinuxShell
         }
         catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            // xdg-open comes from xdg-utils, which a minimal install may not have.
-            DebugLogService.Error($"Could not open {description}; is xdg-utils installed?", exception);
+            DebugLogService.Error($"Could not open {description}.", exception);
         }
     }
 }
