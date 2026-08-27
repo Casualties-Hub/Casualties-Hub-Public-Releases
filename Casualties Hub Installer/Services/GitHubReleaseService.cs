@@ -9,7 +9,7 @@ namespace Casualties_Hub_Installer.Services;
 /// <summary>Reads official Hub releases only; no GitHub token is embedded in the installer.</summary>
 public sealed class GitHubReleaseService
 {
-    private const string Repository = "MarlyZ89/Casualties-Hub-Public-Release";
+    private const string Repository = "Casualties-Hub/Casualties-Hub-Public-Releases";
     // GitHub occasionally delays a newly published release appearing in its
     // release-list response, even though /releases/tags/{tag} already works.
     // Checking only the newest few version tags keeps the installer reliable

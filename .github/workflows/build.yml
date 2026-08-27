@@ -38,8 +38,5 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
-      - name: Restore
-        run: dotnet restore "Casualties Hub.slnx"
-
       - name: Build (Release)
-        run: dotnet build "Casualties Hub.slnx" -c Release --no-restore -warnaserror
+        run: dotnet build "Casualties Hub.slnx" -c Release -warnaserror
