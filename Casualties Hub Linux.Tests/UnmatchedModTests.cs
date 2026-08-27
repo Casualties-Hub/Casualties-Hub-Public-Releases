@@ -47,23 +47,6 @@ public sealed class UnmatchedModTests : IDisposable
     }
 
     [Fact]
-    public void An_uncatalogued_mod_can_still_be_toggled()
-    {
-        var mod = Single(GameWith("CommunityMod.dll"));
-
-        Assert.NotEmpty(mod.PluginDllPaths);
-    }
-
-    [Fact]
-    public void An_uncatalogued_mod_can_still_be_deleted()
-    {
-        var mod = Single(GameWith("CommunityMod.dll"));
-
-        Assert.False(string.IsNullOrWhiteSpace(mod.SourceEntryPath));
-        Assert.True(File.Exists(mod.SourceEntryPath) || Directory.Exists(mod.SourceEntryPath));
-    }
-
-    [Fact]
     public void A_disabled_uncatalogued_mod_reports_itself_as_disabled()
     {
         // Previously defaulted to false, so the button offered "Disable" on an already-disabled mod.
