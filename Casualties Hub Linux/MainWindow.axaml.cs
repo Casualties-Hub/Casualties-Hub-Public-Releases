@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     {
         AvaloniaXamlLoader.Load(this);
         SetUpWindowIcon();
+        SetUpTitleBar();
 
         var settings = _settingsService.Load();
         ThemeApplier.Apply(settings);
@@ -37,8 +38,7 @@ public partial class MainWindow : Window
         // so setting FontSize now would apply to nothing.
         Opened += (_, _) => ThemeApplier.ApplyTextSize(_settingsService.Load());
 
-        this.FindControl<TextBlock>("SidebarFooterText")!.Text =
-            $"v{HubVersion.Current()} · Community metadata";
+        this.FindControl<TextBlock>("SidebarFooterText")!.Text = $"v{HubVersion.Current()}";
 
         var dashboardNav = this.FindControl<Button>("DashboardNav")!;
         var modsNav = this.FindControl<Button>("ModsNav")!;
@@ -207,6 +207,44 @@ public partial class MainWindow : Window
             DebugLogService.Info($"Window icon could not be loaded: {exception.Message}");
         }
     }
+
+    private void SetUpTitleBar()
+    {
+        var maximiseButton = this.FindControl<Button>("MaximiseButton")!;
+
+        foreach (var bar in (Border[])[this.FindControl<Border>("TitleBar")!, this.FindControl<Border>("SidebarBar")!])
+        {
+            var dragSource = bar;
+            dragSource.PointerPressed += (_, e) =>
+            {
+                if (!e.GetCurrentPoint(dragSource).Properties.IsLeftButtonPressed) return;
+                if (e.Source is Button or TextBox) return;
+
+                if (e.ClickCount == 2) ToggleMaximised();
+                else BeginMoveDrag(e);
+            };
+        }
+
+        this.FindControl<Button>("MinimiseButton")!.Click += (_, _) => WindowState = WindowState.Minimized;
+        maximiseButton.Click += (_, _) => ToggleMaximised();
+        this.FindControl<Button>("CloseButton")!.Click += (_, _) => Close();
+
+        void SyncMaximiseGlyph()
+        {
+            var maximised = WindowState == WindowState.Maximized;
+            maximiseButton.Content = maximised ? "" : "";
+            ToolTip.SetTip(maximiseButton, maximised ? "Restore" : "Maximise");
+        }
+
+        SyncMaximiseGlyph();
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowStateProperty) SyncMaximiseGlyph();
+        };
+    }
+
+    private void ToggleMaximised() =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
     // --- mascot ------------------------------------------------------------
 

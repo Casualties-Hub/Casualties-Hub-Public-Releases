@@ -1,10 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Casualties_Hub.MainWindow"
-        Title="Casualties Hub - 100% Vibe coded by MarlyZ89"
+        Title="Casualties Hub"
         Width="1280" Height="800" MinWidth="1180" MinHeight="640"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource WindowBackgroundBrush}">
+        Background="{DynamicResource WindowBackgroundBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1">
 
   <!--
     Same shell as the Windows Hub: 248px sidebar, 82px topbar, 28px status bar. WPF hosts pages in
@@ -13,18 +16,18 @@
   -->
   <Grid ColumnDefinitions="248,*" RowDefinitions="82,*,28">
 
-    <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
+    <Border x:Name="SidebarBar" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" ZIndex="30"
             Background="{DynamicResource ChromeBrush}"
             BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,1,0">
-      <Grid Margin="18,26,18,16" RowDefinitions="Auto,*,Auto">
+      <Grid Margin="0,30,0,16" RowDefinitions="Auto,*,Auto">
 
         <!-- The wordmark is branding, not themed text. Both Runs hard-code their brush so no
              preset, custom colour, or Animated RGB can repaint it. -->
-        <TextBlock Grid.Row="0" FontSize="22" FontWeight="Bold" Margin="8,0,0,28">
+        <TextBlock Grid.Row="0" FontSize="22" FontWeight="Bold" Margin="26,0,18,28">
           <Run Text="Casualties" Foreground="#FFFFFFFF"/><Run Text=" " Foreground="#FFFFFFFF"/><Run Text="Hub" Foreground="#FFC81E3C"/>
         </TextBlock>
 
-        <StackPanel Grid.Row="1" Spacing="4">
+        <StackPanel Grid.Row="1" Spacing="4" Margin="18,0">
           <Button x:Name="DashboardNav" Classes="nav" Content="Nexus Dashboard"/>
           <Button x:Name="ModsNav" Classes="nav" Content="Local Mods"/>
           <Button x:Name="MultiplayerNav" Classes="nav" Content="Multiplayer"
@@ -36,29 +39,43 @@
           <Button x:Name="SettingsNav" Classes="nav" Content="Settings"/>
         </StackPanel>
 
-        <Border Grid.Row="2" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
-                Padding="10,14,10,0">
-          <TextBlock x:Name="SidebarFooterText" FontSize="11.5"
-                     Foreground="{DynamicResource DimTextBrush}" TextWrapping="Wrap"/>
+        <Border Grid.Row="2" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0">
+          <Grid ColumnDefinitions="*,Auto" Margin="20,12,14,0">
+            <TextBlock x:Name="SidebarFooterText" Grid.Column="0" FontSize="11.5"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource DimTextBrush}" TextWrapping="Wrap"/>
+          </Grid>
         </Border>
       </Grid>
     </Border>
 
-    <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource WindowBackgroundBrush}" ZIndex="20"
+    <Border x:Name="TitleBar" Grid.Row="0" Grid.Column="1"
+            Background="{DynamicResource WindowBackgroundBrush}" ZIndex="20"
             BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1">
-      <Grid Margin="36,0">
-        <Button x:Name="LaunchGameButton" Content="Launch game" Width="320" Height="46"
-                HorizontalAlignment="Left" VerticalAlignment="Center"
-                HorizontalContentAlignment="Center"
-                Background="{DynamicResource AccentSoftBrush}"
-                Foreground="{DynamicResource AccentSoftTextBrush}"
-                BorderBrush="{DynamicResource AccentSoftTextBrush}"
-                FontSize="16" FontWeight="Bold"
-                ToolTip.Tip="Launch Casualties Unknown through Steam"/>
-        <Button x:Name="ReportIssuesButton" Content="Report issues" Width="130" Height="38"
-                HorizontalAlignment="Right" VerticalAlignment="Center"
-                HorizontalContentAlignment="Center"
-                ToolTip.Tip="Open the Casualties Hub report and issue forum"/>
+      <Grid>
+        <Grid Margin="36,0">
+          <Button x:Name="LaunchGameButton" Content="Launch game" Width="320" Height="44"
+                  HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,8"
+                  HorizontalContentAlignment="Center"
+                  Background="{DynamicResource AccentSoftBrush}"
+                  Foreground="{DynamicResource AccentSoftTextBrush}"
+                  BorderBrush="{DynamicResource AccentSoftTextBrush}"
+                  FontSize="16" FontWeight="Bold"
+                  ToolTip.Tip="Launch Casualties Unknown through Steam"/>
+          <Button x:Name="ReportIssuesButton" Content="Report issues" Width="130" Height="34"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                  HorizontalContentAlignment="Center" Margin="0,0,0,10"
+                  ToolTip.Tip="Open the Casualties Hub report and issue forum"/>
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <Button x:Name="MinimiseButton" Classes="caption" Content="&#xE921;"
+                  ToolTip.Tip="Minimise"/>
+          <Button x:Name="MaximiseButton" Classes="caption" Content="&#xE922;"
+                  ToolTip.Tip="Maximise"/>
+          <Button x:Name="CloseButton" Classes="caption close" Content="&#xE8BB;"
+                  ToolTip.Tip="Close"/>
+        </StackPanel>
       </Grid>
     </Border>
 

@@ -40,7 +40,6 @@ public partial class MainWindow : Window
         InitializeComponent();
         _hubContentService = new GitHubHubContentService(_settingsService);
         _announcementHistoryService = new AnnouncementHistoryService(_settingsService);
-        Title = "Casualties Hub — 100% Vibe coded by MarlyZ89";
         SidebarFooterText.Text = $"v{HubVersion.Current()} · Community metadata";
         Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/CasualtiesHub.png"));
         ApplySavedTextSize();
