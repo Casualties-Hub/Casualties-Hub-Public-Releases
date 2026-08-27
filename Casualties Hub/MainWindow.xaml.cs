@@ -404,7 +404,7 @@ public partial class MainWindow : Window
 
     private void OpenReleaseHistory()
     {
-        Process.Start(new ProcessStartInfo("https://github.com/MarlyZ89/Casualties-Hub-Public-Releases/releases") { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo("https://github.com/Casualties-Hub/Casualties-Hub-Public-Releases/releases") { UseShellExecute = true });
         DebugLogService.Activity("Hub Home", "Opened the GitHub release history.");
     }
 

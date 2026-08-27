@@ -13,6 +13,6 @@ To download it:
 • Extract the ZIP and launch CasualtiesHub.exe.
 
 GitHub:
-https://github.com/MarlyZ89/Casualties-Hub-Public-Release
+https://github.com/Casualties-Hub/Casualties-Hub-Public-Releases
 
 Thank you for downloading Casualties Hub!
