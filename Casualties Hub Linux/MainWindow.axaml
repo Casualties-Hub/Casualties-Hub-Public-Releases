@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         x:Class="Casualties_Hub.MainWindow"
         Title="Casualties Hub"
         Width="1280" Height="800" MinWidth="1180" MinHeight="640"
@@ -44,6 +45,12 @@
             <TextBlock x:Name="SidebarFooterText" Grid.Column="0" FontSize="11.5"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource DimTextBrush}" TextWrapping="Wrap"/>
+            <Button x:Name="ReportIssuesButton" Grid.Column="1" Classes="icon"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="Report a bug or issue">
+              <mi:MaterialIcon Kind="BugReport" Width="18" Height="18"
+                               Foreground="{Binding $parent[Button].Foreground}"/>
+            </Button>
           </Grid>
         </Border>
       </Grid>
@@ -62,10 +69,6 @@
                   BorderBrush="{DynamicResource AccentSoftTextBrush}"
                   FontSize="16" FontWeight="Bold"
                   ToolTip.Tip="Launch Casualties Unknown through Steam"/>
-          <Button x:Name="ReportIssuesButton" Content="Report issues" Width="130" Height="34"
-                  HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                  HorizontalContentAlignment="Center" Margin="0,0,0,10"
-                  ToolTip.Tip="Open the Casualties Hub report and issue forum"/>
         </Grid>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">

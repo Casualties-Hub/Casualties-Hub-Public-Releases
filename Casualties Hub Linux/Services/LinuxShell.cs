@@ -71,8 +71,19 @@ public static class LinuxShell
         // and this avoids constructing a shell command at all.
         try
         {
-            var startInfo = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
-            startInfo.ArgumentList.Add(target);
+            ProcessStartInfo startInfo;
+            if (OperatingSystem.IsWindows())
+            {
+                // No xdg-open on Windows. Safe because callers pass the scheme allow-list above
+                // or an existence check, never raw input.
+                startInfo = new ProcessStartInfo(target) { UseShellExecute = true };
+            }
+            else
+            {
+                startInfo = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
+                startInfo.ArgumentList.Add(target);
+            }
+
             Process.Start(startInfo);
             DebugLogService.Activity("Shell", $"Opened {description}.");
         }
