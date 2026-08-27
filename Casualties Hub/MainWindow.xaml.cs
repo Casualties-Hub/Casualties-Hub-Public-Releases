@@ -36,7 +36,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _hubConfigService = new HubConfigService(_settingsService);
-        Title = "Casualties Hub — 100% Vibe coded by MarlyZ89";
         SidebarFooterText.Text = $"v{HubVersion.Current()} · Community metadata";
         Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/CasualtiesHub.png"));
         ApplySavedTextSize();
