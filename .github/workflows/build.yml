@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out
@@ -39,14 +39,27 @@ jobs:
           restore-keys: nuget-${{ runner.os }}-
 
       - name: Build (Release)
-        run: dotnet build "Casualties Hub.slnx" -c Release -warnaserror
+        run: dotnet build "Casualties Hub Linux/Casualties Hub Linux.csproj" -c Release -warnaserror
 
-      - name: Publish Hub (single-file EXE)
-        run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release --no-build -o publish/hub
+      - name: Test
+        run: dotnet test "Casualties Hub Linux.Tests/Casualties Hub Linux.Tests.csproj" -c Release
 
-      - name: Upload Hub EXE
+      - name: Publish (linux-x64)
+        run: dotnet publish "Casualties Hub Linux/Casualties Hub Linux.csproj" -c Release -r linux-x64 -o publish/linux
+
+      - name: Publish (win-x64)
+        run: dotnet publish "Casualties Hub Linux/Casualties Hub Linux.csproj" -c Release -r win-x64 -o publish/windows
+
+      - name: Upload Linux build
         uses: actions/upload-artifact@v4
         with:
-          name: casualties-hub-exe
-          path: "publish/hub/Casualties Hub.exe"
+          name: casualties-hub-linux
+          path: publish/linux/casualties-hub
+          if-no-files-found: error
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: casualties-hub-windows
+          path: publish/windows/casualties-hub.exe
           if-no-files-found: error

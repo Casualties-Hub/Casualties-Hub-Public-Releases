@@ -14,12 +14,12 @@ changes must also follow [`AGENTS.md`](AGENTS.md).
 
 | Requirement | Notes |
 | --- | --- |
-| Windows | The Hub is a WPF desktop application and targets `net10.0-windows`. Linux and macOS are not supported. |
+| Linux or Windows | The Hub is an Avalonia desktop application and targets `net10.0`. |
 | .NET SDK 10 | The **SDK**, not just the runtime. See below. |
-| Internet access | The first build restores two packages from nuget.org. |
+| Internet access | The first build restores packages from nuget.org. |
 
 Visual Studio is optional. Everything below works with the `dotnet` CLI alone. If you do
-use an IDE, it must understand the `.slnx` solution format and `net10.0-windows`.
+use an IDE, it must understand the `.slnx` solution format.
 
 ## .NET SDK 10
 
@@ -32,48 +32,50 @@ winget install Microsoft.DotNet.SDK.10
 Or download the installer from <https://dotnet.microsoft.com/download/dotnet/10.0>.
 
 > **Runtimes are not enough.** `dotnet --list-runtimes` may show
-> `Microsoft.NETCore.App 10.0.0` and `Microsoft.WindowsDesktop.App 10.0.0` while
-> `dotnet --list-sdks` is empty. Runtimes only execute finished binaries. Compiling needs
-> the SDK, which ships the WPF build targets and `.slnx` support.
+> `Microsoft.NETCore.App 10.0.0` while `dotnet --list-sdks` is empty. Runtimes only execute
+> finished binaries. Compiling needs the SDK, which ships `.slnx` support.
 
 ## Build
 
 ```bash
-dotnet build "Casualties Hub.slnx" -c Release
+dotnet build "Casualties Hub Linux/Casualties Hub Linux.slnx" -c Release
 ```
 
-This produces two projects:
-
-- `Casualties Hub/bin/Release/net10.0-windows/Casualties Hub.exe`: the Hub itself
-- `Casualties Hub Installer/bin/Release/net10.0-windows/`: the standalone Setup Wizard
-
-Run the Hub directly from its build output:
+Run it:
 
 ```bash
-"Casualties Hub/bin/Release/net10.0-windows/Casualties Hub.exe"
+dotnet run --project "Casualties Hub Linux/Casualties Hub Linux.csproj"
+```
+
+`--selftest` constructs every page and dialog headlessly and reports which ones survived.
+It needs no display, so it also works over SSH.
+
+```bash
+dotnet run --project "Casualties Hub Linux/Casualties Hub Linux.csproj" -- --selftest
 ```
 
 ## Build fails with MSB3027 or MSB3021
 
-The Hub is still running and holding a lock on `Casualties Hub.exe`. Close it and build
-again.
+The Hub is still running and holding a lock on its executable. Close it and build again.
 
 ## Project layout
 
 | Path | Purpose |
 | --- | --- |
-| `Casualties Hub/` | The WPF application. `Services/` holds the logic worth reading first. |
-| `Casualties Hub Installer/` | Standalone Setup Wizard, published separately from the Hub ZIP. |
-| `Release Packaging/` | PowerShell scripts that assemble the release ZIPs. |
+| `Casualties Hub Linux/` | The application. `Services/` holds the logic worth reading first. |
+| `Casualties Hub Linux.Tests/` | Tests for the destructive and silent-failure paths. |
+| `Release Packaging/` | PowerShell scripts that assemble the release archives. |
 | `HubContent.json` | Public announcement and release-information feed cached by the Hub. |
 | `Release Notes/`, `GitHub Release Notes/` | Per-version notes. Some are embedded in the app. |
 
 ## Before opening a pull request
 
-1. `dotnet build "Casualties Hub.slnx" -c Release` reports no warnings and no errors.
-2. Run the Hub and exercise the areas you touched. There is no automated test suite, so
-   manual verification is the only safety net.
-3. Check `%LOCALAPPDATA%\CasualtiesHub\Logs` for new errors.
+1. `dotnet build "Casualties Hub Linux/Casualties Hub Linux.slnx" -c Release` reports no
+   warnings and no errors.
+2. `dotnet test "Casualties Hub Linux.Tests/Casualties Hub Linux.Tests.csproj"` passes.
+3. Run the Hub and exercise the areas you touched. The tests cover the destructive paths,
+   not the UI.
+4. Check the Hub log folder for new errors.
 4. Test mod install, enable, disable, and delete against a disposable copy of the game
    folder if you changed anything under `Services/`.
 5. Confirm that no API keys, credentials, personal data, game files, decompiled game

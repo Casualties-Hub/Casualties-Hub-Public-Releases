@@ -4,7 +4,8 @@ Describe what changed and why.
 
 ## Verification
 
-- [ ] I built `Casualties Hub.slnx` in Release configuration.
+- [ ] I built `Casualties Hub Linux/Casualties Hub Linux.slnx` in Release configuration.
+- [ ] I ran the tests.
 - [ ] I tested the affected behavior with disposable data where appropriate.
 - [ ] I added or updated tests/documentation where practical.
 - [ ] I did not commit secrets, user data, game files, or third-party mod files.

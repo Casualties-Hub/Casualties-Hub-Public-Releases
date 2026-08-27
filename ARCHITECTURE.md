@@ -4,25 +4,26 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `Casualties Hub/` | Main WPF launcher and mod manager. |
-| `Casualties Hub/Views/` | UI pages and their event-handling code. |
-| `Casualties Hub/Models/` | Settings, metadata, mod, and installation models. |
-| `Casualties Hub/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
-| `Casualties Hub Installer/` | Standalone Windows setup wizard. |
+| `Casualties Hub Linux/` | The Hub: an Avalonia launcher and mod manager, running on Linux and Windows. |
+| `Casualties Hub Linux/Views/` | UI pages and their event-handling code. |
+| `Casualties Hub Linux/Models/` | Settings, metadata, mod, and installation models. |
+| `Casualties Hub Linux/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
+| `Casualties Hub Linux.Tests/` | Tests for the destructive and silent-failure paths. |
+| `Tools/LinuxProbe/` | Standalone probe used when investigating Linux installs. |
 | `Nexus Mod Package/` | Nexus package marker project. |
 | `Release Packaging/` | Scripts and inputs used to assemble releases. |
 | `Release Notes/` | In-application version history. |
 | `GitHub Release Notes/` | Public release-page copy. |
 
-`Casualties Hub.slnx` includes the main Hub and installer projects. The Developer
-Console and Nexus marker projects are separate utilities.
+`Casualties Hub Linux/Casualties Hub Linux.slnx` includes the Hub and its tests. The
+folder name is historical: the project targets Linux and Windows from one codebase.
 
 ## Runtime data
 
 User-specific settings, logs, protected assets, cached data, downloads, and credentials
 must remain outside the repository. The application uses its local application-data
-directory for persistent user data. A Nexus API key is protected for the current
-Windows user and must never be committed, logged, or sent to Casualties Hub services.
+directory for persistent user data. A Nexus API key must never be committed, logged,
+or sent to Casualties Hub services.
 
 ## External systems
 

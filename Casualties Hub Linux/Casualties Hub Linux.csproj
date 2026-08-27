@@ -41,7 +41,7 @@
     (not a zip) carries it, because zip does not preserve the executable bit.
   -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">linux-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
@@ -53,6 +53,8 @@
     <TrimMode>partial</TrimMode>
     <!-- PublishTrimmed turns this off globally, which breaks settings and metadata loading. -->
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <!-- IL2026: the reflection above is deliberate, and partial trim never touches these types. -->
+    <NoWarn>$(NoWarn);IL2026</NoWarn>
     <DebugType>None</DebugType>
   </PropertyGroup>
 
