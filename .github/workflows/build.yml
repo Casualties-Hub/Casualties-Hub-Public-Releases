@@ -40,3 +40,13 @@ jobs:
 
       - name: Build (Release)
         run: dotnet build "Casualties Hub.slnx" -c Release -warnaserror
+
+      - name: Publish Hub (single-file EXE)
+        run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release --no-build -o publish/hub
+
+      - name: Upload Hub EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: casualties-hub-exe
+          path: "publish/hub/Casualties Hub.exe"
+          if-no-files-found: error
