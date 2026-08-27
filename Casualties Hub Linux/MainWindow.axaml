@@ -56,6 +56,9 @@
       </Grid>
     </Border>
 
+    <Border x:Name="SidebarTitleStrip" Grid.Row="0" Grid.Column="0" ZIndex="31"
+            Background="Transparent" VerticalAlignment="Top" Height="34"/>
+
     <Border x:Name="TitleBar" Grid.Row="0" Grid.Column="1"
             Background="{DynamicResource WindowBackgroundBrush}" ZIndex="20"
             BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1">

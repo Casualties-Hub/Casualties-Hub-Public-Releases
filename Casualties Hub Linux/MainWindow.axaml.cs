@@ -26,6 +26,11 @@ public partial class MainWindow : Window
     private Button? _activeNav;
     private int _mascotClicks;
 
+    private const int VersionClicksToOpenConsole = 5;
+    private static readonly TimeSpan VersionClickWindow = TimeSpan.FromSeconds(3);
+    private readonly DispatcherTimer _versionClickTimer = new() { Interval = VersionClickWindow };
+    private int _versionClicks;
+
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
@@ -38,7 +43,10 @@ public partial class MainWindow : Window
         // so setting FontSize now would apply to nothing.
         Opened += (_, _) => ThemeApplier.ApplyTextSize(_settingsService.Load());
 
-        this.FindControl<TextBlock>("SidebarFooterText")!.Text = $"v{HubVersion.Current()}";
+        var footerText = this.FindControl<TextBlock>("SidebarFooterText")!;
+        footerText.Text = $"v{HubVersion.Current()}";
+        footerText.PointerPressed += (_, _) => OnVersionClicked();
+        _versionClickTimer.Tick += (_, _) => { _versionClickTimer.Stop(); _versionClicks = 0; };
 
         var dashboardNav = this.FindControl<Button>("DashboardNav")!;
         var modsNav = this.FindControl<Button>("ModsNav")!;
@@ -79,6 +87,7 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             AnimatedRgbDriver.Stop();
+            _versionClickTimer.Stop();
             _downloadImport.Dispose();
         };
     }
@@ -202,7 +211,7 @@ public partial class MainWindow : Window
         try
         {
             using var stream = AssetLoader.Open(new Uri("avares://casualties-hub/Assets/CasualtiesHub.png"));
-            Icon = new WindowIcon(new Bitmap(stream));
+            Icon = new WindowIcon(Bitmap.DecodeToWidth(stream, 64));
         }
         catch (Exception exception)
         {
@@ -214,7 +223,8 @@ public partial class MainWindow : Window
     {
         var maximiseButton = this.FindControl<Button>("MaximiseButton")!;
 
-        foreach (var bar in (Border[])[this.FindControl<Border>("TitleBar")!, this.FindControl<Border>("SidebarBar")!])
+        foreach (var bar in (Border[])
+                 [this.FindControl<Border>("TitleBar")!, this.FindControl<Border>("SidebarTitleStrip")!])
         {
             var dragSource = bar;
             dragSource.PointerPressed += (_, e) =>
@@ -306,6 +316,21 @@ public partial class MainWindow : Window
 
         try { await pop.RunAsync(mascot); }
         catch (Exception exception) { DebugLogService.Info($"Mascot animation failed: {exception.Message}"); }
+    }
+
+    private void OnVersionClicked()
+    {
+        _versionClicks++;
+        _versionClickTimer.Stop();
+
+        if (_versionClicks >= VersionClicksToOpenConsole)
+        {
+            _versionClicks = 0;
+            DebugWindow.ShowFor(this);
+            return;
+        }
+
+        _versionClickTimer.Start();
     }
 
     internal const string IdleStatus = "";

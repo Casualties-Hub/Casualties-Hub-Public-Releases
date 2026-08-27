@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Media;
@@ -43,6 +43,7 @@ public static class SelfTest
                      ("MultiplayerPage", () => new MultiplayerPage(_ => { })),
                      ("SettingsPage", () => new SettingsPage(_ => { })),
                      ("CreditsPage", () => new CreditsPage()),
+                     ("DebugPage", () => new DebugPage(_ => { })),
                  })
         {
             try
@@ -63,6 +64,7 @@ public static class SelfTest
                      ("SkinSlotDialog", () => new SkinSlotDialog()),
                      ("UninstallDialog", () => new UninstallDialog()),
                      ("GameDetectionDialog", () => new GameDetectionDialog()),
+                     ("DebugWindow", () => new DebugWindow()),
                  })
         {
             try

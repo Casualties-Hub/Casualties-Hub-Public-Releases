@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Casualties_Hub.Views.DebugPage">
+
+  <Grid RowDefinitions="Auto,Auto,*">
+
+    <StackPanel Grid.Row="0" Spacing="6">
+      <TextBlock Text="Live Hub activity, warnings, and errors. Logging continues even when this page is closed; use Copy log or Open logs folder when reporting an issue."
+                 TextWrapping="Wrap"/>
+      <TextBlock x:Name="LiveStatusText" Foreground="{DynamicResource SuccessBrush}"/>
+    </StackPanel>
+
+    <WrapPanel Grid.Row="1" Margin="0,18,0,12">
+      <CheckBox x:Name="AutoScrollBox" Content="Auto-scroll" IsChecked="True"
+                VerticalAlignment="Center" Margin="0,0,12,8"/>
+      <Button x:Name="RefreshButton" Content="Refresh" Width="100" Margin="0,0,10,8"/>
+      <Button x:Name="ClearButton" Content="Clear view" Width="110" Margin="0,0,10,8"
+              ToolTip.Tip="Clears the in-app list; the next Hub activity creates a new entry."/>
+      <Button x:Name="CopyLogButton" Content="Copy log" Width="100" Margin="0,0,10,8"
+              ToolTip.Tip="Copy the current console text for a support report."/>
+      <Button x:Name="OpenCurrentLogButton" Content="Open current log" Width="145" Margin="0,0,10,8"/>
+      <Button x:Name="OpenCrashLogButton" Content="Open BepInEx crash log" Width="185" Margin="0,0,10,8"
+              ToolTip.Tip="Opens the BepInEx LogOutput.log from your game folder."/>
+      <Button x:Name="CreateCrashReportButton" Content="Create crash report" Width="160" Margin="0,0,10,8"
+              ToolTip.Tip="Writes a support-ready report combining this session's log with your install details."/>
+      <Button x:Name="OpenLogsFolderButton" Content="Open logs folder" Width="140" Margin="0,0,10,8"/>
+    </WrapPanel>
+
+    <Border Grid.Row="2" Background="{DynamicResource ChromeBrush}" CornerRadius="4">
+      <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0"
+               ItemsSource="{Binding}" FontFamily="monospace" FontSize="12">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding}" FontFamily="monospace" FontSize="12" TextWrapping="NoWrap"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+  </Grid>
+</UserControl>
