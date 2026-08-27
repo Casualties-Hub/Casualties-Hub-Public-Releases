@@ -148,6 +148,23 @@
     <Setter Property="FontSize" Value="12"/>
   </Style>
 
+  <Style Selector="Button.icon">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="Width" Value="30"/>
+    <Setter Property="Height" Value="30"/>
+    <Setter Property="Padding" Value="0"/>
+  </Style>
+  <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ControlHoverBrush}"/>
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+  </Style>
+  <Style Selector="Button.icon:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ControlPressedBrush}"/>
+  </Style>
+
   <Style Selector="Button.caption">
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/>
