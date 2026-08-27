@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
+        SetUpWindowIcon();
 
         var settings = _settingsService.Load();
         ThemeApplier.Apply(settings);
@@ -192,6 +193,19 @@ public partial class MainWindow : Window
             return (false, null);
 
         return (true, picker.SelectedSlot);
+    }
+
+    private void SetUpWindowIcon()
+    {
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri("avares://casualties-hub/Assets/CasualtiesHub.png"));
+            Icon = new WindowIcon(new Bitmap(stream));
+        }
+        catch (Exception exception)
+        {
+            DebugLogService.Info($"Window icon could not be loaded: {exception.Message}");
+        }
     }
 
     // --- mascot ------------------------------------------------------------
