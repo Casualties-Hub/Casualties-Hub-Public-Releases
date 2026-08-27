@@ -19,7 +19,7 @@ public static class Diagnostics
         var report = new StringBuilder();
         var version = HubVersion.Current();
 
-        report.AppendLine($"Casualties Hub - Linux Edition");
+        report.AppendLine($"Casualties Hub");
         report.AppendLine($"version   : {version}");
         report.AppendLine($"runtime   : .NET {Environment.Version}");
         report.AppendLine($"os        : {Environment.OSVersion.VersionString}");
