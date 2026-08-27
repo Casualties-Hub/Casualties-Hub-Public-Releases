@@ -66,7 +66,7 @@ Automatic checks occur no more than once every 30 minutes and are deferred while
 | Version range | Notable additions |
 | --- | --- |
 | `v0.0.7` | Official public release; compact Accessibility-based Easter Eggs preference, refreshed documentation, and current packaging. |
-| `v0.0.8-pre` | Replaces Supabase and anonymous activity metrics with cached GitHub-hosted announcements and coordinated conditional refreshes. |
+| `v0.0.8-pre` | Replaces the previous hosted backend and anonymous activity metrics with cached GitHub-hosted announcements and coordinated conditional refreshes. |
 | `v0.0.6-pre` series | Hub Center, optional Online Services, announcements, Community Activity, compatibility feed, local-mod column views, UI colour controls, credits, and diagnostic improvements. |
 | `v0.0.5` and earlier | Core Nexus metadata browser, archive/import workflows, Protected Assets, local BepInEx scanning, dependency checks, version checks, and Modlist Share Codes. |
 
@@ -111,4 +111,4 @@ Casualties Hub is licensed under the [GNU Affero General Public License v3.0](LI
 
 ## Disclaimer
 
-Casualties Hub is an independent community project. It is not affiliated with or endorsed by the developers of Casualties Unknown, Steam, Nexus Mods, BepInEx, GitHub, or Supabase.
+Casualties Hub is an independent community project. It is not affiliated with or endorsed by the developers of Casualties Unknown, Steam, Nexus Mods, BepInEx, or GitHub.
