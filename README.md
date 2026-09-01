@@ -79,9 +79,8 @@ Automatic checks occur no more than once every 30 minutes and are deferred while
 
 ## Feedback and support
 
-For feature discussion, downloads, and support, join the Casualties Hub Discord:
-
-https://discord.gg/386M6zZEK
+For feature discussion, downloads, and support, join the 
+[Casualties Hub Discord](https://discord.gg/th62vFHWTR)
 
 For bug reports, include:
 
