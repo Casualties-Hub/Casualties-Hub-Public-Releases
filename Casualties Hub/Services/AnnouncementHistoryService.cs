@@ -6,8 +6,8 @@ namespace Casualties_Hub.Services;
 
 /// <summary>
 /// Saves announcements to this PC as they arrive so Hub Home can show recent
-/// history without the published feed having to carry it. Nothing is uploaded;
-/// the file only ever contains announcements GitHub already served publicly.
+/// history without the published configuration having to carry it. Nothing is
+/// uploaded; the file only ever contains announcements GitHub served publicly.
 /// </summary>
 public sealed class AnnouncementHistoryService
 {
@@ -31,11 +31,11 @@ public sealed class AnnouncementHistoryService
     }
 
     /// <summary>
-    /// Records everything the feed currently offers, then returns the past
-    /// announcements to display. The announcement that is current right now is
-    /// stored but withheld from history, because Hub Home shows it separately.
+    /// Records everything the configuration currently offers, then returns the
+    /// past announcements to display. The announcement that is current right now
+    /// is stored but withheld from history, because Hub Home shows it separately.
     /// </summary>
-    public IReadOnlyList<AnnouncementHistoryItem> Record(HubContent content)
+    public IReadOnlyList<AnnouncementHistoryItem> Record(HubConfig config)
     {
         lock (HistorySync)
         {
@@ -44,7 +44,7 @@ public sealed class AnnouncementHistoryService
 
             var receivedAtUtc = DateTimeOffset.UtcNow;
             var added = false;
-            foreach (var announcement in Publishable(content))
+            foreach (var announcement in Publishable(config))
             {
                 if (known.ContainsKey(announcement.Id)) continue;
                 known[announcement.Id] = new AnnouncementHistoryItem
@@ -66,18 +66,22 @@ public sealed class AnnouncementHistoryService
             if (added) SaveUnsafe(stored);
 
             return stored
-                .Where(item => !string.Equals(item.Id, content.CurrentAnnouncement.Id, StringComparison.OrdinalIgnoreCase))
+                .Where(item => !string.Equals(item.Id, config.CurrentAnnouncement?.Id, StringComparison.OrdinalIgnoreCase))
                 .Take(DisplayedHistoryCount)
                 .ToList();
         }
     }
 
-    /// <summary>Announcements worth keeping: the placeholder defaults are skipped.</summary>
-    private static IEnumerable<HubAnnouncement> Publishable(HubContent content)
-        => content.PreviousAnnouncements.Prepend(content.CurrentAnnouncement)
-            .Where(announcement => !string.IsNullOrWhiteSpace(announcement.Message)
-                && !string.IsNullOrWhiteSpace(announcement.Id)
-                && !string.Equals(announcement.Id, "none", StringComparison.OrdinalIgnoreCase));
+    /// <summary>Announcements worth keeping, newest first.</summary>
+    private static IEnumerable<HubAnnouncement> Publishable(HubConfig config)
+    {
+        var announcements = config.CurrentAnnouncement is { } current
+            ? config.PreviousAnnouncements.Prepend(current)
+            : config.PreviousAnnouncements;
+
+        return announcements.Where(announcement => !string.IsNullOrWhiteSpace(announcement.Message)
+            && !string.IsNullOrWhiteSpace(announcement.Id));
+    }
 
     private List<AnnouncementHistoryItem> LoadUnsafe()
     {

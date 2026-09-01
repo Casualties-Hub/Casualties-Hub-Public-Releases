@@ -29,8 +29,10 @@ Windows user and must never be committed, logged, or sent to Casualties Hub serv
 - **Nexus Mods:** metadata/pages for mods and an opt-in authorized API flow. The normal
   fallback is the original Nexus browser page. See `PROJECT_RULES.md`.
 - **GitHub:** source, release metadata, and approved application updates.
-- **GitHub content:** public announcements and release information from `HubContent.json`,
-  cached locally with conditional requests.
+- **Hub configuration:** public announcements and community links from the
+  [Casualties Hub Config](https://github.com/Casualties-Hub/Casualties-Hub-Config) repository,
+  published to `casualties-hub.github.io`. A prerelease build reads the `prerelease` channel and
+  every other build reads `stable`; both are cached locally with conditional requests.
 - **Steam:** launches Casualties Unknown through its registered Steam application ID.
 
 All remote responses are untrusted input. Network failures must leave local mod
