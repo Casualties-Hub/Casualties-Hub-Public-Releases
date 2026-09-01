@@ -1,0 +1,17 @@
+Casualties Hub v0.0.8-pre.6.3
+Released: September 1, 2026
+
+What changed
+
+Fixed
+- The hint text in a search box no longer sits under the cursor. Clicking into a search bar used to leave the blinking cursor flashing on top of the hint, worst of all on the Multiplayer server search where the two lined up exactly. The hint now disappears the moment you click into the box and comes back when you click away, and it lines up with your typing in every box instead of being a pixel or two out on each page.
+- Every search bar now builds its hint text and its clear button the same way. Each page used to draw its own copy at its own spacing, which is how the Multiplayer box ended up misaligned while the others looked fine.
+
+Changed
+- The share code tools in Local Mods now stack the way the mod tools on the left do: Share code, Import and Add column sit on top, with the paste box across the bottom. The box uses the full width of its half of the bar, so a pasted share code has room to show instead of being squeezed between two buttons.
+
+Reminder
+- The clear button only appears once a box actually has something in it. An empty search bar shows no x, which is why it looks absent until you type or paste.
+
+Release information
+This is a pre-release test build. It carries the search bar clear buttons and the even Local Mods toolbar split added in v0.0.8-pre.6.2.
