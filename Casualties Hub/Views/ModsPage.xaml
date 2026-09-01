@@ -1,6 +1,7 @@
 <Page x:Class="Casualties_Hub.Views.ModsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:helpers="clr-namespace:Casualties_Hub.Helpers"
       Background="{DynamicResource WindowBackgroundBrush}">
     <Page.Resources>
         <!-- Without this the default container sizes itself to the widest card
@@ -85,23 +86,28 @@
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <Border Grid.Row="0" Background="{DynamicResource CardBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,12">
             <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <Border Background="{DynamicResource InsetBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6" Margin="0,0,0,0">
                     <WrapPanel VerticalAlignment="Center">
-                        <Button Content="Install mod" Width="112" Margin="0,0,7,0" Click="InstallArchive_Click" ToolTip="Install one or more mod archives from disk into BepInEx\Plugins."/>
-                        <Button Content="Refresh" Width="82" Margin="0,0,7,0" Click="Refresh_Click" ToolTip="Re-scan BepInEx\Plugins and re-check every mod against the community metadata."/>
-                        <Button Content="Delete all" Width="90" Margin="0,0,7,0" Click="DeleteAllMods_Click" ToolTip="Permanently deletes every mod file from BepInEx\Plugins. Protected assets and your saved settings are not touched."/>
-                        <Button Content="Disable all" Width="88" Margin="0,0,7,0" Click="DisableAll_Click" ToolTip="Renames every enabled mod to .dll.disabled. Nothing is deleted and Enable all puts them back."/>
-                        <Button Content="Enable all" Width="88" Margin="0,0,9,0" Click="EnableAll_Click" ToolTip="Restores every .dll.disabled mod back to an active .dll."/>
-                        <Grid Width="190" Height="28"><TextBox x:Name="LocalSearchBox" VerticalContentAlignment="Center" TextChanged="LocalSearchBox_TextChanged"/><TextBlock Text="Search Mods" Foreground="{DynamicResource DimTextBrush}" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=LocalSearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
+                        <Button Content="Install mod" Width="112" Margin="0,3,7,3" Click="InstallArchive_Click" ToolTip="Install one or more mod archives from disk into BepInEx\Plugins."/>
+                        <Button Content="Refresh" Width="82" Margin="0,3,7,3" Click="Refresh_Click" ToolTip="Re-scan BepInEx\Plugins and re-check every mod against the community metadata."/>
+                        <Button Content="Delete all" Width="90" Margin="0,3,7,3" Click="DeleteAllMods_Click" ToolTip="Permanently deletes every mod file from BepInEx\Plugins. Protected assets and your saved settings are not touched."/>
+                        <Button Content="Disable all" Width="88" Margin="0,3,7,3" Click="DisableAll_Click" ToolTip="Renames every enabled mod to .dll.disabled. Nothing is deleted and Enable all puts them back."/>
+                        <Button Content="Enable all" Width="88" Margin="0,3,9,3" Click="EnableAll_Click" ToolTip="Restores every .dll.disabled mod back to an active .dll."/>
+                        <TextBox x:Name="LocalSearchBox" Width="190" Height="28" Margin="0,3,7,3" VerticalContentAlignment="Center" TextChanged="LocalSearchBox_TextChanged" helpers:TextBoxExtras.Placeholder="Search Mods" helpers:TextBoxExtras.ShowClearButton="True"/>
                     </WrapPanel>
                 </Border>
                 <Border Grid.Column="1" Background="{DynamicResource InsetBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6" Margin="10,0,0,0" ToolTip="Create or import a compact list of enabled mods.">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="Share code" Width="92" Height="28" Margin="0,0,6,0" Click="ExportModlist_Click" ToolTip="A share code is a compact text list of your enabled mods and their versions. This copies yours to the clipboard so someone else can import it."/>
-                        <Grid Width="190" Height="28"><TextBox x:Name="ModlistCodeBox" VerticalContentAlignment="Center"/><TextBlock Text="Paste share code" Foreground="{DynamicResource DimTextBrush}" VerticalAlignment="Center" Margin="8,0" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=ModlistCodeBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Grid>
-                        <Button Content="Import" Width="72" Height="28" Margin="6,0,6,0" Click="PasteImportModlist_Click" ToolTip="Reads the pasted share code and lists the mods it asks for, so you can install any you are missing. Nothing is downloaded automatically."/>
-                        <Button x:Name="ShareColumnToggleButton" MinWidth="118" Height="28" Margin="6,0,0,0" Content="Add column ›" Click="ToggleShareColumn_Click" ToolTip="Show a third Local Mods column."/>
+                    <!-- Buttons on top, the share code box across the bottom, matching the way
+                         the mod tools stack on the left. The box takes the full width of this
+                         half rather than a fixed size, so a pasted code has room to show. -->
+                    <StackPanel VerticalAlignment="Center">
+                        <WrapPanel>
+                            <Button Content="Share code" Width="92" Height="28" Margin="0,3,7,3" Click="ExportModlist_Click" ToolTip="A share code is a compact text list of your enabled mods and their versions. This copies yours to the clipboard so someone else can import it."/>
+                            <Button Content="Import" Width="72" Height="28" Margin="0,3,7,3" Click="PasteImportModlist_Click" ToolTip="Reads the pasted share code and lists the mods it asks for, so you can install any you are missing. Nothing is downloaded automatically."/>
+                            <Button x:Name="ShareColumnToggleButton" MinWidth="118" Height="28" Margin="0,3,0,3" Content="Add column &#x203A;" Click="ToggleShareColumn_Click" ToolTip="Show a third Local Mods column."/>
+                        </WrapPanel>
+                        <TextBox x:Name="ModlistCodeBox" Height="28" Margin="0,3,0,3" VerticalContentAlignment="Center" helpers:TextBoxExtras.Placeholder="Paste share code" helpers:TextBoxExtras.ShowClearButton="True"/>
                     </StackPanel>
                 </Border>
             </Grid>

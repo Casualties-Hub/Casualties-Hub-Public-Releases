@@ -15,13 +15,15 @@ namespace Casualties_Hub;
 
 public partial class MainWindow : Window
 {
-    private const string DiscordInviteUrl = "https://discord.gg/bzZkjAyu76";
-    private const string ReportIssuesInviteUrl = "https://discord.gg/NnJNb7wkc";
+    // Used until the published configuration has been read, and whenever it
+    // cannot be reached.
+    private const string FallbackDiscordInviteUrl = "https://discord.gg/bzZkjAyu76";
+    private const string FallbackReportIssuesInviteUrl = "https://discord.gg/NnJNb7wkc";
     private const string NexusPageUrl = "https://www.nexusmods.com/casualtiesunknown";
     private readonly Services.DownloadImportService _downloadImportService = new();
     private readonly SettingsService _settingsService = new();
     private readonly GameLaunchService _gameLaunchService = new();
-    private readonly GitHubHubContentService _hubContentService;
+    private readonly HubConfigService _hubConfigService;
     private readonly AnnouncementHistoryService _announcementHistoryService;
     private readonly DispatcherTimer _faceClickTimer = new() { Interval = TimeSpan.FromMilliseconds(700) };
     private readonly DispatcherTimer _cloudStatusTimer = new() { Interval = TimeSpan.FromMinutes(1) };
@@ -32,13 +34,13 @@ public partial class MainWindow : Window
     private bool _papaZuckLinkOpenedThisBurst;
     private Page? _currentPage;
     private Button? _activeNavigationButton;
-    private HubContentResult? _hubContentResult;
+    private HubConfigResult? _hubConfigResult;
     private bool _remoteRefreshInProgress;
 
     public MainWindow()
     {
         InitializeComponent();
-        _hubContentService = new GitHubHubContentService(_settingsService);
+        _hubConfigService = new HubConfigService(_settingsService);
         _announcementHistoryService = new AnnouncementHistoryService(_settingsService);
         Title = "Casualties Hub — 100% Vibe coded by MarlyZ89";
         SidebarFooterText.Text = $"v{HubVersion.Current()} · Community metadata";
@@ -118,12 +120,13 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Announcements are the only online feature left. The Hub reads the public
-    /// HubContent.json and never checks for, downloads, or installs a Hub build.
+    /// Announcements and community links are the only online features left. The
+    /// Hub reads its published configuration and never checks for, downloads, or
+    /// installs a Hub build.
     /// </summary>
     private async Task InitializeCloudFeaturesAsync()
     {
-        _hubContentResult = _hubContentService.LoadCached();
+        _hubConfigResult = _hubConfigService.LoadCached();
         RefreshHubHomeIfOpen();
         await RefreshRemoteDataIfEligibleAsync();
     }
@@ -149,7 +152,7 @@ public partial class MainWindow : Window
 
     private async Task RefreshRemoteDataIfEligibleAsync()
     {
-        if (IsActive || !_hubContentService.IsCheckDue()) return;
+        if (IsActive || !_hubConfigService.IsCheckDue()) return;
         await RefreshAllRemoteDataAsync();
     }
 
@@ -160,11 +163,11 @@ public partial class MainWindow : Window
         try
         {
             var metadataTask = new UniversalMetadataService(_settingsService).GetModsAsync(true);
-            var contentTask = _hubContentService.RefreshAsync();
-            await Task.WhenAll(metadataTask, contentTask);
-            _hubContentResult = await contentTask;
+            var configTask = _hubConfigService.RefreshAsync();
+            await Task.WhenAll(metadataTask, configTask);
+            _hubConfigResult = await configTask;
             RefreshHubHomeIfOpen();
-            if (_hubContentResult.ContentChanged)
+            if (_hubConfigResult.ConfigChanged)
                 SetStatus("Updated GitHub announcements and community metadata were downloaded.");
         }
         finally { _remoteRefreshInProgress = false; }
@@ -172,8 +175,8 @@ public partial class MainWindow : Window
 
     private async Task RefreshGitHubDataForMetadataPingAsync()
     {
-        if (!_hubContentService.IsCheckDue()) return;
-        _hubContentResult = await _hubContentService.RefreshAsync();
+        if (!_hubConfigService.IsCheckDue()) return;
+        _hubConfigResult = await _hubConfigService.RefreshAsync();
         RefreshHubHomeIfOpen();
     }
 
@@ -186,7 +189,7 @@ public partial class MainWindow : Window
 
     private HubHomeState GetHubHomeState()
     {
-        var status = _hubContentResult ?? _hubContentService.LoadCached();
+        var status = _hubConfigResult ??= _hubConfigService.LoadCached();
         var currentVersion = HubVersion.Current().ToString();
         var releaseNotesService = new ReleaseNotesService();
         return new HubHomeState
@@ -194,17 +197,27 @@ public partial class MainWindow : Window
             CurrentVersion = currentVersion,
             ServiceOnline = status.IsOnline,
             ShowingCachedServiceData = status.IsCached,
-            CurrentAnnouncement = status.Content.CurrentAnnouncement.Message,
+            CurrentAnnouncement = status.Config.CurrentAnnouncement?.Message ?? "No announcement right now.",
             NextServiceCheckUtc = status.NextCheckUtc,
-            // Local to the installed build, not the GitHub feed, so these only
-            // change when a new build ships.
+            // Local to the installed build, not the published configuration, so
+            // these only change when a new build ships.
             WhatChangedText = releaseNotesService.GetWhatChanged(currentVersion),
             ReleaseInformation = releaseNotesService.GetReleaseInformation(currentVersion),
             // History is kept on this PC, so an announcement stays readable here
-            // even after a later HubContent.json stops listing it.
-            AnnouncementHistory = _announcementHistoryService.Record(status.Content)
+            // even after a later configuration stops listing it.
+            AnnouncementHistory = _announcementHistoryService.Record(status.Config)
         };
     }
+
+    /// <summary>
+    /// The published link if the configuration has been read and carried one,
+    /// otherwise the invite compiled into this build.
+    /// </summary>
+    private string DiscordInviteUrl => Published(_hubConfigResult?.Config.Links.DiscordUrl) ?? FallbackDiscordInviteUrl;
+
+    private string ReportIssuesInviteUrl => Published(_hubConfigResult?.Config.Links.ReportUrl) ?? FallbackReportIssuesInviteUrl;
+
+    private static string? Published(string? url) => string.IsNullOrWhiteSpace(url) ? null : url;
 
     private void RefreshHubHomeIfOpen()
     {
