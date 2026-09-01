@@ -1,0 +1,22 @@
+Casualties Hub v0.0.8-pre.6.4
+Released: September 1, 2026
+
+What changed
+
+Changed
+- Announcements now come from the Casualties Hub configuration repository instead of the old announcement feed. The Hub reads a published file, keeps a copy on this PC, and only asks GitHub for a new one every half hour, so Hub Home still fills in when you are offline.
+- Prerelease builds and public builds now read separate announcements. A test build like this one reads the prerelease channel, so tester notices no longer have to go out to everybody on the public release.
+- The Open CH Discord button and the report and issue link now use the addresses published with that configuration, instead of addresses fixed inside the build. An invite can be replaced without shipping a new Hub. If the Hub has not reached the configuration yet, both buttons fall back to the invites built into this version, so they always go somewhere.
+- Only plain https links are accepted from the published configuration. Anything else is refused and the built-in invites are used instead, so a bad or tampered entry cannot make the Hub open something unexpected.
+- The offline copy of the announcements no longer ships inside the EXE, and Data\HubContent.json is no longer read. Announcements you have already received stay listed under Prior announcements as before.
+
+Carried forward from v0.0.8-pre.6.3
+- The hint text in a search box no longer sits under the cursor. Clicking into a search bar used to leave the blinking cursor flashing on top of the hint, worst of all on the Multiplayer server search where the two lined up exactly. The hint now disappears the moment you click into the box and comes back when you click away, and it lines up with your typing in every box instead of being a pixel or two out on each page.
+- Every search bar now builds its hint text and its clear button the same way. Each page used to draw its own copy at its own spacing, which is how the Multiplayer box ended up misaligned while the others looked fine.
+- The share code tools in Local Mods now stack the way the mod tools on the left do: Share code, Import and Add column sit on top, with the paste box across the bottom. The box uses the full width of its half of the bar, so a pasted share code has room to show instead of being squeezed between two buttons.
+
+Reminder
+- The clear button only appears once a box actually has something in it. An empty search bar shows no x, which is why it looks absent until you type or paste.
+
+Release information
+This is a pre-release test build. It carries everything added in v0.0.8-pre.6.2 and v0.0.8-pre.6.3. The first launch after updating may show no announcement for a moment while the Hub fetches the prerelease channel for the first time, and the Prior announcements list is rebuilt from what this PC receives from now on.
