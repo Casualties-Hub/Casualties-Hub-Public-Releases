@@ -1,0 +1,11 @@
+Casualties Hub v0.0.8-pre.6.2
+Released: September 1, 2026
+
+What changed
+
+- Every search bar now has a clear button. A small x appears at the right edge of the box whenever there is something in it, and one click empties the box and puts the cursor back in it. The results refresh straight away, so clearing a search brings the full list back on its own. This covers the Nexus Dashboard search, the Local Mods search, the Local Mods share code box, and the Multiplayer server search. The button stays hidden while a box is empty, so nothing looks different until you need it.
+- The two toolbars at the top of Local Mods now split the bar evenly, instead of the share code side taking whatever room it wanted. The share code box stretches to fill its half, so Import and Add column stay on one tidy row rather than the toggle dropping onto a line of its own.
+- When the mod buttons on the left do run out of room and stack onto another row, the rows now sit 6 pixels apart instead of touching, so a wrapped row no longer looks like a mistake.
+
+Release information
+This is a pre-release test build. Clearing the share code box only clears the text you typed or pasted. Mods that an earlier share code already asked for stay in the Sharecode Requested Mods view until you install them or ignore them.

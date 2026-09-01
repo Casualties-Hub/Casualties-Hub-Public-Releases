@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Casualties_Hub"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:helpers="clr-namespace:Casualties_Hub.Helpers"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <!-- Player-themeable brushes. MainWindow swaps these at runtime for the
@@ -161,9 +162,58 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
-                                          VerticalAlignment="Center" Focusable="False"/>
+                            <!-- The clear button sits in its own column rather than on top of
+                                 the text, so a long value is never hidden underneath it. While
+                                 the button is collapsed the column is 0 wide and the box looks
+                                 exactly as it did before. -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ScrollViewer Grid.Column="0" x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center" Focusable="False"/>
+                                <!-- Aligned to the box's own Padding so the hint sits exactly
+                                     where typed text will, and hidden the moment the box takes
+                                     focus so the caret never blinks on top of it. -->
+                                <TextBlock Grid.Column="0" x:Name="Placeholder" Visibility="Collapsed"
+                                           Text="{Binding Path=(helpers:TextBoxExtras.Placeholder), RelativeSource={RelativeSource TemplatedParent}}"
+                                           Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource DimTextBrush}" IsHitTestVisible="False"/>
+                                <Button Grid.Column="1" x:Name="ClearButton" Content="&#x2715;"
+                                        Width="18" Height="18" MinHeight="0" Padding="0" Margin="0,0,6,0"
+                                        VerticalAlignment="Center" Visibility="Collapsed"
+                                        Background="Transparent" BorderThickness="0" FontSize="11"
+                                        Foreground="{DynamicResource DimTextBrush}"
+                                        Focusable="False" ToolTip="Clear this box."
+                                        Command="{x:Static helpers:TextBoxExtras.ClearCommand}"
+                                        CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
+                            </Grid>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Text" Value=""/>
+                                    <Condition Property="IsKeyboardFocused" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                            </MultiTrigger>
+                            <!-- Opted in per box, then hidden again whenever the box is empty.
+                                 Order matters: the empty-box rule has to come second to win. -->
+                            <Trigger Property="helpers:TextBoxExtras.ShowClearButton" Value="True">
+                                <Setter TargetName="ClearButton" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="helpers:TextBoxExtras.ShowClearButton" Value="True"/>
+                                    <Condition Property="Text" Value=""/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="ClearButton" Property="Visibility" Value="Collapsed"/>
+                            </MultiTrigger>
+                            <Trigger SourceName="ClearButton" Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ClearButton" Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

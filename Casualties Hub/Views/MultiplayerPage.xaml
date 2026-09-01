@@ -1,6 +1,7 @@
 <Page x:Class="Casualties_Hub.Views.MultiplayerPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:helpers="clr-namespace:Casualties_Hub.Helpers"
       Background="{DynamicResource WindowBackgroundBrush}">
     <Grid Margin="28,24,28,24">
         <Grid.RowDefinitions>
@@ -27,22 +28,9 @@
             <ComboBox x:Name="PingBox" Width="110" Margin="0,0,14,0" SelectionChanged="Filter_Changed"/>
             <CheckBox x:Name="HideLockedBox" Content="Hide password-locked" Foreground="{DynamicResource PrimaryTextBrush}"
                       VerticalAlignment="Center" Margin="0,0,14,0" Checked="Filter_Changed" Unchecked="Filter_Changed"/>
-            <!-- WPF has no placeholder attribute, so the hint is a TextBlock that
-                 hides itself as soon as anything is typed. -->
-            <Grid Width="220" Margin="0,0,10,0">
-                <TextBox x:Name="SearchBox" VerticalContentAlignment="Center"
-                         ToolTip="Search servers by name" TextChanged="Filter_Changed"/>
-                <TextBlock Text="Search servers" Foreground="{DynamicResource DimTextBrush}" VerticalAlignment="Center" Margin="10,0" IsHitTestVisible="False">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Grid>
+            <TextBox x:Name="SearchBox" Width="220" Margin="0,0,10,0" VerticalContentAlignment="Center"
+                     ToolTip="Search servers by name" TextChanged="Filter_Changed"
+                     helpers:TextBoxExtras.Placeholder="Search servers" helpers:TextBoxExtras.ShowClearButton="True"/>
             <Button Content="Refresh" Width="96" Click="Refresh_Click"
                     ToolTip="Reloads the sample list. No network request is made."/>
         </WrapPanel>
