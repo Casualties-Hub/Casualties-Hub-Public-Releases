@@ -4,19 +4,18 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `Casualties Hub Linux/` | The Hub: an Avalonia launcher and mod manager. |
-| `Casualties Hub Linux/Views/` | UI pages and their event-handling code. |
-| `Casualties Hub Linux/Models/` | Settings, metadata, mod, and installation models. |
-| `Casualties Hub Linux/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
-| `Casualties Hub Linux.Tests/` | Tests for the destructive and silent-failure paths. |
-| `Tools/LinuxProbe/` | Standalone probe used when investigating Linux installs. Not in the solution. |
+| `Casualties Hub/` | The Hub: an Avalonia launcher and mod manager. |
+| `Casualties Hub/Views/` | UI pages and their event-handling code. |
+| `Casualties Hub/Models/` | Settings, metadata, mod, and installation models. |
+| `Casualties Hub/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
+| `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
 | `Nexus Mod Package/` | Nexus package marker project. |
 | `Release Packaging/` | Scripts and inputs used to assemble releases. |
 | `Release Notes/` | In-application version history. |
 | `GitHub Release Notes/` | Public release-page copy. |
 
-`Casualties Hub Linux/Casualties Hub Linux.slnx` includes the Hub and its tests. The
-folder name is historical: the project targets Linux and Windows from one codebase.
+`Casualties Hub.slnx` includes the Hub and its tests. One project targets Linux and Windows;
+platform differences are handled inside the services, not by separate applications.
 
 ## Runtime data
 

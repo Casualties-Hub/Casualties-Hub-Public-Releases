@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Casualties Hub/Casualties Hub.csproj" />
+  <Project Path="Casualties Hub.Tests/Casualties Hub.Tests.csproj" />
+</Solution>

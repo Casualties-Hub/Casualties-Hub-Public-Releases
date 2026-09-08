@@ -38,20 +38,20 @@ winget install Microsoft.DotNet.SDK.10
 ## Build
 
 ```bash
-dotnet build "Casualties Hub Linux/Casualties Hub Linux.slnx" -c Release
+dotnet build "Casualties Hub.slnx" -c Release
 ```
 
 Run it:
 
 ```bash
-dotnet run --project "Casualties Hub Linux/Casualties Hub Linux.csproj"
+dotnet run --project "Casualties Hub/Casualties Hub.csproj"
 ```
 
 `--selftest` constructs every page and dialog headlessly and reports which ones survived.
 It needs no display, so it works over SSH and in CI.
 
 ```bash
-dotnet run --project "Casualties Hub Linux/Casualties Hub Linux.csproj" -- --selftest
+dotnet run --project "Casualties Hub/Casualties Hub.csproj" -- --selftest
 ```
 
 ## Build fails with MSB3027 or MSB3021
@@ -62,16 +62,16 @@ The Hub is still running and holding a lock on its executable. Close it and buil
 
 | Path | Purpose |
 | --- | --- |
-| `Casualties Hub Linux/` | The application. `Services/` holds the logic worth reading first. |
-| `Casualties Hub Linux.Tests/` | Tests for the destructive and silent-failure paths. |
+| `Casualties Hub/` | The application. `Services/` holds the logic worth reading first. |
+| `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
 | `Release Packaging/` | PowerShell scripts that assemble the release archives. |
 | `Release Notes/`, `GitHub Release Notes/` | Per-version notes. Some are embedded in the app. |
 
 ## Before opening a pull request
 
-1. `dotnet build "Casualties Hub Linux/Casualties Hub Linux.slnx" -c Release` reports no
+1. `dotnet build "Casualties Hub.slnx" -c Release` reports no
    warnings and no errors.
-2. `dotnet test "Casualties Hub Linux.Tests/Casualties Hub Linux.Tests.csproj"` passes.
+2. `dotnet test "Casualties Hub.Tests/Casualties Hub.Tests.csproj"` passes.
 3. Run the Hub and exercise the areas you touched. The tests cover the destructive paths,
    not the UI.
 4. Check the Hub log folder for new errors.
