@@ -42,8 +42,7 @@
   <!--
     Catalogs and release notes travel inside the EXE so a release can ship as a single file.
     BundledData still prefers a matching file under Data\ beside the Hub, which keeps the
-    catalogs hand-editable on an unpacked install. Announcements and community links are no
-    longer bundled: they come from the published Hub configuration at runtime.
+    catalogs hand-editable on an unpacked install.
   -->
   <ItemGroup>
     <EmbeddedResource Include="Services\DependencyCatalog.json">

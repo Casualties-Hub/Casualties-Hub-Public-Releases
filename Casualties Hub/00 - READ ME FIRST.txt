@@ -13,7 +13,7 @@ The dependency catalog, incompatibility catalog, and release notes travel inside
 - Data\Catalogs: editable dependency and incompatibility catalog files.
 - Data\Release Notes: local summaries used by Hub Home's What Changed panel.
 
-Announcements and the Discord links are no longer bundled. The Hub reads them from its published configuration and caches the result, so they stay readable offline once they have been downloaded once.
+Announcements and the Discord links come from the Hub's published configuration. The Hub caches the last download, so they stay readable offline.
 
 Settings, logs, crash reports, and protected assets are kept in %LOCALAPPDATA%\CasualtiesHub, not in this folder.
 

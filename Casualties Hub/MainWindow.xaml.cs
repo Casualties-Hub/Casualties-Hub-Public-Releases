@@ -113,11 +113,6 @@ public partial class MainWindow : Window
         StatusText.Text = message;
     }
 
-    /// <summary>
-    /// Announcements and community links are the only online features left. The
-    /// Hub reads its published configuration and never checks for, downloads, or
-    /// installs a Hub build.
-    /// </summary>
     private async Task InitializeCloudFeaturesAsync()
     {
         _hubConfigResult = _hubConfigService.LoadCached();

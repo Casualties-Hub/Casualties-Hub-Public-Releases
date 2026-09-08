@@ -108,8 +108,6 @@ public sealed class HubConfigService
         try { return Deserialize(File.ReadAllText(_cachePath)); }
         catch (Exception exception) when (exception is IOException or JsonException)
         {
-            // A build that has never been online, or whose cache is damaged, falls
-            // back to the links compiled into it rather than showing nothing.
             DebugLogService.Error($"Could not load {Path.GetFileName(_cachePath)}", exception);
             return new HubConfig();
         }
