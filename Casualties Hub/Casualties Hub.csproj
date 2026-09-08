@@ -70,6 +70,8 @@
     <!-- Backs the selftest command line switch, which constructs every page with no display attached. -->
     <PackageReference Include="Avalonia.Headless" Version="11.3.18" />
     <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
+    <!-- DPAPI, used only on Windows to bind the Nexus key file to the current account. -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
     <PackageReference Include="SharpCompress" Version="0.50.0" />
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
   </ItemGroup>

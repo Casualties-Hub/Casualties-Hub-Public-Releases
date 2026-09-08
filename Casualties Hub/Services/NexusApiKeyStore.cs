@@ -9,25 +9,26 @@ namespace Casualties_Hub.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// AES-GCM rather than DPAPI, which has no Unix implementation and throws
-/// <see cref="PlatformNotSupportedException"/> the moment it is touched. Because HasKey calls Load,
-/// that exception would surface just from opening the Settings page.
+/// The key is sealed with AES-GCM under a random encryption key kept in a file beside it. What
+/// protects that encryption key differs by platform. On Windows it is wrapped with DPAPI for the
+/// current user, so only this Windows account can unwrap it. Elsewhere it is a 0600 file inside a
+/// 0700 directory, so another user cannot read it, but anything running as this user can.
 /// </para>
 /// <para>
-/// <b>What protects the key is file permissions, not the encryption.</b> The key file is 0600
-/// inside a 0700 directory, so another user cannot read it, but anything running as this user can.
-/// The encryption key sits beside the ciphertext, so it does not change that.
+/// The envelope buys three things on every platform: the key never sits in plaintext where a
+/// backup, a cloud-sync folder, a screen share or a stray grep would expose it; the AES-GCM
+/// authentication tag makes a truncated or corrupted file fail closed rather than send a malformed
+/// key to Nexus; and deleting the small .key file instantly renders the stored credential
+/// unrecoverable.
 /// </para>
 /// <para>
-/// The encryption still buys three narrower things: the key never sits in plaintext where a backup,
-/// a cloud-sync folder, a screen share or a stray grep would expose it; the AES-GCM authentication
-/// tag makes a truncated or corrupted file fail closed rather than send a malformed key to Nexus;
-/// and deleting the small .key file instantly renders the stored credential unrecoverable.
+/// Earlier Windows builds stored the key as a bare DPAPI blob with no envelope. Such a file is
+/// still readable here and is rewritten in the current format the first time it is loaded.
 /// </para>
 /// </remarks>
 public sealed class NexusApiKeyStore
 {
-    // Identifies our envelope so a file from another platform is rejected rather than misread.
+    // Identifies our envelope so a file in another format is recognised rather than misread.
     private static readonly byte[] Magic = "CHK1"u8.ToArray();
     private const int NonceSize = 12;   // AES-GCM standard
     private const int TagSize = 16;
@@ -36,18 +37,22 @@ public sealed class NexusApiKeyStore
     private readonly string _dataPath;
     private readonly string _keyPath;
 
-    public NexusApiKeyStore(SettingsService settingsService)
+    public NexusApiKeyStore(SettingsService settingsService) : this(settingsService.AppDataPath) { }
+
+    /// <summary>Tests point this at a disposable folder instead of the real data directory.</summary>
+    internal NexusApiKeyStore(string dataDirectory)
     {
-        _dataPath = Path.Combine(settingsService.AppDataPath, "NexusApiKey.dat");
-        _keyPath = Path.Combine(settingsService.AppDataPath, "NexusApiKey.key");
-        HardenDirectory(Path.GetDirectoryName(_dataPath)!);
+        _dataPath = Path.Combine(dataDirectory, "NexusApiKey.dat");
+        _keyPath = Path.Combine(dataDirectory, "NexusApiKey.key");
+        HardenDirectory(dataDirectory);
     }
 
     public bool HasKey => !string.IsNullOrWhiteSpace(Load());
 
     /// <summary>How the key is protected, shown in Settings so the user is not left guessing.</summary>
-    public static string ProtectionDescription =>
-        "Encrypted on disk and readable only by your user account. Anything running as you can still read it.";
+    public static string ProtectionDescription => OperatingSystem.IsWindows()
+        ? "Encrypted on disk with your Windows account's data protection. Only this account can read it."
+        : "Encrypted on disk and readable only by your user account. Anything running as you can still read it.";
 
     public void Save(string apiKey)
     {
@@ -77,6 +82,7 @@ public sealed class NexusApiKeyStore
 
             WriteRestricted(_dataPath, stream.ToArray());
             CryptographicOperations.ZeroMemory(plaintext);
+            CryptographicOperations.ZeroMemory(key);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CryptographicException)
         {
@@ -91,21 +97,17 @@ public sealed class NexusApiKeyStore
         // failure here must degrade to "no key saved", never take down the page.
         try
         {
-            if (!File.Exists(_dataPath) || !File.Exists(_keyPath)) return null;
+            if (!File.Exists(_dataPath)) return null;
 
             var payload = File.ReadAllBytes(_dataPath);
-            if (payload.Length < Magic.Length + NonceSize + TagSize) return null;
 
-            // A .dat in another format (a DPAPI-encrypted one, say) is unreadable here. Fail
-            // closed with a clear message instead of returning garbage to the Nexus API.
-            if (!payload.AsSpan(0, Magic.Length).SequenceEqual(Magic))
-            {
-                DebugLogService.Info("The saved Nexus key is not in this platform's format; re-enter it in Settings.");
-                return null;
-            }
+            if (!payload.AsSpan().StartsWith(Magic))
+                return LoadLegacy(payload);
 
-            var key = File.ReadAllBytes(_keyPath);
-            if (key.Length != KeySize) return null;
+            if (!File.Exists(_keyPath) || payload.Length < Magic.Length + NonceSize + TagSize) return null;
+
+            var key = LoadKey();
+            if (key is null) return null;
 
             var offset = Magic.Length;
             var nonce = payload.AsSpan(offset, NonceSize);
@@ -118,11 +120,13 @@ public sealed class NexusApiKeyStore
 
             var result = Encoding.UTF8.GetString(plaintext);
             CryptographicOperations.ZeroMemory(plaintext);
+            CryptographicOperations.ZeroMemory(key);
             return result;
         }
         catch (CryptographicException)
         {
-            // Authentication failed: the file is corrupt or the key no longer matches it.
+            // Authentication failed: the file is corrupt, the key no longer matches it, or DPAPI
+            // could not unwrap the key for this account.
             DebugLogService.Info("The saved Nexus key could not be decrypted; re-enter it in Settings.");
             return null;
         }
@@ -148,24 +152,60 @@ public sealed class NexusApiKeyStore
     /// <summary>Files the uninstaller must remove. Both, or a stale key file is left behind.</summary>
     public IReadOnlyList<string> StoredFiles => [_dataPath, _keyPath];
 
-    private byte[] LoadOrCreateKey()
+    /// <summary>
+    /// A .dat with no envelope is the bare DPAPI blob earlier Windows builds wrote. It can only be
+    /// unwrapped on Windows by the account that wrote it; on success it is re-saved in the current
+    /// format so the next load takes the normal path.
+    /// </summary>
+    private string? LoadLegacy(byte[] payload)
     {
-        if (File.Exists(_keyPath))
+        if (!OperatingSystem.IsWindows())
         {
-            var existing = File.ReadAllBytes(_keyPath);
-            if (existing.Length == KeySize) return existing;
+            DebugLogService.Info("The saved Nexus key is not in this platform's format; re-enter it in Settings.");
+            return null;
         }
 
+        var apiKey = Encoding.UTF8.GetString(ProtectedData.Unprotect(payload, null, DataProtectionScope.CurrentUser));
+        if (string.IsNullOrWhiteSpace(apiKey)) return null;
+
+        DebugLogService.Activity("Nexus key", "Converted a key saved by an earlier build to the current format.");
+        Save(apiKey);
+        return apiKey;
+    }
+
+    private byte[] LoadOrCreateKey()
+    {
+        if (LoadKey() is { } existing) return existing;
+
         var key = RandomNumberGenerator.GetBytes(KeySize);
-        WriteRestricted(_keyPath, key);
+        WriteRestricted(_keyPath, Wrap(key));
         return key;
     }
+
+    /// <summary>The encryption key, or null when the file is missing or not usable by this account.</summary>
+    private byte[]? LoadKey()
+    {
+        if (!File.Exists(_keyPath)) return null;
+        var stored = File.ReadAllBytes(_keyPath);
+        if (!OperatingSystem.IsWindows()) return stored.Length == KeySize ? stored : null;
+
+        // A bare key from before DPAPI wrapping is accepted; it is wrapped the next time a key
+        // is saved, because that is the only time the file is rewritten.
+        if (stored.Length == KeySize) return stored;
+        var unwrapped = ProtectedData.Unprotect(stored, null, DataProtectionScope.CurrentUser);
+        return unwrapped.Length == KeySize ? unwrapped : null;
+    }
+
+    /// <summary>On Windows the key file is bound to the current account through DPAPI.</summary>
+    private static byte[] Wrap(byte[] key) => OperatingSystem.IsWindows()
+        ? ProtectedData.Protect(key, null, DataProtectionScope.CurrentUser)
+        : key;
 
     /// <summary>Writes a file only this user can read, without ever letting it exist as 0644.</summary>
     private static void WriteRestricted(string path, byte[] contents)
     {
         // Create first, tighten the mode, then write: setting permissions afterwards would leave
-        // a window where the key is world-readable.
+        // a window where the key is world-readable. Windows relies on the profile folder's ACL.
         using (var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
         {
             if (!OperatingSystem.IsWindows())
