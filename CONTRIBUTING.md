@@ -65,7 +65,6 @@ again.
 | `Casualties Hub/` | The WPF application. `Services/` holds the logic worth reading first. |
 | `Casualties Hub Installer/` | Standalone Setup Wizard, published separately from the Hub ZIP. |
 | `Release Packaging/` | PowerShell scripts that assemble the release ZIPs. |
-| `HubContent.json` | Retired announcement feed. Windows no longer reads it; the Linux Edition still does. |
 | `Release Notes/`, `GitHub Release Notes/` | Per-version notes. Some are embedded in the app. |
 
 ## Before opening a pull request
