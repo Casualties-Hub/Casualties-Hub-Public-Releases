@@ -36,8 +36,8 @@ public partial class HubHomePage : Page
         CurrentAnnouncementText.Text = state.CurrentAnnouncement;
         WhatChangedText.Text = state.WhatChangedText;
         ReleaseInformationText.Text = state.ReleaseInformation;
-        AnnouncementHistoryList.ItemsSource = state.AnnouncementHistory;
-        NoHistoryText.Visibility = state.AnnouncementHistory.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        AnnouncementHistoryList.ItemsSource = state.PreviousAnnouncements;
+        NoHistoryText.Visibility = state.PreviousAnnouncements.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void PriorAnnouncements_Click(object sender, RoutedEventArgs e)

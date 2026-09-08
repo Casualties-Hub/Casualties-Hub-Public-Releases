@@ -24,7 +24,6 @@ public partial class MainWindow : Window
     private readonly SettingsService _settingsService = new();
     private readonly GameLaunchService _gameLaunchService = new();
     private readonly HubConfigService _hubConfigService;
-    private readonly AnnouncementHistoryService _announcementHistoryService;
     private readonly DispatcherTimer _faceClickTimer = new() { Interval = TimeSpan.FromMilliseconds(700) };
     private readonly DispatcherTimer _cloudStatusTimer = new() { Interval = TimeSpan.FromMinutes(1) };
     private readonly DispatcherTimer _animatedRgbTimer = new() { Interval = TimeSpan.FromMilliseconds(80) };
@@ -41,7 +40,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _hubConfigService = new HubConfigService(_settingsService);
-        _announcementHistoryService = new AnnouncementHistoryService(_settingsService);
         Title = "Casualties Hub — 100% Vibe coded by MarlyZ89";
         SidebarFooterText.Text = $"v{HubVersion.Current()} · Community metadata";
         Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/CasualtiesHub.png"));
@@ -203,9 +201,7 @@ public partial class MainWindow : Window
             // these only change when a new build ships.
             WhatChangedText = releaseNotesService.GetWhatChanged(currentVersion),
             ReleaseInformation = releaseNotesService.GetReleaseInformation(currentVersion),
-            // History is kept on this PC, so an announcement stays readable here
-            // even after a later configuration stops listing it.
-            AnnouncementHistory = _announcementHistoryService.Record(status.Config)
+            PreviousAnnouncements = status.Config.PreviousAnnouncements
         };
     }
 

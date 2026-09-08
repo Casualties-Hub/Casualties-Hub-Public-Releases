@@ -32,7 +32,7 @@
                 <StackPanel>
                     <DockPanel>
                         <Button x:Name="PriorAnnouncementsButton" DockPanel.Dock="Right" Content="Prior announcements" Width="168" Height="30"
-                                Click="PriorAnnouncements_Click" ToolTip="Show the announcements this PC received before the current one."/>
+                                Click="PriorAnnouncements_Click" ToolTip="Show the announcements published before the current one."/>
                         <TextBlock Text="Current announcement" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </DockPanel>
                     <TextBlock x:Name="CurrentAnnouncementText" Margin="0,12,0,0" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
@@ -42,7 +42,7 @@
             <Border x:Name="AnnouncementHistoryCard" Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="7" Padding="18" Margin="0,16,0,0" Visibility="Collapsed">
                 <StackPanel>
                     <TextBlock Text="Prior announcements" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="19" FontWeight="SemiBold"/>
-                    <TextBlock x:Name="NoHistoryText" Margin="0,10,0,0" Foreground="{DynamicResource DimTextBrush}" Text="Announcements you receive are saved on this PC. The newest three are kept here." TextWrapping="Wrap"/>
+                    <TextBlock x:Name="NoHistoryText" Margin="0,10,0,0" Foreground="{DynamicResource DimTextBrush}" Text="No prior announcements are published right now." TextWrapping="Wrap"/>
                     <ItemsControl x:Name="AnnouncementHistoryList" Margin="0,10,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
