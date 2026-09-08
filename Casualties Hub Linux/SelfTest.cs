@@ -33,7 +33,7 @@ public static class SelfTest
 
         foreach (var (name, factory) in new (string, Func<UserControl>)[]
                  {
-                     ("HubHomePage", () => new HubHomePage(_ => { })),
+                     ("HubHomePage", () => new HubHomePage()),
                      ("DashboardPage", () => new DashboardPage(_ => { })),
                      ("ModsPage", () => new ModsPage(_ => { })),
                      ("SkinsAndBackupsPage", () => new SkinsAndBackupsPage(_ => { })),

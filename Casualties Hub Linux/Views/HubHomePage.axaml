@@ -20,7 +20,7 @@
       <Border x:Name="HistoryCard" Classes="card" IsVisible="False">
         <StackPanel Spacing="8">
           <TextBlock Classes="heading" Text="Previous announcements"/>
-          <TextBlock x:Name="NoHistoryText" Classes="muted" Text="No earlier announcements have been seen yet."/>
+          <TextBlock x:Name="NoHistoryText" Classes="muted" Text="No prior announcements are published right now."/>
           <ItemsControl x:Name="HistoryList">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
@@ -52,7 +52,7 @@
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Button x:Name="ReleasesButton" Content="Release history"/>
             <Button x:Name="NexusButton" Content="Nexus page"/>
-            <Button x:Name="DiscordButton" Content="Discord"/>
+            <Button x:Name="DiscordButton" Content="Discord" ToolTip.ShowOnDisabled="True"/>
             <Button x:Name="CreditsButton" Content="Credits"/>
           </StackPanel>
         </StackPanel>

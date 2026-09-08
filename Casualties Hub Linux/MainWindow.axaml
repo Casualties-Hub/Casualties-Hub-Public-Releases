@@ -43,7 +43,7 @@
                        Foreground="{DynamicResource DimTextBrush}" TextWrapping="Wrap"/>
             <Button x:Name="ReportIssuesButton" Grid.Column="1" Classes="icon"
                     VerticalAlignment="Center"
-                    ToolTip.Tip="Report a bug or issue">
+                    ToolTip.Tip="Report a bug or issue" ToolTip.ShowOnDisabled="True">
               <mi:MaterialIcon Kind="BugReport" Width="18" Height="18"
                                Foreground="{Binding $parent[Button].Foreground}"/>
             </Button>

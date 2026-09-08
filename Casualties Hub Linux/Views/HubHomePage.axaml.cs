@@ -7,35 +7,35 @@ using Casualties_Hub.Services;
 namespace Casualties_Hub.Views;
 
 /// <summary>
-/// Announcements fetched from the project's GitHub content feed, plus the release notes embedded
-/// in this build.
+/// Announcements and community links from the published Hub configuration, plus the release
+/// notes embedded in this build.
 /// </summary>
 /// <remarks>
-/// The page reads its services directly, so the shell does not have to know what Hub Home displays.
-/// Remote content is treated as untrusted: it only ever becomes TextBlock text, and links go
-/// through LinuxShell, which allow-lists the scheme.
+/// The shell owns the configuration service so the Report issues button and this page read the
+/// same document. Remote content is treated as untrusted: it only ever becomes TextBlock text,
+/// and links go through LinuxShell, which allow-lists the scheme.
 /// </remarks>
 public partial class HubHomePage : UserControl
 {
     private const string ReleasesUrl = "https://github.com/Casualties-Hub/Casualties-Hub-Public-Releases/releases";
     private const string NexusUrl = "https://www.nexusmods.com/casualtiesunknown";
-    private const string DiscordUrl = "https://discord.gg/casualties";
+    private const string LinkUnavailableTip = "Link not available.";
 
-    private readonly SettingsService _settingsService = new();
-    private readonly GitHubHubContentService _contentService;
-    private readonly AnnouncementHistoryService _historyService;
+    private readonly HubConfigService _configService;
     private readonly ReleaseNotesService _releaseNotes = new();
     private readonly Action<string> _setStatus;
     private readonly Action? _openCredits;
+    private readonly Action<HubConfigResult>? _configRefreshed;
+    private string? _discordUrl;
 
-    public HubHomePage() : this(_ => { }) { }
+    public HubHomePage() : this(_ => { }, null, new HubConfigService(new SettingsService()), null) { }
 
-    public HubHomePage(Action<string> setStatus, Action? openCredits = null)
+    public HubHomePage(Action<string> setStatus, Action? openCredits, HubConfigService configService, Action<HubConfigResult>? configRefreshed)
     {
         _setStatus = setStatus;
         _openCredits = openCredits;
-        _contentService = new GitHubHubContentService(_settingsService);
-        _historyService = new AnnouncementHistoryService(_settingsService);
+        _configService = configService;
+        _configRefreshed = configRefreshed;
         AvaloniaXamlLoader.Load(this);
 
         this.FindControl<Button>("CheckButton")!.Click += async (_, _) => await RefreshAsync(force: true);
@@ -43,14 +43,14 @@ public partial class HubHomePage : UserControl
         this.FindControl<Button>("ReleaseInfoButton")!.Click += (_, _) => Toggle("ReleaseInfoText");
         this.FindControl<Button>("ReleasesButton")!.Click += (_, _) => LinuxShell.OpenUrl(ReleasesUrl);
         this.FindControl<Button>("NexusButton")!.Click += (_, _) => LinuxShell.OpenUrl(NexusUrl);
-        this.FindControl<Button>("DiscordButton")!.Click += (_, _) => LinuxShell.OpenUrl(DiscordUrl);
+        this.FindControl<Button>("DiscordButton")!.Click += (_, _) => { if (_discordUrl is { } url) LinuxShell.OpenUrl(url); };
         this.FindControl<Button>("CreditsButton")!.Click += (_, _) => _openCredits?.Invoke();
 
         ShowLocalNotes();
-        ShowContent(_contentService.LoadCached());
+        ShowConfig(_configService.LoadCached());
 
         // Only reach out if the cached copy is stale, so opening this page is not a network hit.
-        if (_contentService.IsCheckDue()) _ = RefreshAsync(force: false);
+        if (_configService.IsCheckDue()) _ = RefreshAsync(force: false);
     }
 
     private void Toggle(string controlName)
@@ -72,31 +72,35 @@ public partial class HubHomePage : UserControl
         _setStatus("Checking for announcements...");
         try
         {
-            ShowContent(await _contentService.RefreshAsync(force));
+            var result = await _configService.RefreshAsync(force);
+            ShowConfig(result);
+            _configRefreshed?.Invoke(result);
             _setStatus("Announcements up to date.");
         }
         catch (Exception exception)
         {
             // Offline is normal; the cached announcement stays on screen.
             DebugLogService.Info($"Announcement check failed: {exception.Message}");
-            _setStatus("Could not reach the announcement feed.");
+            _setStatus("Could not reach the Hub configuration.");
         }
     }
 
-    private void ShowContent(HubContentResult result)
+    private void ShowConfig(HubConfigResult result)
     {
-        var announcement = result.Content.CurrentAnnouncement.Message;
         this.FindControl<TextBlock>("AnnouncementText")!.Text =
-            string.IsNullOrWhiteSpace(announcement) ? "No announcement right now." : announcement;
+            result.Config.CurrentAnnouncement?.Message ?? "No announcement right now.";
 
         this.FindControl<TextBlock>("ServiceStatusText")!.Text = result.IsOnline
             ? $"Live. Next check {result.NextCheckUtc?.ToLocalTime():g}."
-            : result.IsCached
-                ? "Offline — showing the last announcement received."
-                : "Offline — using the announcement bundled with this build.";
+            : "Offline — showing the last configuration received.";
 
-        var history = _historyService.Record(result.Content);
-        this.FindControl<ItemsControl>("HistoryList")!.ItemsSource = history;
-        this.FindControl<TextBlock>("NoHistoryText")!.IsVisible = history.Count == 0;
+        var previous = result.Config.PreviousAnnouncements;
+        this.FindControl<ItemsControl>("HistoryList")!.ItemsSource = previous;
+        this.FindControl<TextBlock>("NoHistoryText")!.IsVisible = previous.Count == 0;
+
+        _discordUrl = string.IsNullOrWhiteSpace(result.Config.Links.DiscordUrl) ? null : result.Config.Links.DiscordUrl;
+        var discordButton = this.FindControl<Button>("DiscordButton")!;
+        discordButton.IsEnabled = _discordUrl is not null;
+        ToolTip.SetTip(discordButton, _discordUrl is null ? LinkUnavailableTip : null);
     }
 }

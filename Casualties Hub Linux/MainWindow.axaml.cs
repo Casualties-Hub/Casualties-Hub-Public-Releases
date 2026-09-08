@@ -15,13 +15,16 @@ namespace Casualties_Hub;
 
 public partial class MainWindow : Window
 {
-    private const string ReportIssuesUrl = "https://github.com/Casualties-Hub/Casualties-Hub-Public-Releases/issues";
+    private const string LinkUnavailableTip = "Link not available.";
+    private const string ReportIssuesTip = "Report a bug or issue";
     private const string SurpriseUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     private readonly SettingsService _settingsService = new();
     private readonly GameInstallDetector _detector = new();
     private readonly GameLaunchService _launchService = new();
     private readonly DownloadImportService _downloadImport = new();
+    private readonly HubConfigService _hubConfigService;
+    private string? _reportIssuesUrl;
 
     private Button? _activeNav;
     private int _mascotClicks;
@@ -34,6 +37,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
+        _hubConfigService = new HubConfigService(_settingsService);
         SetUpWindowIcon();
         SetUpTitleBar();
 
@@ -65,11 +69,13 @@ public partial class MainWindow : Window
         modsNav.Click += (_, _) => Navigate(() => new ModsPage(SetStatus), modsNav, "Local Mods");
         multiplayerNav.Click += (_, _) => Navigate(() => new MultiplayerPage(SetStatus), multiplayerNav, "Multiplayer");
         skinsNav.Click += (_, _) => Navigate(() => new SkinsAndBackupsPage(SetStatus), skinsNav, "Skins & Backups");
-        homeNav.Click += (_, _) => Navigate(() => new HubHomePage(SetStatus, OpenCredits), homeNav, "Hub Home");
+        homeNav.Click += (_, _) => Navigate(() => new HubHomePage(SetStatus, OpenCredits, _hubConfigService, ApplyHubConfig), homeNav, "Hub Home");
         settingsNav.Click += (_, _) => OpenSettings();
 
         this.FindControl<Button>("LaunchGameButton")!.Click += (_, _) => LaunchGame();
-        this.FindControl<Button>("ReportIssuesButton")!.Click += (_, _) => LinuxShell.OpenUrl(ReportIssuesUrl);
+        this.FindControl<Button>("ReportIssuesButton")!.Click += (_, _) => { if (_reportIssuesUrl is { } url) LinuxShell.OpenUrl(url); };
+        ApplyHubConfig(_hubConfigService.LoadCached());
+        if (_hubConfigService.IsCheckDue()) _ = RefreshHubConfigAsync();
 
         SetUpMascot(settings);
 
@@ -89,6 +95,29 @@ public partial class MainWindow : Window
             _versionClickTimer.Stop();
             _downloadImport.Dispose();
         };
+    }
+
+    private async Task RefreshHubConfigAsync()
+    {
+        try { ApplyHubConfig(await _hubConfigService.RefreshAsync()); }
+        catch (Exception exception)
+        {
+            // Offline is normal; the cached links stay in effect.
+            DebugLogService.Info($"Hub configuration check failed: {exception.Message}");
+        }
+    }
+
+    /// <summary>
+    /// The Report issues link comes from the published Hub configuration. Hub Home refreshes
+    /// that document and calls back here so the button follows it.
+    /// </summary>
+    private void ApplyHubConfig(HubConfigResult result)
+    {
+        var url = result.Config.Links.ReportUrl;
+        _reportIssuesUrl = string.IsNullOrWhiteSpace(url) ? null : url;
+        var button = this.FindControl<Button>("ReportIssuesButton")!;
+        button.IsEnabled = _reportIssuesUrl is not null;
+        ToolTip.SetTip(button, _reportIssuesUrl is null ? LinkUnavailableTip : ReportIssuesTip);
     }
 
     private void Navigate(Func<UserControl> buildPage, Button navButton, string title)

@@ -49,7 +49,6 @@ public static class Diagnostics
                  {
                      ("dependency catalog", "Bundled/Catalogs/DependencyCatalog.json"),
                      ("incompatibilities", "Bundled/Catalogs/IncompatibilityCatalog.json"),
-                     ("hub content", "Bundled/HubContent.json"),
                      ($"release notes {version}", $"Bundled/Release Notes/Version {version}.txt"),
                  })
         {

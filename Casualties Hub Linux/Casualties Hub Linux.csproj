@@ -75,7 +75,7 @@
   </ItemGroup>
 
   <!--
-    Catalogs, Hub content, and release notes travel inside the binary so a release stays a single
+    Catalogs and release notes travel inside the binary so a release stays a single
     file. BundledData still prefers a matching file under Data/ beside the executable, which keeps
     the catalogs hand-editable on an unpacked install.
   -->
@@ -89,9 +89,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Services\IncompatibilityCatalog.json">
       <LogicalName>Bundled/Catalogs/IncompatibilityCatalog.json</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\HubContent.json">
-      <LogicalName>Bundled/HubContent.json</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="..\Release Notes\*.txt">
       <LogicalName>Bundled/Release Notes/%(Filename)%(Extension)</LogicalName>
