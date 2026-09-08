@@ -101,8 +101,8 @@
                         Background="{DynamicResource AccentSoftBrush}" Foreground="{DynamicResource AccentSoftTextBrush}" BorderBrush="{DynamicResource AccentSoftTextBrush}"
                         FontSize="16" FontWeight="Bold"
                         ToolTip="Launch Casualties Unknown through Steam" Click="LaunchGame_Click"/>
-                <Button Content="Report issues" Width="130" Height="38" HorizontalAlignment="Right" VerticalAlignment="Center"
-                        ToolTip="Open the Casualties Hub report and issue forum" Click="ReportIssues_Click"/>
+                <Button x:Name="ReportIssuesButton" Content="Report issues" Width="130" Height="38" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        IsEnabled="False" ToolTip="Link not available." ToolTipService.ShowOnDisabled="True" Click="ReportIssues_Click"/>
             </Grid>
         </Border>
 

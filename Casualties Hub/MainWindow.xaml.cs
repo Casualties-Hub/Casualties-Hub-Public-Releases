@@ -15,10 +15,6 @@ namespace Casualties_Hub;
 
 public partial class MainWindow : Window
 {
-    // Used until the published configuration has been read, and whenever it
-    // cannot be reached.
-    private const string FallbackDiscordInviteUrl = "https://discord.gg/bzZkjAyu76";
-    private const string FallbackReportIssuesInviteUrl = "https://discord.gg/NnJNb7wkc";
     private const string NexusPageUrl = "https://www.nexusmods.com/casualtiesunknown";
     private readonly Services.DownloadImportService _downloadImportService = new();
     private readonly SettingsService _settingsService = new();
@@ -201,22 +197,21 @@ public partial class MainWindow : Window
             // these only change when a new build ships.
             WhatChangedText = releaseNotesService.GetWhatChanged(currentVersion),
             ReleaseInformation = releaseNotesService.GetReleaseInformation(currentVersion),
-            PreviousAnnouncements = status.Config.PreviousAnnouncements
+            PreviousAnnouncements = status.Config.PreviousAnnouncements,
+            DiscordLinkAvailable = DiscordInviteUrl is not null
         };
     }
 
-    /// <summary>
-    /// The published link if the configuration has been read and carried one,
-    /// otherwise the invite compiled into this build.
-    /// </summary>
-    private string DiscordInviteUrl => Published(_hubConfigResult?.Config.Links.DiscordUrl) ?? FallbackDiscordInviteUrl;
+    private string? DiscordInviteUrl => PublishedLink(_hubConfigResult?.Config.Links.DiscordUrl);
 
-    private string ReportIssuesInviteUrl => Published(_hubConfigResult?.Config.Links.ReportUrl) ?? FallbackReportIssuesInviteUrl;
+    private string? ReportIssuesInviteUrl => PublishedLink(_hubConfigResult?.Config.Links.ReportUrl);
 
-    private static string? Published(string? url) => string.IsNullOrWhiteSpace(url) ? null : url;
+    private static string? PublishedLink(string? url) => string.IsNullOrWhiteSpace(url) ? null : url;
 
     private void RefreshHubHomeIfOpen()
     {
+        ReportIssuesButton.IsEnabled = ReportIssuesInviteUrl is not null;
+        ReportIssuesButton.ToolTip = ReportIssuesInviteUrl is null ? "Link not available." : "Open the Casualties Hub report and issue forum";
         if (_currentPage is HubHomePage hubHome)
             hubHome.RefreshView();
     }
@@ -368,6 +363,7 @@ public partial class MainWindow : Window
 
     private void ConfirmOpenDiscord()
     {
+        if (DiscordInviteUrl is null) return;
         if (MessageBox.Show("Open the Casualties Hub Discord invite in your browser?", "CH Discord", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             OpenDiscord();
         else
@@ -376,7 +372,8 @@ public partial class MainWindow : Window
 
     private void OpenDiscord()
     {
-        Process.Start(new ProcessStartInfo(DiscordInviteUrl) { UseShellExecute = true });
+        if (DiscordInviteUrl is not { } url) return;
+        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         DebugLogService.Activity("Discord", "Opened the Casualties Hub Discord invite in the browser.");
     }
 
@@ -397,6 +394,7 @@ public partial class MainWindow : Window
 
     private void ReportIssues_Click(object sender, RoutedEventArgs e)
     {
+        if (ReportIssuesInviteUrl is not { } url) return;
         if (MessageBox.Show(
                 "Open the Casualties Hub report and issue forum in your browser?",
                 "Report issues",
@@ -407,7 +405,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        Process.Start(new ProcessStartInfo(ReportIssuesInviteUrl) { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         DebugLogService.Activity("Reports", "Opened the Casualties Hub report and issue forum.");
     }
 

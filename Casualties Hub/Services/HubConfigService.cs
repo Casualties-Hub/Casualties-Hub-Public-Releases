@@ -119,8 +119,9 @@ public sealed class HubConfigService
     {
         var config = JsonSerializer.Deserialize<HubConfig>(json, _jsonOptions) ?? throw new JsonException("The Hub configuration was empty.");
 
-        config.Links.DiscordUrl = RequireHttpsUrl(config.Links.DiscordUrl, "discordUrl");
-        config.Links.ReportUrl = RequireHttpsUrl(config.Links.ReportUrl, "reportUrl");
+        config.Links ??= new HubLinks();
+        config.Links.DiscordUrl = ValidateLink(config.Links.DiscordUrl, "discordUrl");
+        config.Links.ReportUrl = ValidateLink(config.Links.ReportUrl, "reportUrl");
 
         if (config.CurrentAnnouncement is { } current && !IsPublishable(current))
             throw new JsonException("The current announcement was missing an id or a message.");
@@ -134,16 +135,16 @@ public sealed class HubConfigService
         => !string.IsNullOrWhiteSpace(announcement.Id) && !string.IsNullOrWhiteSpace(announcement.Message);
 
     /// <summary>
-    /// The Hub hands these straight to the shell, so a published link that is not
-    /// plain https is rejected along with the document that carried it.
+    /// Links are handed to the shell, so only plain https is kept. Anything else
+    /// is dropped, which hides the button it would have opened.
     /// </summary>
-    private static string RequireHttpsUrl(string? value, string field)
+    private static string ValidateLink(string? value, string field)
     {
-        if (string.IsNullOrWhiteSpace(value)
-            || !Uri.TryCreate(value, UriKind.Absolute, out var uri)
-            || uri.Scheme != Uri.UriSchemeHttps)
-            throw new JsonException($"The configuration field {field} was not an https URL.");
-        return uri.AbsoluteUri;
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps)
+            return uri.AbsoluteUri;
+        DebugLogService.Activity("Hub configuration", $"Ignored the {field} link because it was not an https URL.");
+        return "";
     }
 
     private CacheState LoadState()

@@ -38,6 +38,8 @@ public partial class HubHomePage : Page
         ReleaseInformationText.Text = state.ReleaseInformation;
         AnnouncementHistoryList.ItemsSource = state.PreviousAnnouncements;
         NoHistoryText.Visibility = state.PreviousAnnouncements.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        OpenDiscordButton.IsEnabled = state.DiscordLinkAvailable;
+        OpenDiscordButton.ToolTip = state.DiscordLinkAvailable ? null : "Link not available.";
     }
 
     private void PriorAnnouncements_Click(object sender, RoutedEventArgs e)
