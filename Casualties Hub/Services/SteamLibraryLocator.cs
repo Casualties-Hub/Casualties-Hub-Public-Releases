@@ -20,6 +20,8 @@ public static class SteamLibraryLocator
     /// <summary>Steam roots in the order they are worth checking. Duplicates are removed after symlink resolution.</summary>
     public static IReadOnlyList<string> CandidateRoots()
     {
+        if (OperatingSystem.IsWindows()) return WindowsCandidateRoots();
+
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var xdgData = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
@@ -37,6 +39,51 @@ public static class SteamLibraryLocator
         ]);
 
         return candidates;
+    }
+
+    /// <summary>
+    /// On Windows, Steam records where it is installed in the registry. The Program Files
+    /// defaults cover an install whose registry entry is missing.
+    /// </summary>
+    private static IReadOnlyList<string> WindowsCandidateRoots()
+    {
+        var candidates = new List<string>();
+        if (WindowsSteamRoot() is { } registered) candidates.Add(registered);
+
+        foreach (var programFiles in new[] { Environment.SpecialFolder.ProgramFilesX86, Environment.SpecialFolder.ProgramFiles })
+        {
+            var folder = Environment.GetFolderPath(programFiles);
+            if (!string.IsNullOrWhiteSpace(folder)) candidates.Add(Path.Combine(folder, "Steam"));
+        }
+
+        return candidates;
+    }
+
+    /// <summary>The Steam install folder from the registry, or null when Steam has not registered one.</summary>
+    public static string? WindowsSteamRoot()
+    {
+        if (!OperatingSystem.IsWindows()) return null;
+
+        foreach (var (hive, subKey, valueName) in new[]
+                 {
+                     (Microsoft.Win32.Registry.CurrentUser, @"Software\Valve\Steam", "SteamPath"),
+                     (Microsoft.Win32.Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath"),
+                     (Microsoft.Win32.Registry.LocalMachine, @"SOFTWARE\Valve\Steam", "InstallPath"),
+                 })
+        {
+            try
+            {
+                using var key = hive.OpenSubKey(subKey);
+                if (key?.GetValue(valueName) is string value && !string.IsNullOrWhiteSpace(value))
+                    return Path.GetFullPath(value);
+            }
+            catch (Exception exception) when (exception is System.Security.SecurityException or IOException or UnauthorizedAccessException)
+            {
+                // An unreadable hive is not an error; the Program Files defaults still apply.
+            }
+        }
+
+        return null;
     }
 
     /// <summary>Every distinct Steam library folder on this machine.</summary>
@@ -143,8 +190,11 @@ public static class SteamLibraryLocator
 
     private static void AddDistinct(List<string> libraries, string path)
     {
-        // Ordinal: two paths differing only by case are different directories here.
-        if (!libraries.Any(existing => string.Equals(existing, path, StringComparison.Ordinal)))
+        // Ordinal on a case-sensitive filesystem, where two paths differing only by case are
+        // different directories. Windows paths compare case-insensitively, so the registry root
+        // and the Program Files default collapse into one entry.
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        if (!libraries.Any(existing => string.Equals(existing, path, comparison)))
             libraries.Add(path);
     }
 

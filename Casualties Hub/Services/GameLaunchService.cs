@@ -72,8 +72,8 @@ public sealed class GameLaunchService
     {
         var uri = $"steam://rungameid/{appId}";
 
-        // UseShellExecute routes through xdg-open, which honours the steam:// handler that both
-        // native and Flatpak Steam register.
+        // UseShellExecute hands the steam:// link to the desktop handler Steam registers: through
+        // xdg-open on Linux, ShellExecute on Windows.
         try
         {
             Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
@@ -85,19 +85,30 @@ public sealed class GameLaunchService
             DebugLogService.Error($"Could not open {uri} through the desktop handler", exception);
         }
 
-        // No xdg-open, or no registered handler: a minimal window manager, or a session with no
-        // desktop portal. Fall back to the Steam client directly if it is on PATH.
+        // No registered handler: a minimal window manager, a session with no desktop portal, or a
+        // broken protocol association. Fall back to the Steam client directly.
         try
         {
-            Process.Start(new ProcessStartInfo("steam", $"-applaunch {appId}") { UseShellExecute = false });
+            Process.Start(new ProcessStartInfo(SteamClientCommand(), $"-applaunch {appId}") { UseShellExecute = false });
             DebugLogService.Activity("Game launch", $"Requested steam -applaunch {appId}.");
         }
         catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
             throw new InvalidOperationException(
-                "Could not reach Steam. Check that Steam is installed and that xdg-open is available, " +
+                "Could not reach Steam. Check that Steam is installed, " +
                 $"or start the game from your Steam library. (app id {appId})", exception);
         }
+    }
+
+    /// <summary>
+    /// The Steam client to run directly. Linux puts it on PATH; Windows records its folder in
+    /// the registry and never adds it to PATH.
+    /// </summary>
+    private static string SteamClientCommand()
+    {
+        if (!OperatingSystem.IsWindows()) return "steam";
+        var root = SteamLibraryLocator.WindowsSteamRoot();
+        return root is null ? "steam.exe" : Path.Combine(root, "steam.exe");
     }
 
     private static string? FindSteamAppsFolder(string startPath)
