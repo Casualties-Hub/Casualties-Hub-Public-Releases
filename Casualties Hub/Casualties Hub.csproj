@@ -40,9 +40,9 @@
   </ItemGroup>
 
   <!--
-    Catalogs, Hub content, and release notes travel inside the EXE so a release can ship as a
-    single file. BundledData still prefers a matching file under Data\ beside the Hub, which
-    keeps the catalogs hand-editable on an unpacked install.
+    Catalogs and release notes travel inside the EXE so a release can ship as a single file.
+    BundledData still prefers a matching file under Data\ beside the Hub, which keeps the
+    catalogs hand-editable on an unpacked install.
   -->
   <ItemGroup>
     <EmbeddedResource Include="Services\DependencyCatalog.json">
@@ -50,9 +50,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Services\IncompatibilityCatalog.json">
       <LogicalName>Bundled/Catalogs/IncompatibilityCatalog.json</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\HubContent.json">
-      <LogicalName>Bundled/HubContent.json</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="..\Release Notes\*.txt">
       <LogicalName>Bundled/Release Notes/%(Filename)%(Extension)</LogicalName>

@@ -10,5 +10,6 @@ public sealed class HubHomeState
     public DateTimeOffset? NextServiceCheckUtc { get; init; }
     public string WhatChangedText { get; init; } = "What changed notes are not available for this build.";
     public string ReleaseInformation { get; init; } = "No additional release information is available.";
-    public IReadOnlyList<AnnouncementHistoryItem> AnnouncementHistory { get; init; } = [];
+    public IReadOnlyList<HubAnnouncement> PreviousAnnouncements { get; init; } = [];
+    public bool DiscordLinkAvailable { get; init; }
 }
