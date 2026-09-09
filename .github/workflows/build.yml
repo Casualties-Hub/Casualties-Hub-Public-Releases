@@ -1,5 +1,9 @@
 name: Build
 
+# Builds and tests on both platforms, then produces the single-file binaries and attaches them
+# to the run as artifacts. Nothing here creates a tag or a GitHub Release; releases are a manual
+# maintainer action.
+
 on:
   pull_request:
     branches:
@@ -19,7 +23,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # The solution, not the app project alone, so the tests compile under -warnaserror too.
+      - name: Build (Release)
+        run: dotnet build "Casualties Hub.slnx" -c Release -warnaserror
+
+      - name: Test
+        run: dotnet test "Casualties Hub.Tests/Casualties Hub.Tests.csproj" -c Release --no-build
+
+      # The Windows binary can only be started on Windows, so its self-test lives here.
+      - name: Self-test the Windows binary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r win-x64 -o publish/windows
+          & "publish/windows/casualties-hub.exe" --selftest
+
+  package:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -38,14 +82,13 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
-      - name: Build (Release)
-        run: dotnet build "Casualties Hub/Casualties Hub.csproj" -c Release -warnaserror
-
-      - name: Test
-        run: dotnet test "Casualties Hub.Tests/Casualties Hub.Tests.csproj" -c Release
-
       - name: Publish (linux-x64)
         run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r linux-x64 -o publish/linux
+
+      # Constructs every page and dialog headlessly; catches XAML and resource breaks a compile
+      # cannot. Needs no display.
+      - name: Self-test the Linux binary
+        run: ./publish/linux/casualties-hub --selftest
 
       - name: Publish (win-x64)
         run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r win-x64 -o publish/windows
