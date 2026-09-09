@@ -9,9 +9,10 @@ namespace Casualties_Hub.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Completion is judged by the file size holding steady, not by whether an exclusive open
-/// succeeds. Under advisory locking that open succeeds while a browser is still writing, which
-/// would hand a truncated archive to the installer.
+/// How a finished download is recognised depends on the platform. On Windows the browser holds
+/// the file open while writing, so an exclusive open fails until it is done: a reliable signal
+/// that also covers a paused or stalled download. On Linux locking is advisory and that open
+/// succeeds mid-download, so the size holding steady for a few seconds stands in for it.
 /// </para>
 /// <para>
 /// The install prompt is a callback because dialogs are async and this runs on a pool thread.
@@ -161,16 +162,54 @@ public sealed class DownloadImportService : IDisposable
             || PartialSuffixes.Any(suffix => name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static Task<bool> WaitForDownloadToFinishAsync(string path) =>
-        WaitForStableSizeAsync(path, TimeSpan.FromSeconds(1), requiredStableReads: 3, maxAttempts: 60);
+    private static Task<bool> WaitForDownloadToFinishAsync(string path) => OperatingSystem.IsWindows()
+        ? WaitForExclusiveOpenAsync(path, TimeSpan.FromSeconds(2), maxAttempts: 30)
+        : WaitForStableSizeAsync(path, TimeSpan.FromSeconds(1), requiredStableReads: 3, maxAttempts: 60);
 
     /// <summary>
-    /// Waits until a file's size stops changing, which is how a finished download is recognised here.
+    /// Windows: waits until the file can be opened exclusively, which fails for as long as the
+    /// downloader still has it open for writing.
     /// </summary>
     /// <remarks>
-    /// An exclusive open is not enough: where locking is advisory it succeeds mid-download and the
-    /// archive would be installed half-written. Requiring several identical size readings in a row
-    /// costs a few seconds and does not depend on the writer cooperating.
+    /// Mandatory locking makes this exact: a paused or stalled download keeps its handle and so
+    /// keeps failing the open, where a size check would wrongly call it finished.
+    /// Internal so the timing can be shortened in tests.
+    /// </remarks>
+    internal static async Task<bool> WaitForExclusiveOpenAsync(string path, TimeSpan interval, int maxAttempts)
+    {
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            await Task.Delay(interval);
+
+            if (!File.Exists(path))
+            {
+                // Renamed away or cancelled mid-download; nothing left to import.
+                DebugLogService.Info($"Download vanished before it finished: {Path.GetFileName(path)}");
+                return false;
+            }
+
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
+                if (stream.Length > 0) return true;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Still being written.
+            }
+        }
+
+        DebugLogService.Info($"Timed out waiting for the download to finish: {Path.GetFileName(path)}");
+        return false;
+    }
+
+    /// <summary>
+    /// Linux: waits until a file's size stops changing.
+    /// </summary>
+    /// <remarks>
+    /// An exclusive open is not enough here: locking is advisory, so it succeeds mid-download and
+    /// the archive would be installed half-written. Requiring several identical size readings in
+    /// a row costs a few seconds and does not depend on the writer cooperating.
     /// Internal so the timing can be shortened in tests.
     /// </remarks>
     internal static async Task<bool> WaitForStableSizeAsync(

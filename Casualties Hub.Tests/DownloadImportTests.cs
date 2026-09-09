@@ -9,10 +9,34 @@ namespace Casualties_Hub.Tests;
 /// <remarks>
 /// The failure here is near-invisible. Treating a successful exclusive open as "finished" is
 /// unsound where locking is advisory: the open succeeds while a browser is still writing, and the
-/// Hub would extract a truncated archive into somebody's game folder.
+/// Hub would extract a truncated archive into somebody's game folder. Where locking is mandatory
+/// the exclusive open is the better signal, because a stalled download keeps its handle open
+/// while its size sits still. Both strategies are covered; the service picks by platform.
 /// </remarks>
 public sealed class DownloadImportTests : IDisposable
 {
+    [Fact]
+    public async Task Exclusive_open_waits_while_the_writer_holds_the_file()
+    {
+        var file = Path("held.zip");
+        await File.WriteAllBytesAsync(file, new byte[1024]);
+
+        // A downloader keeps a write handle open until it is done; the size does not move while
+        // it is paused, so only the handle tells the truth.
+        using (new FileStream(file, FileMode.Open, FileAccess.Write, FileShare.Read))
+        {
+            Assert.False(await DownloadImportService.WaitForExclusiveOpenAsync(file, Tick, 5));
+        }
+
+        Assert.True(await DownloadImportService.WaitForExclusiveOpenAsync(file, Tick, 5));
+    }
+
+    [Fact]
+    public async Task Exclusive_open_reports_a_vanished_download()
+    {
+        Assert.False(await DownloadImportService.WaitForExclusiveOpenAsync(Path("gone.zip"), Tick, 5));
+    }
+
     private readonly string _root = Directory.CreateTempSubdirectory("chdownload").FullName;
 
     // Short intervals so the suite stays fast; the shipped values are 1s x 3 reads.
