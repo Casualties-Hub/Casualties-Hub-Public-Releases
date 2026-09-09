@@ -163,6 +163,20 @@ public sealed class UninstallScriptTests
     }
 
     [Fact]
+    public void The_executable_is_allowed_but_its_folder_is_not()
+    {
+        // The Hub is a single file that can be run from anywhere. Removing it must never widen
+        // to the folder it happens to sit in.
+        var executable = UninstallService.ExecutablePath();
+        Assert.NotNull(executable);
+
+        Assert.True(UninstallService.IsSafeToDelete(executable));
+        Assert.False(UninstallService.IsSafeToDelete(Path.GetDirectoryName(executable)!));
+        Assert.False(UninstallService.IsSafeToDelete(AppContext.BaseDirectory));
+        Assert.False(UninstallService.IsSafeToDelete(Path.Combine(AppContext.BaseDirectory, "unrelated.txt")));
+    }
+
+    [Fact]
     public void The_hub_data_directory_is_allowed()
     {
         Assert.True(UninstallService.IsSafeToDelete(Path.Combine(HubPaths.AppDataRoot(), "Settings.json")));

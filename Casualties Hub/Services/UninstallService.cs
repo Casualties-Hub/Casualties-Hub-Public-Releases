@@ -24,16 +24,20 @@ public sealed class UninstallService
     public static IReadOnlyList<UninstallItem> GetItems(SettingsService settingsService)
     {
         var settings = settingsService.Load();
-        var installDirectory = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        // Only the executable itself. The Hub ships as a single file that can be run from any
+        // folder, so the folder around it is the user's, not ours: deleting it from Downloads
+        // or the desktop would take everything else in there with it.
+        var executable = ExecutablePath();
 
         return
         [
             new UninstallItem
             {
-                Key = "InstallFolder",
-                Title = "Application folder",
-                Description = installDirectory,
-                Paths = [installDirectory]
+                Key = "Application",
+                Title = "Application",
+                Description = executable ?? "The Hub executable could not be located.",
+                Paths = executable is null ? [] : [executable]
             },
             new UninstallItem
             {
@@ -154,10 +158,13 @@ public sealed class UninstallService
         // Needs at least two segments below the root, so "/home" and "/usr" cannot be targeted.
         if (full.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Length < 2) return false;
 
-        // Must sit inside one of the places the Hub actually owns.
+        // The executable is the one thing outside the data folder the Hub may remove, and only
+        // that exact file. Its containing folder is never an allowed root.
+        if (ExecutablePath() is { } executable && string.Equals(full, executable, StringComparison.Ordinal)) return true;
+
+        // Everything else must sit inside one of the places the Hub actually owns.
         var allowedRoots = new[]
         {
-            AppContext.BaseDirectory,
             HubPaths.AppDataRoot(),
             Path.GetTempPath(),
         };
@@ -165,6 +172,19 @@ public sealed class UninstallService
         return allowedRoots
             .Where(root => !string.IsNullOrWhiteSpace(root))
             .Any(root => HubPaths.IsInside(full, root));
+    }
+
+    /// <summary>The running executable's full path, or null when the runtime cannot report it.</summary>
+    internal static string? ExecutablePath()
+    {
+        var path = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(path)) return null;
+
+        try { return Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar); }
+        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return null;
+        }
     }
 
     /// <summary>Marks the staging path so the self-delete can sanity-check its own target.</summary>
