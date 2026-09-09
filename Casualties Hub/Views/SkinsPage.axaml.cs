@@ -24,6 +24,13 @@ public partial class SkinsPage : UserControl
     private string _root = "";
     private string? _selectedSlotPath;
     private bool _facingBack;
+
+    /// <summary>
+    /// The last composed figure and what it was composed from. Composing decodes every sprite
+    /// from disk, so it only happens when the slot or pose changes; zoom just resizes the host.
+    /// </summary>
+    private (string Slot, SkinHeadShape Head, SkinEyeExpression Eyes, bool FacingBack)? _composedKey;
+    private Canvas? _composedCanvas;
     private bool _panning;
     private Point _panOrigin;
     private Vector _panOffset;
@@ -125,6 +132,10 @@ public partial class SkinsPage : UserControl
 
     private void Reload()
     {
+        // Sprites may have been installed or replaced since the figure was last composed.
+        _composedCanvas = null;
+        _composedKey = null;
+
         List<SkinSlot> slots = [];
         try
         {
@@ -181,22 +192,30 @@ public partial class SkinsPage : UserControl
 
         try
         {
-            var canvas = SkinPreviewComposer.Compose(_selectedSlotPath, head, eyes, _facingBack);
-            if (canvas.Children.Count == 0)
+            var key = (_selectedSlotPath, head, eyes, _facingBack);
+            if (_composedCanvas is null || _composedKey != key)
             {
-                ClearPreview("This slot has no sprites the preview can draw.");
-                return;
+                var canvas = SkinPreviewComposer.Compose(_selectedSlotPath, head, eyes, _facingBack);
+                if (canvas.Children.Count == 0)
+                {
+                    _composedCanvas = null;
+                    _composedKey = null;
+                    ClearPreview("This slot has no sprites the preview can draw.");
+                    return;
+                }
+
+                _composedCanvas = canvas;
+                _composedKey = key;
+                ShowMissingSprites();
             }
 
             // Size the Viewbox to an exact multiple of the canvas so each source pixel lands on a
             // whole number of screen pixels. Letting it stretch to fill produces fractional
             // scaling, which is what makes pixel art look smeared.
             var host = this.FindControl<Viewbox>("PreviewHost")!;
-            host.Width = canvas.Width * zoom;
-            host.Height = canvas.Height * zoom;
-            host.Child = canvas;
-
-            ShowMissingSprites();
+            host.Width = _composedCanvas.Width * zoom;
+            host.Height = _composedCanvas.Height * zoom;
+            host.Child = _composedCanvas;
         }
         catch (Exception exception)
         {
