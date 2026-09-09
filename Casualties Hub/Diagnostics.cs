@@ -25,18 +25,15 @@ public static class Diagnostics
         report.AppendLine($"user      : {Environment.UserName}{(Environment.UserName == "root" ? "  (running as root)" : "")}");
         report.AppendLine();
 
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var dataDir = Path.Combine(localAppData, "CasualtiesHub");
-        report.AppendLine($"data dir  : {(dataDir.Length == 0 ? "<empty>" : dataDir)}");
-
-        // GetFolderPath returns "" on Unix when the directory does not exist yet (the default
-        // SpecialFolderOption.None does not create it), which silently degrades this to a
-        // RELATIVE path. The Hub would then write settings, logs and the Nexus key into whatever
-        // the working directory happens to be. Surface it loudly rather than let it happen.
+        // The same resolution every service uses, so the report names the folder the Hub really
+        // writes to. HubPaths handles the machine without ~/.local/share; the check below is only
+        // there to shout if that guarantee is ever broken.
+        var dataDir = HubPaths.AppDataRoot();
+        report.AppendLine($"data dir  : {dataDir}");
         if (!Path.IsPathRooted(dataDir))
         {
             report.AppendLine("  *** NOT AN ABSOLUTE PATH ***");
-            report.AppendLine($"  ~/.local/share does not exist, so settings would be written to: {Path.GetFullPath(dataDir)}");
+            report.AppendLine($"  settings, logs and the Nexus key would be written to: {Path.GetFullPath(dataDir)}");
         }
 
         report.AppendLine($"logs      : {DebugLogService.LogDirectory}");
