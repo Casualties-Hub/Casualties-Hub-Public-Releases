@@ -54,3 +54,17 @@ and pushes do not publish a release.
 
 Version numbers, embedded release notes, public release notes, and packaged artifacts
 must agree before a version tag or GitHub Release is created.
+
+Releases are built by the `Release` workflow, started by hand from the Actions tab with
+a version and a choice of testing or full. It builds and tests both platforms, stamps the
+version into the binary, packages the Linux tarball and the Windows executable, and leaves
+them on a draft GitHub Release. The draft is private and announces nothing; a maintainer
+reviews it and presses Publish, which is what creates the tag and makes the release real.
+
+The workflow refuses a request before building when the version is unreadable, when the
+embedded release notes for it are missing, when the tag already exists, or when the version
+and the chosen release type disagree. It also checks the built binary reports the version it
+was asked to build, because that string picks the update channel and the notes the Hub shows.
+
+`Release Packaging/Build-CasualtiesHubRelease.ps1` builds the same assets locally. CI is the
+route for anything published; the script remains useful for testing a package by hand.
