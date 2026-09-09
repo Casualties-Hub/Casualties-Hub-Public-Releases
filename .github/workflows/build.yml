@@ -2,7 +2,7 @@ name: Build
 
 # Builds, tests, publishes and self-tests on both platforms, then attaches the single-file
 # binaries to the run as artifacts. Each artifact is the exact binary that passed its self-test.
-# Nothing here creates a tag or a GitHub Release; releases are a manual maintainer action.
+# Nothing here creates a tag or a GitHub Release; release.yml does that, started by hand.
 
 on:
   pull_request:
