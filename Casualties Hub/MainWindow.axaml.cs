@@ -43,6 +43,7 @@ public partial class MainWindow : Window
 
         var settings = _settingsService.Load();
         ThemeApplier.Apply(settings);
+        DebugLogService.Activity("Theme", "Applied the saved colour palette.");
         // Deferred: MainWindow is not yet the lifetime's MainWindow while its constructor runs,
         // so setting FontSize now would apply to nothing.
         Opened += (_, _) => ThemeApplier.ApplyTextSize(_settingsService.Load());

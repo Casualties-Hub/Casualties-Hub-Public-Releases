@@ -8,6 +8,10 @@ namespace Casualties_Hub.Services;
 /// Pushes the palette derived from the player's colours into the application resources, so every
 /// DynamicResource binding in the UI updates at once.
 /// </summary>
+/// <remarks>
+/// Deliberately silent: the Animated RGB sweep calls <see cref="Apply"/> twenty times a second,
+/// so any logging belongs with the caller that represents a player action.
+/// </remarks>
 public static class ThemeApplier
 {
     public static void Apply(Settings settings)
@@ -29,8 +33,6 @@ public static class ThemeApplier
             if (!application.Resources.ContainsKey(key))
                 application.Resources[key] = new SolidColorBrush(fallback);
         }
-
-        DebugLogService.Activity("Theme", "Applied the saved colour palette.");
     }
 
     /// <summary>

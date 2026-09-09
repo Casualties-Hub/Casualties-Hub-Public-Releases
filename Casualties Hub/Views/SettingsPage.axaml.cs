@@ -359,6 +359,7 @@ public partial class SettingsPage : UserControl
         _settingsService.Save(settings);
         ThemeApplier.Apply(settings);
         ThemeApplier.ApplyTextSize(settings);
+        DebugLogService.Activity("Theme", "Applied the saved colour palette.");
         _setStatus("Theme applied.");
     }
 
@@ -402,6 +403,7 @@ public partial class SettingsPage : UserControl
 
         ThemeApplier.Apply(settings);
         ThemeApplier.ApplyTextSize(settings);
+        DebugLogService.Activity("Theme", $"Applied the colour preset {presetId}.");
         ShowSelectedColour();
         UpdatePresetLabel(settings);
         _setStatus($"Loaded {(presetId == UiPresetIds.Default ? "the default look" : preset.Name)}.");
