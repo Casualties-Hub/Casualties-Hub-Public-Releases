@@ -9,7 +9,16 @@ public class SettingsService
     private static readonly object SettingsSync = new();
     private readonly string _settingsPath;
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
-    public SettingsService() { AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CasualtiesHub"); Directory.CreateDirectory(AppDataPath); _settingsPath = Path.Combine(AppDataPath, "Settings.json"); }
+    public SettingsService()
+    {
+        // HubPaths.AppDataRoot rather than GetFolderPath directly: the default
+        // SpecialFolderOption.None returns "" on Unix when ~/.local/share does not exist yet,
+        // which would quietly turn this into the relative path "CasualtiesHub" and scatter
+        // settings, logs and the Nexus key across whatever the working directory was.
+        AppDataPath = HubPaths.AppDataRoot();
+        Directory.CreateDirectory(AppDataPath);
+        _settingsPath = Path.Combine(AppDataPath, "Settings.json");
+    }
     public string AppDataPath { get; }
     public Settings Load()
     {

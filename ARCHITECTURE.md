@@ -4,25 +4,25 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `Casualties Hub/` | Main WPF launcher and mod manager. |
+| `Casualties Hub/` | The Hub: an Avalonia launcher and mod manager. |
 | `Casualties Hub/Views/` | UI pages and their event-handling code. |
 | `Casualties Hub/Models/` | Settings, metadata, mod, and installation models. |
 | `Casualties Hub/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
-| `Casualties Hub Installer/` | Standalone Windows setup wizard. |
+| `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
 | `Nexus Mod Package/` | Nexus package marker project. |
 | `Release Packaging/` | Scripts and inputs used to assemble releases. |
 | `Release Notes/` | In-application version history. |
 | `GitHub Release Notes/` | Public release-page copy. |
 
-`Casualties Hub.slnx` includes the main Hub and installer projects. The Developer
-Console and Nexus marker projects are separate utilities.
+`Casualties Hub.slnx` includes the Hub and its tests. One project targets Linux and Windows;
+platform differences are handled inside the services, not by separate applications.
 
 ## Runtime data
 
 User-specific settings, logs, protected assets, cached data, downloads, and credentials
 must remain outside the repository. The application uses its local application-data
-directory for persistent user data. A Nexus API key is protected for the current
-Windows user and must never be committed, logged, or sent to Casualties Hub services.
+directory for persistent user data. A Nexus API key must never be committed, logged,
+or sent to Casualties Hub services.
 
 ## External systems
 

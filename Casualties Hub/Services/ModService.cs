@@ -13,7 +13,12 @@ public class ModService
     public static event EventHandler? PluginFilesChanged;
 
     public static void NotifyPluginFilesChanged() => PluginFilesChanged?.Invoke(null, EventArgs.Empty);
-    // The player can select the game root, BepInEx, or BepInEx\Plugins.
+    // The player can select the game root, BepInEx, or BepInEx/plugins.
+    //
+    // Every segment is resolved case-insensitively against what is really on disk. BepInEx under
+    // Proton commonly creates "plugins" lowercase, and on a case-sensitive filesystem a hardcoded
+    // "Plugins" makes Directory.Exists false: the Hub would report "no plugins folder" while
+    // pointing at a correctly installed game.
     public string GetPluginsPath(Settings settings)
     {
         var selectedPath = settings.GamePath;
@@ -21,8 +26,9 @@ public class ModService
 
         var normalized = Path.GetFullPath(selectedPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         if (Path.GetFileName(normalized).Equals("Plugins", StringComparison.OrdinalIgnoreCase)) return normalized;
-        if (Path.GetFileName(normalized).Equals("BepInEx", StringComparison.OrdinalIgnoreCase)) return Path.Combine(normalized, "Plugins");
-        return Path.Combine(normalized, "BepInEx", "Plugins");
+        if (Path.GetFileName(normalized).Equals("BepInEx", StringComparison.OrdinalIgnoreCase))
+            return HubPaths.ResolveChild(normalized, "Plugins");
+        return HubPaths.ResolveChain(normalized, "BepInEx", "Plugins");
     }
     public bool HasConfiguredPluginsFolder(Settings settings) => !string.IsNullOrWhiteSpace(settings.GamePath) && Directory.Exists(GetPluginsPath(settings));
     public bool HasConfiguredGameFolder(Settings settings) => !string.IsNullOrWhiteSpace(settings.GamePath) && Directory.Exists(settings.GamePath);
@@ -177,9 +183,11 @@ public class ModService
         var pluginsPath = GetPluginsPath(settings);
         if (!Directory.Exists(pluginsPath)) throw new DirectoryNotFoundException("The configured BepInEx\\Plugins folder was not found.");
 
+        // Case-insensitive matching: a mod shipping Foo.DLL is invisible to a plain "*.dll" glob
+        // on a case-sensitive filesystem, so it would silently fail to enable or disable.
         var files = disabled
-            ? Directory.EnumerateFiles(pluginsPath, "*.dll", SearchOption.AllDirectories).ToList()
-            : Directory.EnumerateFiles(pluginsPath, "*.dll.disabled", SearchOption.AllDirectories).ToList();
+            ? Directory.EnumerateFiles(pluginsPath, "*.dll", HubPaths.CaseInsensitiveRecursive).ToList()
+            : Directory.EnumerateFiles(pluginsPath, "*.dll.disabled", HubPaths.CaseInsensitiveRecursive).ToList();
         foreach (var path in files)
         {
             var destination = disabled ? path + ".disabled" : path[..^".disabled".Length];
@@ -283,8 +291,8 @@ public class ModService
         if (string.IsNullOrWhiteSpace(skinSlot) || !System.Text.RegularExpressions.Regex.IsMatch(skinSlot, @"^st\d+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
             throw new InvalidDataException("Choose a CustomSprites skin slot such as st0 or st12.");
 
-        var sourceFile = Directory.EnumerateFiles(stagingPath, "experimentCrus.png", SearchOption.AllDirectories)
-            .FirstOrDefault(path => Path.GetFileName(path).Equals("experimentCrus.png", StringComparison.OrdinalIgnoreCase));
+        var sourceFile = Directory.EnumerateFiles(stagingPath, "experimentCrus.png", HubPaths.CaseInsensitiveRecursive)
+            .FirstOrDefault();
         if (sourceFile is null) throw new InvalidDataException("experimentCrus.png was not found in the archive.");
 
         // Most skin archives put experimentCrus.png inside Head/ or Body/.  Copying
@@ -292,7 +300,8 @@ public class ModService
         // those skins.  Use the nearest parent that contains Head/ or Body/ instead.
         // Archives that intentionally use loose images still copy those loose images as-is.
         var sourceRoot = FindCustomSpriteRoot(stagingPath, Path.GetDirectoryName(sourceFile)!);
-        var destination = Path.Combine(pluginsPath, "CustomSprites", skinSlot.ToLowerInvariant());
+        var destination = HubPaths.ResolveChild(
+            HubPaths.ResolveChild(pluginsPath, "CustomSprites"), skinSlot.ToLowerInvariant());
         DeleteDirectoryIfExists(destination);
         Directory.CreateDirectory(destination);
         CopyDirectoryContentsExcludingText(sourceRoot, destination);
@@ -411,11 +420,87 @@ public class ModService
         if (Directory.Exists(path)) Directory.Delete(path, true);
     }
 
+    /// <summary>
+    /// Where backups are kept. Under the Hub's data directory, not beside the executable.
+    /// </summary>
+    /// <remarks>
+    /// A portable binary is commonly extracted somewhere read-only, or into a download folder the
+    /// user later cleans out, so backups belong with the rest of the app data.
+    /// </remarks>
+    public static string BackupRoot(Settings settings) =>
+        Path.IsPathRooted(settings.BackupPath)
+            ? settings.BackupPath
+            : Path.Combine(HubPaths.AppDataRoot(), settings.BackupPath);
+
+    /// <summary>
+    /// Copies every managed plugin entry into a timestamped backup, leaving the originals alone.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="PurgeToBackup"/>, which also deletes what it copied. Since this
+    /// build can permanently delete mods, a backup that is purely additive is the one worth
+    /// offering first.
+    /// </remarks>
+    public string BackupPlugins(Settings settings)
+    {
+        var pluginsPath = GetPluginsPath(settings);
+        if (!Directory.Exists(pluginsPath)) throw new DirectoryNotFoundException("The configured Plugins folder was not found.");
+
+        var backupPath = Path.Combine(BackupRoot(settings), DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+        Directory.CreateDirectory(backupPath);
+
+        var copied = 0;
+        foreach (var entry in Directory.EnumerateFileSystemEntries(pluginsPath).ToList())
+        {
+            var destination = Path.Combine(backupPath, Path.GetFileName(entry));
+            if (Directory.Exists(entry)) CopyDirectory(entry, destination);
+            else File.Copy(entry, destination, true);
+            copied++;
+        }
+
+        DebugLogService.Activity("Backups", $"Copied {copied} item(s) to {backupPath}.");
+        return backupPath;
+    }
+
+    /// <summary>
+    /// Copies a backup's contents back over the plugins folder, overwriting same-named files and
+    /// leaving anything added since the backup untouched.
+    /// </summary>
+    /// <remarks>
+    /// Lives here rather than in the page so it can be tested. It overwrites files inside a game
+    /// install, which is not logic worth shipping on the strength of a manual click.
+    /// </remarks>
+    public static int RestoreBackup(string backupPath, string pluginsPath)
+    {
+        if (!Directory.Exists(backupPath)) throw new DirectoryNotFoundException($"Backup not found: {backupPath}");
+        if (!Directory.Exists(pluginsPath)) throw new DirectoryNotFoundException("The plugins folder was not found.");
+
+        var restored = CopyOver(backupPath, pluginsPath);
+        DebugLogService.Activity("Backups", $"Restored {restored} file(s) into {pluginsPath}.");
+        return restored;
+    }
+
+    private static int CopyOver(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+        var count = 0;
+
+        foreach (var file in Directory.EnumerateFiles(source))
+        {
+            File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), overwrite: true);
+            count++;
+        }
+
+        foreach (var directory in Directory.EnumerateDirectories(source))
+            count += CopyOver(directory, Path.Combine(destination, Path.GetFileName(directory)));
+
+        return count;
+    }
+
     public string PurgeToBackup(Settings settings)
     {
         var pluginsPath = GetPluginsPath(settings);
         if (!Directory.Exists(pluginsPath)) throw new DirectoryNotFoundException("The configured Plugins folder was not found.");
-        var backupPath = Path.Combine(AppContext.BaseDirectory, settings.BackupPath, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+        var backupPath = Path.Combine(BackupRoot(settings), DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
         Directory.CreateDirectory(backupPath);
 
         foreach (var entry in Directory.EnumerateFileSystemEntries(pluginsPath)
@@ -489,7 +574,41 @@ public class ModService
             };
         }
 
-        return new InstalledMod { Name = Path.GetFileName(entry) ?? "Unknown mod" };
+        // No metadata entry matched. The mod still exists on disk and the player must be able to
+        // act on it, so populate everything the UI needs rather than returning a name-only stub.
+        //
+        // A name-only stub left PluginDllPaths empty, so Enable/Disable threw "This mod has no
+        // managed DLL file to enable or disable". SourceEntryPath was empty too, which broke Delete
+        // the same way, and IsDisabled defaulted to false, so an already-disabled mod displayed as
+        // enabled and offered the wrong action.
+        //
+        // Community mods routinely predate the catalog, so this is the common path, not an edge case.
+        var disabledDlls = dllPaths.Where(IsDisabledDll).ToList();
+        var isDisabledEntry = dllPaths.Count > 0 && disabledDlls.Count == dllPaths.Count;
+        var versionSource = dllPaths.FirstOrDefault(path => !IsDisabledDll(path)) ?? dllPaths.FirstOrDefault();
+        var unmatchedVersion = versionSource is null ? null : ReadDllVersionInfo(versionSource);
+
+        return new InstalledMod
+        {
+            Name = Path.GetFileNameWithoutExtension(GetMetadataDllName(entry)) is { Length: > 0 } stem
+                ? stem
+                : Path.GetFileName(entry) ?? "Unknown mod",
+            InstalledVersion = unmatchedVersion is null
+                ? null
+                : HighestVersion([unmatchedVersion.AssemblyVersion, unmatchedVersion.BepInExVersion]),
+            AssemblyVersion = unmatchedVersion?.AssemblyVersion,
+            BepInExVersion = unmatchedVersion?.BepInExVersion,
+            ModGuid = unmatchedVersion?.ModGuid,
+            FileModifiedUtc = versionSource is null
+                ? null
+                : new DateTimeOffset(File.GetLastWriteTimeUtc(versionSource), TimeSpan.Zero),
+            IsDisabled = isDisabledEntry,
+            UpdateStatusLabel = isDisabledEntry
+                ? "Disabled — re-enable this mod before checking for or installing updates."
+                : "Not listed in the community catalogue, so update status is not checked.",
+            PluginDllPaths = dllPaths,
+            SourceEntryPath = entry,
+        };
     }
 
     // Metadata can list bundled dependency DLLs on more than one Nexus entry. For example,

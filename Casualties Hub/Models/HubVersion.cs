@@ -20,16 +20,27 @@ public sealed class HubVersion : IComparable<HubVersion>
     public string Original { get; }
     public bool IsPrerelease => Prerelease is not null;
 
+    /// <summary>
+    /// The version of the running application.
+    /// </summary>
+    /// <remarks>
+    /// This deliberately reads the ENTRY assembly, not this one. That matters beyond the label in
+    /// the sidebar: ReleaseNotesService keys the bundled notes file off this string, so a mismatch
+    /// silently turns Hub Home into "notes are not available for this build".
+    /// Falls back to this assembly when there is no entry assembly (unit test hosts).
+    /// </remarks>
     public static HubVersion Current()
     {
-        var informational = typeof(HubVersion).Assembly
+        var assembly = System.Reflection.Assembly.GetEntryAssembly() ?? typeof(HubVersion).Assembly;
+
+        var informational = assembly
             .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
             .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
             .FirstOrDefault()?.InformationalVersion;
 
         return TryParse(informational, out var parsed)
             ? parsed
-            : new HubVersion(typeof(HubVersion).Assembly.GetName().Version ?? new Version(0, 0, 0), null, "0.0.0");
+            : new HubVersion(assembly.GetName().Version ?? new Version(0, 0, 0), null, "0.0.0");
     }
 
     public static bool TryParse(string? value, out HubVersion version)

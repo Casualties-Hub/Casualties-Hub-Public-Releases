@@ -6,7 +6,9 @@ public class Settings
 {
     public string GamePath { get; set; } = "";
     public string BackupPath { get; set; } = "Backups";
-    public string DownloadPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+    // Read from XDG rather than hardcoding ~/Downloads: on a localised desktop the real folder is
+    // ~/Téléchargements or ~/下载, and the English name simply does not exist.
+    public string DownloadPath { get; set; } = Services.HubPaths.DownloadsFolder();
     public bool DisableAutoDeleteImportedParentFiles { get; set; }
     public double TextSize { get; set; } = 14;
     // Theme colours are intentionally split by role so light navigation buttons

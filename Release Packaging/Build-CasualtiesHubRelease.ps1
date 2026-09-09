@@ -1,25 +1,29 @@
 <#
-Builds a GitHub-release folder containing the single Casualties Hub EXE, and a matching ZIP
-beside it. The EXE carries its own catalogs, Hub content, and release notes, so nothing else
-belongs in the release folder.
+.SYNOPSIS
+    Packages Casualties Hub for release: a tarball for Linux and a bare executable for Windows.
 
-A separate developer console and uninstaller are planned as their own downloads. Neither is
-bundled here, and the Hub does not depend on either one.
+.DESCRIPTION
+    Both come from the same project, published once per runtime as a single self-contained file.
+    Windows ships that file as-is. Linux needs the executable bit set on it, which a zip cannot
+    record and a tar can, so the Linux file travels in a .tar.gz together with the optional
+    desktop entry. Windows 10+ ships bsdtar as tar.exe, so no extra tooling is needed.
+
+.EXAMPLE
+    .\Build-CasualtiesHubRelease.ps1 -OutputDirectory "$HOME\Documents\Casualties Hub\Builds"
+
+.EXAMPLE
+    .\Build-CasualtiesHubRelease.ps1 -OutputDirectory "$HOME\Documents\Casualties Hub\Builds" -Platform windows
 #>
-
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$HubPublishDirectory,
-
-    [Parameter(Mandatory)]
-    [ValidatePattern('^v?\d+\.\d+\.\d+(-pre\.\d+(\.\d+)?)?$')]
-    [string]$Version,
-
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
+    [Parameter(Mandatory = $true)]
     [string]$OutputDirectory,
+
+    [ValidatePattern('^v?\d+\.\d+\.\d+(-pre\.\d+(\.\d+)?)?$')]
+    [string]$Version = '0.0.8-pre.6.1',
+
+    [ValidateSet('linux', 'windows', 'both')]
+    [string]$Platform = 'both',
 
     [switch]$Replace
 )
@@ -27,44 +31,140 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $normalizedVersion = $Version.TrimStart('v')
-$releaseName = "Casualties Hub v$normalizedVersion"
-$resolvedHubPublish = (Resolve-Path -LiteralPath $HubPublishDirectory).Path
-$publishedExe = Join-Path $resolvedHubPublish 'Casualties Hub.exe'
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$project = Join-Path $repoRoot 'Casualties Hub\Casualties Hub.csproj'
+$packagingDir = Join-Path $repoRoot 'Casualties Hub\Packaging'
+$icon = Join-Path $repoRoot 'Casualties Hub\Assets\CasualtiesHub.png'
 
-if (-not (Test-Path -LiteralPath $publishedExe)) {
-    throw 'HubPublishDirectory must be the published Hub folder containing Casualties Hub.exe.'
+if (-not (Test-Path $project)) { throw "Could not find the Hub project at $project" }
+
+function Publish-Hub {
+    param([string]$Runtime, [string]$Staging, [string]$BinaryName)
+
+    Write-Host "Publishing $Runtime..." -ForegroundColor Cyan
+    dotnet publish $project -c Release -r $Runtime -o $Staging --nologo | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "dotnet publish ($Runtime) failed with exit code $LASTEXITCODE." }
+
+    $binary = Join-Path $Staging $BinaryName
+    if (-not (Test-Path $binary)) { throw "Publish did not produce '$BinaryName'. Check AssemblyName in the csproj." }
+
+    # The release must be one portable file. Loose assemblies mean PublishSingleFile silently
+    # stopped bundling something, which previously shipped a build that started fine and then
+    # failed at runtime.
+    $loose = Get-ChildItem $Staging -Filter *.dll -ErrorAction SilentlyContinue
+    if ($loose) { throw "Found $($loose.Count) loose DLL(s); PublishSingleFile did not bundle everything: $($loose.Name -join ', ')" }
+
+    Get-ChildItem $Staging -Filter *.pdb -ErrorAction SilentlyContinue | Remove-Item -Force
 }
 
-# A single-file publish leaves no loose managed DLLs. Anything else here means the publish was
-# not self-contained single-file, which would make the shipped EXE fail on a clean machine.
-$strayDlls = @(Get-ChildItem -LiteralPath $resolvedHubPublish -Filter '*.dll' -File -ErrorAction SilentlyContinue)
-if ($strayDlls.Count -gt 0) {
-    throw "The published folder contains $($strayDlls.Count) loose DLL(s). Publish with -c Release so PublishSingleFile applies."
-}
-
-New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
-$outputDirectory = (Resolve-Path -LiteralPath $OutputDirectory).Path
-$releaseDirectory = Join-Path $outputDirectory $releaseName
-$zipPath = Join-Path $outputDirectory "$releaseName.zip"
-
-foreach ($existing in @($releaseDirectory, $zipPath)) {
-    if ((Test-Path -LiteralPath $existing) -and -not $Replace) {
-        throw "Release output already exists. Re-run with -Replace to overwrite it: $existing"
+function Assert-Fresh {
+    param([string[]]$Paths)
+    foreach ($path in $Paths) {
+        if ((Test-Path $path) -and -not $Replace) { throw "$path already exists. Pass -Replace to overwrite." }
+        Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
 
-if (Test-Path -LiteralPath $releaseDirectory) { Remove-Item -LiteralPath $releaseDirectory -Recurse -Force }
-if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
+function Build-LinuxRelease {
+    $releaseDir = Join-Path $OutputDirectory "Casualties Hub v$normalizedVersion linux-x64"
+    $tarball = Join-Path $OutputDirectory "casualties-hub-v$normalizedVersion-linux-x64.tar.gz"
+    Assert-Fresh @($releaseDir, $tarball)
 
-New-Item -ItemType Directory -Path $releaseDirectory | Out-Null
-Copy-Item -LiteralPath $publishedExe -Destination (Join-Path $releaseDirectory 'Casualties Hub.exe') -Force
+    $staging = "$releaseDir - staging"
+    Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
 
-$reportedVersion = (Get-Item -LiteralPath $publishedExe).VersionInfo.ProductVersion
-if ($reportedVersion -and ($reportedVersion -split '\+')[0] -ne $normalizedVersion) {
-    throw "The published EXE reports version '$reportedVersion' but the release is '$normalizedVersion'. Bump the csproj and republish."
+    try {
+        Publish-Hub -Runtime 'linux-x64' -Staging $staging -BinaryName 'casualties-hub'
+
+        foreach ($file in @('README-linux.txt', 'casualties-hub.desktop', 'install-desktop-entry.sh')) {
+            $source = Join-Path $packagingDir $file
+            if (Test-Path $source) { Copy-Item $source (Join-Path $staging $file) }
+            else { Write-Warning "Packaging file not found, skipping: $file" }
+        }
+        if (Test-Path $icon) { Copy-Item $icon (Join-Path $staging 'casualties-hub.png') }
+
+        Rename-Item $staging $releaseDir
+
+        Write-Host "Creating tarball..." -ForegroundColor Cyan
+
+        # NTFS has no executable bit, and the bsdtar shipped with Windows has no --mode option to
+        # fake one. A tarball built here would hand the user "permission denied" on first run.
+        # WSL has a real filesystem and GNU tar, so build the archive there when it is available.
+        $executableBitSet = $false
+        if (Get-Command wsl.exe -ErrorAction SilentlyContinue) {
+            $wslDir = (wsl wslpath -a ($releaseDir -replace '\\', '/')).Trim()
+            $wslTarball = (wsl wslpath -a ($tarball -replace '\\', '/')).Trim()
+            # Stage on the Linux filesystem before setting modes. Windows drives mount as 9p/drvfs
+            # without the metadata option, which reports every file as 777 and makes chmod a silent
+            # no-op - so archiving straight from /mnt/c gets the executable bit only by luck of the
+            # mount options, and marks the README executable too.
+            $shell = @"
+set -e
+STAGE=`$(mktemp -d)
+trap 'rm -rf "`$STAGE"' EXIT
+cp -r '$wslDir/.' "`$STAGE/"
+cd "`$STAGE"
+chmod 755 casualties-hub
+[ -f install-desktop-entry.sh ] && chmod 755 install-desktop-entry.sh
+for f in README-linux.txt casualties-hub.desktop casualties-hub.png; do
+    [ -f "`$f" ] && chmod 644 "`$f"
+done
+tar -czf '$wslTarball' .
+"@
+            wsl -e bash -c $shell
+            if ($LASTEXITCODE -eq 0) {
+                $executableBitSet = $true
+                Write-Host '  built via WSL; executable bit preserved' -ForegroundColor DarkGray
+            }
+            else {
+                Write-Warning 'WSL tar failed; falling back to Windows tar.'
+            }
+        }
+
+        if (-not $executableBitSet) {
+            Push-Location $OutputDirectory
+            try {
+                tar --create --gzip --file $tarball --directory $releaseDir .
+                if ($LASTEXITCODE -ne 0) { throw "tar failed with exit code $LASTEXITCODE." }
+            }
+            finally { Pop-Location }
+            Write-Warning 'Built without WSL: the archive does NOT carry the executable bit.'
+            Write-Warning 'The user must run "chmod +x casualties-hub" first (README-linux.txt covers this).'
+        }
+
+        $sizeMb = [math]::Round((Get-Item $tarball).Length / 1MB, 1)
+        Write-Host "Linux  : $tarball ($sizeMb MB)" -ForegroundColor Green
+    }
+    finally {
+        Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
 
-Compress-Archive -Path (Join-Path $releaseDirectory '*') -DestinationPath $zipPath -Force
+function Build-WindowsRelease {
+    $exe = Join-Path $OutputDirectory "casualties-hub-v$normalizedVersion-win-x64.exe"
+    Assert-Fresh @($exe)
 
-Write-Host "Release folder created: $releaseDirectory" -ForegroundColor Green
-Write-Host "Release ZIP created:    $zipPath" -ForegroundColor Green
+    $staging = Join-Path $OutputDirectory "win-x64 - staging"
+    Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
+
+    try {
+        Publish-Hub -Runtime 'win-x64' -Staging $staging -BinaryName 'casualties-hub.exe'
+
+        # No archive: the release is the one executable, so that is what gets uploaded.
+        Move-Item (Join-Path $staging 'casualties-hub.exe') $exe
+
+        $sizeMb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
+        Write-Host "Windows: $exe ($sizeMb MB)" -ForegroundColor Green
+    }
+    finally {
+        Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+
+if ($Platform -in @('linux', 'both')) { Build-LinuxRelease }
+if ($Platform -in @('windows', 'both')) { Build-WindowsRelease }
+
+Write-Host ''
+Write-Host "Release assets are in $OutputDirectory" -ForegroundColor Yellow

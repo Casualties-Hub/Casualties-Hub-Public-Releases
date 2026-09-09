@@ -1,10 +1,18 @@
 using System.Diagnostics;
 using System.IO;
-using System.Text.RegularExpressions;
 using Casualties_Hub.Models;
 
 namespace Casualties_Hub.Services;
 
+/// <summary>
+/// Starts Casualties Unknown through Steam.
+/// </summary>
+/// <remarks>
+/// Always through <c>steam://rungameid/</c>, never the game's executable directly. Under Proton,
+/// starting the .exe outside Steam skips the compatibility tool, the Wine prefix, and the
+/// WINEDLLOVERRIDES entry BepInEx needs to load at all. Without Steam we tell the user rather than
+/// launch something that would appear to work and then run unmodded.
+/// </remarks>
 public sealed class GameLaunchService
 {
     private readonly ModService _modService = new();
@@ -15,32 +23,92 @@ public sealed class GameLaunchService
             throw new InvalidOperationException("Set a valid Casualties Unknown game folder first.");
 
         var gameRoot = _modService.GetGameRoot(settings);
-        // A game root normally ends in steamapps\common\<game>. Walk upward
-        // instead of assuming a fixed number of parents, so custom Steam
-        // libraries still find their appmanifest file in steamapps.
+        var appId = ResolveAppId(gameRoot);
+
+        if (appId is null)
+            throw new FileNotFoundException(
+                "Could not find this game's Steam app manifest, so it cannot be launched through Steam. " +
+                "Start it from your Steam library instead.");
+
+        Launch(appId);
+    }
+
+    /// <summary>Reads the app id from the appmanifest that matches this install.</summary>
+    private static string? ResolveAppId(string gameRoot)
+    {
+        // Prefer Steam's own view, which already parses every library properly.
+        var known = SteamLibraryLocator.FindInstalledGames()
+            .FirstOrDefault(install => HubPaths.IsInside(gameRoot, install.Path)
+                                    || HubPaths.IsInside(install.Path, gameRoot));
+        if (known is not null) return known.AppId;
+
+        // The folder may sit in a library Steam no longer lists. Walk up to steamapps and read
+        // the manifests directly, matching on the real folder name.
         var steamApps = FindSteamAppsFolder(gameRoot);
-        if (!string.IsNullOrWhiteSpace(steamApps) && Directory.Exists(steamApps))
+        if (steamApps is null || !Directory.Exists(steamApps)) return null;
+
+        var folderName = Path.GetFileName(gameRoot);
+        foreach (var manifest in Directory.EnumerateFiles(steamApps, "appmanifest_*.acf", HubPaths.CaseInsensitive))
         {
-            foreach (var manifest in Directory.EnumerateFiles(steamApps, "appmanifest_*.acf"))
+            try
             {
-                var contents = File.ReadAllText(manifest);
-                var installDir = Regex.Match(contents, "\\\"installdir\\\"\\s+\\\"(?<name>[^\\\"]+)\\\"", RegexOptions.IgnoreCase);
-                if (!installDir.Success || !installDir.Groups["name"].Value.Equals(Path.GetFileName(gameRoot), StringComparison.OrdinalIgnoreCase)) continue;
-                var appId = Regex.Match(contents, "\\\"appid\\\"\\s+\\\"(?<id>\\d+)\\\"");
-                if (appId.Success)
-                {
-                    Process.Start(new ProcessStartInfo($"steam://rungameid/{appId.Groups["id"].Value}") { UseShellExecute = true });
-                    return;
-                }
+                var state = VdfNode.Parse(File.ReadAllText(manifest)).Children.FirstOrDefault();
+                var installDir = state?.ChildValue("installdir");
+                if (installDir is null || !installDir.Equals(folderName, StringComparison.OrdinalIgnoreCase)) continue;
+
+                var appId = state?.ChildValue("appid");
+                if (!string.IsNullOrWhiteSpace(appId)) return appId;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Skip an unreadable manifest and keep looking.
             }
         }
 
-        var executable = Directory.EnumerateFiles(gameRoot, "*.exe", SearchOption.TopDirectoryOnly)
-            .FirstOrDefault(path => Path.GetFileName(path).Contains("Casualties", StringComparison.OrdinalIgnoreCase))
-            ?? Directory.EnumerateFiles(gameRoot, "*.exe", SearchOption.TopDirectoryOnly)
-                .FirstOrDefault(path => !Path.GetFileName(path).Contains("UnityCrashHandler", StringComparison.OrdinalIgnoreCase));
-        if (executable is null) throw new FileNotFoundException("Could not find the game executable or its Steam app manifest.");
-        Process.Start(new ProcessStartInfo(executable) { UseShellExecute = true });
+        return null;
+    }
+
+    private static void Launch(string appId)
+    {
+        var uri = $"steam://rungameid/{appId}";
+
+        // UseShellExecute hands the steam:// link to the desktop handler Steam registers: through
+        // xdg-open on Linux, ShellExecute on Windows.
+        try
+        {
+            Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+            DebugLogService.Activity("Game launch", $"Requested {uri} through the desktop handler.");
+            return;
+        }
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            DebugLogService.Error($"Could not open {uri} through the desktop handler", exception);
+        }
+
+        // No registered handler: a minimal window manager, a session with no desktop portal, or a
+        // broken protocol association. Fall back to the Steam client directly.
+        try
+        {
+            Process.Start(new ProcessStartInfo(SteamClientCommand(), $"-applaunch {appId}") { UseShellExecute = false });
+            DebugLogService.Activity("Game launch", $"Requested steam -applaunch {appId}.");
+        }
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            throw new InvalidOperationException(
+                "Could not reach Steam. Check that Steam is installed, " +
+                $"or start the game from your Steam library. (app id {appId})", exception);
+        }
+    }
+
+    /// <summary>
+    /// The Steam client to run directly. Linux puts it on PATH; Windows records its folder in
+    /// the registry and never adds it to PATH.
+    /// </summary>
+    private static string SteamClientCommand()
+    {
+        if (!OperatingSystem.IsWindows()) return "steam";
+        var root = SteamLibraryLocator.WindowsSteamRoot();
+        return root is null ? "steam.exe" : Path.Combine(root, "steam.exe");
     }
 
     private static string? FindSteamAppsFolder(string startPath)

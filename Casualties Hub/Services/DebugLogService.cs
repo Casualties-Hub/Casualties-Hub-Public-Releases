@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Windows;
 using Casualties_Hub.Models;
 
 namespace Casualties_Hub.Services;
@@ -11,14 +10,19 @@ namespace Casualties_Hub.Services;
 public static class DebugLogService
 {
     private static readonly object Sync = new();
-    private static readonly string LogsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CasualtiesHub", "Logs");
-    private static readonly string CrashReportsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CasualtiesHub", "Crash Reports");
+    // HubPaths.AppDataRoot, not GetFolderPath: see the note there about the empty-string
+    // return that turns these into relative paths on a machine without ~/.local/share.
+    private static readonly string LogsPath = Path.Combine(HubPaths.AppDataRoot(), "Logs");
+    private static readonly string CrashReportsPath = Path.Combine(HubPaths.AppDataRoot(), "Crash Reports");
     private static readonly string SessionLogPath = Path.Combine(LogsPath, $"Log {DateTime.Now:yyyy-MM-dd_HH-mm-ss}.log");
     private static readonly List<TimestampedEntry> RecentEntries = [];
 
+    /// <summary>
+    /// Newest first, capped so a chatty code path cannot grow the Debug page without limit. The
+    /// session log file on disk keeps everything.
+    /// </summary>
     public static ObservableCollection<string> Entries { get; } = [];
+    private const int MaxEntries = 500;
     public static string LogDirectory => LogsPath;
     public static string CrashReportDirectory => CrashReportsPath;
     public static string CurrentSessionLogPath => SessionLogPath;
@@ -114,7 +118,11 @@ public static class DebugLogService
             }
         }
         catch { /* Logging must never stop the application. */ }
-        RunOnUi(() => Entries.Insert(0, line));
+        RunOnUi(() =>
+        {
+            Entries.Insert(0, line);
+            while (Entries.Count > MaxEntries) Entries.RemoveAt(Entries.Count - 1);
+        });
     }
 
     private static void AppendGameSnapshot(StringBuilder report)
@@ -192,10 +200,16 @@ public static class DebugLogService
 
     private sealed record TimestampedEntry(DateTime Timestamp, string Line);
 
-    private static void RunOnUi(Action action)
-    {
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher is null || dispatcher.CheckAccess()) action();
-        else dispatcher.BeginInvoke(action);
-    }
+    /// <summary>
+    /// How the log marshals onto the UI thread so <see cref="Entries"/> can be bound directly.
+    /// Installed at startup from Dispatcher.UIThread. An implementation must run <c>action</c>
+    /// inline when already on the UI thread, and post it otherwise.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to running inline. That keeps logging safe before any UI exists — during startup,
+    /// in the crash handler, and under a test host — which is exactly when the log matters most.
+    /// </remarks>
+    public static Action<Action> UiInvoker { get; set; } = static action => action();
+
+    private static void RunOnUi(Action action) => UiInvoker(action);
 }

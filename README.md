@@ -1,6 +1,6 @@
 # Casualties Hub Mod Manager
 
-Casualties Hub is a Windows launcher and mod manager for **Casualties Unknown**. It helps players browse community mod metadata, manage local BepInEx plugins, preserve custom assets, share mod setups, and identify common dependency or compatibility problems.
+Casualties Hub is a launcher and mod manager for **Casualties Unknown**, running on Linux and Windows. It helps players browse community mod metadata, manage local BepInEx plugins, preserve custom assets, share mod setups, and identify common dependency or compatibility problems.
 
 **Current public build:** `v0.0.7`
 **Project status:** early public release; actively developed.
@@ -9,11 +9,12 @@ Casualties Hub is a Windows launcher and mod manager for **Casualties Unknown**.
 
 1. Open the [Releases page](../../releases).
 2. Download the version you want from **Assets**.
-3. Extract the downloaded ZIP somewhere outside `Program Files`.
-4. Run `Casualties Hub.exe`.
+3. On Windows, download the `.exe` and run it from any folder outside `Program Files`.
+4. On Linux, download the `.tar.gz`, extract it, and run `casualties-hub`. The included
+   `README-linux.txt` covers the one-time `chmod` and optional desktop entry.
 5. On first launch, choose your Casualties Unknown, BepInEx, or Plugins folder in **Settings** if the Hub cannot locate it automatically.
 
-Keep the included `Data` folder beside the executable. It contains editable dependency/compatibility catalog data and release notes used by the Hub.
+The Hub is a single file with the catalogs and release notes built in. To hand-edit the catalogs, create a `Data` folder beside the executable; the Hub prefers files found there.
 
 Older releases remain available on GitHub for testing and rollback.
 

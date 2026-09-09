@@ -1,0 +1,56 @@
+using Avalonia;
+using Avalonia.Media;
+using Casualties_Hub.Models;
+
+namespace Casualties_Hub.Services;
+
+/// <summary>
+/// Pushes the palette derived from the player's colours into the application resources, so every
+/// DynamicResource binding in the UI updates at once.
+/// </summary>
+/// <remarks>
+/// Deliberately silent: the Animated RGB sweep calls <see cref="Apply"/> twenty times a second,
+/// so any logging belongs with the caller that represents a player action.
+/// </remarks>
+public static class ThemeApplier
+{
+    public static void Apply(Settings settings)
+    {
+        var application = Application.Current;
+        if (application is null) return;
+
+        foreach (var (key, colour) in ThemePalette.Build(settings))
+            application.Resources[key] = new SolidColorBrush(colour);
+
+        // Not derived from the four user colours: these carry fixed meaning (a success is green
+        // whatever the theme) so they are only defined if a starting value did not already exist.
+        foreach (var (key, fallback) in new (string, Color)[]
+                 {
+                     ("SuccessBrush", Color.FromRgb(0x3F, 0xB9, 0x50)),
+                     ("WarningBrush", Color.FromRgb(0xD2, 0x99, 0x22)),
+                 })
+        {
+            if (!application.Resources.ContainsKey(key))
+                application.Resources[key] = new SolidColorBrush(fallback);
+        }
+    }
+
+    /// <summary>
+    /// Applies the saved text size to the whole shell.
+    /// </summary>
+    /// <remarks>
+    /// Set on the window rather than per control: FontSize inherits down the tree, so one
+    /// assignment resizes every page. Without this the Settings slider saves a value that nothing
+    /// ever reads.
+    /// </remarks>
+    public static void ApplyTextSize(Settings settings)
+    {
+        if (Application.Current?.ApplicationLifetime
+            is not Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop) return;
+
+        // Clamped the same way SettingsService clamps it, so a hand-edited Settings.json cannot
+        // produce an unreadable or comically large interface.
+        var size = Math.Clamp(settings.TextSize, 10, 20);
+        if (desktop.MainWindow is { } window) window.FontSize = size;
+    }
+}

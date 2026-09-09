@@ -1,5 +1,9 @@
 name: Build
 
+# Builds, tests, publishes and self-tests on both platforms, then attaches the single-file
+# binaries to the run as artifacts. Each artifact is the exact binary that passed its self-test.
+# Nothing here creates a tag or a GitHub Release; releases are a manual maintainer action.
+
 on:
   pull_request:
     branches:
@@ -20,7 +24,18 @@ concurrency:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            binary: casualties-hub
+          - os: windows-latest
+            rid: win-x64
+            binary: casualties-hub.exe
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out
@@ -38,15 +53,38 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
+      # The solution, not the app project alone, so the tests compile under -warnaserror too.
       - name: Build (Release)
         run: dotnet build "Casualties Hub.slnx" -c Release -warnaserror
 
-      - name: Publish Hub (single-file EXE)
-        run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release --no-build -o publish/hub
+      - name: Test
+        run: dotnet test "Casualties Hub.Tests/Casualties Hub.Tests.csproj" -c Release --no-build
 
-      - name: Upload Hub EXE
+      - name: Publish (${{ matrix.rid }})
+        run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r ${{ matrix.rid }} -o publish/${{ matrix.rid }}
+
+      # Constructs every page and dialog headlessly; catches XAML and resource breaks a compile
+      # cannot. Needs no display.
+      - name: Self-test the Linux binary
+        if: runner.os == 'Linux'
+        run: ./publish/${{ matrix.rid }}/${{ matrix.binary }} --selftest
+
+      # The Hub is a GUI-subsystem executable. PowerShell does not wait for those and never sees
+      # their exit code, so a plain call would pass whatever the self-test reported. Start-Process
+      # waits, captures the output (a GUI process has no console to print to) and returns the code.
+      - name: Self-test the Windows binary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "publish/${{ matrix.rid }}/${{ matrix.binary }}").Path
+          $process = Start-Process -FilePath $exe -ArgumentList "--selftest" -Wait -PassThru -NoNewWindow `
+            -RedirectStandardOutput selftest.out -RedirectStandardError selftest.err
+          Get-Content selftest.out, selftest.err -ErrorAction SilentlyContinue
+          exit $process.ExitCode
+
+      - name: Upload ${{ matrix.rid }} build
         uses: actions/upload-artifact@v4
         with:
-          name: casualties-hub-exe
-          path: "publish/hub/Casualties Hub.exe"
+          name: casualties-hub-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/${{ matrix.binary }}
           if-no-files-found: error

@@ -1,20 +1,49 @@
 using System.Collections.Concurrent;
 using System.IO;
-using System.Windows;
 using Casualties_Hub.Models;
-using Casualties_Hub.Views;
 
 namespace Casualties_Hub.Services;
 
+/// <summary>
+/// Watches the downloads folder and offers to install mod archives as they arrive.
+/// </summary>
+/// <remarks>
+/// <para>
+/// How a finished download is recognised depends on the platform. On Windows the browser holds
+/// the file open while writing, so an exclusive open fails until it is done: a reliable signal
+/// that also covers a paused or stalled download. On Linux locking is advisory and that open
+/// succeeds mid-download, so the size holding steady for a few seconds stands in for it.
+/// </para>
+/// <para>
+/// The install prompt is a callback because dialogs are async and this runs on a pool thread.
+/// </para>
+/// </remarks>
 public sealed class DownloadImportService : IDisposable
 {
+    /// <summary>Suffixes browsers use for a download still in flight. Never worth inspecting.</summary>
+    private static readonly string[] PartialSuffixes =
+        [".part", ".crdownload", ".download", ".tmp", ".partial", ".opdownload"];
+
     private readonly SettingsService _settingsService = new();
     private readonly ModService _modService = new();
     private readonly UniversalMetadataService _metadataService;
-    private readonly ConcurrentDictionary<string, byte> _inProgress = new(StringComparer.OrdinalIgnoreCase);
+
+    // Ordinal, not OrdinalIgnoreCase: on a case-sensitive filesystem "Mod.zip" and "mod.zip"
+    // are two different downloads and both deserve to be processed.
+    private readonly ConcurrentDictionary<string, byte> _inProgress = new(StringComparer.Ordinal);
+
     private FileSystemWatcher? _watcher;
 
     public DownloadImportService() => _metadataService = new(_settingsService);
+
+    /// <summary>
+    /// Asked whether to install a detected archive, and into which skin slot. Set by the UI, which
+    /// owns the dialogs. Left null the service only logs and never installs anything.
+    /// </summary>
+    public Func<ArchiveInstallPlan, string, Task<(bool Install, string? SkinSlot)>>? DecideAsync { get; set; }
+
+    /// <summary>Raised when an import finishes, so the mods list can refresh.</summary>
+    public event Action? ImportCompleted;
 
     public void Start()
     {
@@ -25,120 +54,204 @@ public sealed class DownloadImportService : IDisposable
             return;
         }
 
-        _watcher = new FileSystemWatcher(settings.DownloadPath, "*.*")
+        try
         {
-            NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.LastWrite,
-            EnableRaisingEvents = true
-        };
-        _watcher.Created += OnArchiveDetected;
-        _watcher.Renamed += (_, e) => QueueImport(e.FullPath);
-        _watcher.Error += (_, e) => DebugLogService.Error("Download import watcher encountered an error", e.GetException());
-        DebugLogService.Info($"Watching download folder for ZIP, 7z, and RAR imports: {settings.DownloadPath}");
-    }
+            _watcher = new FileSystemWatcher(settings.DownloadPath, "*.*")
+            {
+                // Deliberately no Size filter. On Linux inotify reports size changes on every
+                // write, so a large download would fire hundreds of events for no benefit.
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+                EnableRaisingEvents = true,
+            };
+            _watcher.Created += (_, e) => QueueImport(e.FullPath);
+            // Browsers download to "file.zip.part" and rename on completion, so the rename is
+            // often the first event with a supported name.
+            _watcher.Renamed += (_, e) => QueueImport(e.FullPath);
+            _watcher.Error += (_, e) =>
+                DebugLogService.Error("Download import watcher stopped; inotify may be out of watches "
+                                      + "(raise fs.inotify.max_user_watches)", e.GetException());
 
-    private void OnArchiveDetected(object sender, FileSystemEventArgs e) => QueueImport(e.FullPath);
+            DebugLogService.Info($"Watching download folder for ZIP, 7z, and RAR imports: {settings.DownloadPath}");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            DebugLogService.Error("Could not watch the download folder", exception);
+        }
+    }
 
     private void QueueImport(string archivePath)
     {
-        if (!ModService.IsSupportedArchive(archivePath) || !_inProgress.TryAdd(archivePath, 0)) return;
-        DebugLogService.Activity("Download import", $"Detected archive {Path.GetFileName(archivePath)}; waiting for the download to finish.");
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                if (!await WaitForDownloadToFinish(archivePath)) return;
-                DebugLogService.Activity("Download import", $"Download finished for {Path.GetFileName(archivePath)}.");
-                var settings = _settingsService.Load();
-                if (!_modService.HasConfiguredGameFolder(settings))
-                {
-                    DebugLogService.Info($"Skipped archive import because Plugins is not configured: {Path.GetFileName(archivePath)}");
-                    return;
-                }
+        if (IsPartialDownload(archivePath)) return;
+        if (!ModService.IsSupportedArchive(archivePath)) return;
+        if (!_inProgress.TryAdd(archivePath, 0)) return;
 
-                IReadOnlyList<MetadataMod> metadata = UniversalMetadataService.LastSuccessfulMods;
-                if (metadata.Count == 0) metadata = await _metadataService.GetModsAsync();
-                var plan = _modService.InspectArchive(settings, archivePath, metadata);
-                DebugLogService.Activity("Download import", $"Showing the install prompt for {Path.GetFileName(archivePath)}.");
-                var decision = Application.Current.Dispatcher.Invoke(() =>
-                {
-                    BringHubToFront();
-                    return GetInstallDecision(plan, archivePath);
-                });
-                if (!decision.ShouldInstall)
-                {
-                    DebugLogService.Info($"User declined downloaded archive install: {Path.GetFileName(archivePath)}");
-                    return;
-                }
-
-                _modService.InstallArchive(settings, archivePath, metadata, decision.SkinSlot);
-                if (!settings.DisableAutoDeleteImportedParentFiles)
-                {
-                    var importedPath = Path.Combine(_settingsService.AppDataPath, "ImportedDownloads", $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Path.GetFileName(archivePath)}");
-                    Directory.CreateDirectory(Path.GetDirectoryName(importedPath)!);
-                    File.Move(archivePath, importedPath, true);
-                }
-                else
-                {
-                    DebugLogService.Info($"Kept imported archive in the download inbox (DADIPF enabled): {Path.GetFileName(archivePath)}");
-                }
-                DebugLogService.Info($"Imported downloaded archive: {Path.GetFileName(archivePath)}");
-                DebugLogService.Activity("Download import", $"Completed automatic import for {Path.GetFileName(archivePath)}.");
-            }
-            catch (Exception ex)
-            {
-                DebugLogService.Error($"Automatic archive import failed for {Path.GetFileName(archivePath)}", ex);
-            }
-            finally { _inProgress.TryRemove(archivePath, out _); }
-        });
+        DebugLogService.Activity("Download import", $"Detected {Path.GetFileName(archivePath)}; waiting for the download to finish.");
+        _ = Task.Run(() => ImportAsync(archivePath));
     }
 
-    private static (bool ShouldInstall, string? SkinSlot) GetInstallDecision(ArchiveInstallPlan plan, string archivePath)
+    private async Task ImportAsync(string archivePath)
     {
-        if (plan.Kind == ArchiveInstallKind.Unsupported)
+        try
         {
-            MessageBox.Show($"'{Path.GetFileName(archivePath)}' was downloaded, but {plan.Description}", "Unsupported archive layout", MessageBoxButton.OK, MessageBoxImage.Information);
-            return (false, null);
+            if (!await WaitForDownloadToFinishAsync(archivePath)) return;
+            DebugLogService.Activity("Download import", $"Download finished for {Path.GetFileName(archivePath)}.");
+
+            var settings = _settingsService.Load();
+            if (!_modService.HasConfiguredPluginsFolder(settings))
+            {
+                DebugLogService.Info($"Skipped import because the plugins folder is not configured: {Path.GetFileName(archivePath)}");
+                return;
+            }
+
+            if (DecideAsync is null)
+            {
+                DebugLogService.Info($"No install prompt is wired up; leaving {Path.GetFileName(archivePath)} alone.");
+                return;
+            }
+
+            IReadOnlyList<MetadataMod> metadata = UniversalMetadataService.LastSuccessfulMods;
+            if (metadata.Count == 0) metadata = await _metadataService.GetModsAsync();
+
+            var plan = _modService.InspectArchive(settings, archivePath, metadata);
+            var (install, skinSlot) = await DecideAsync(plan, archivePath);
+            if (!install)
+            {
+                DebugLogService.Info($"User declined the downloaded archive: {Path.GetFileName(archivePath)}");
+                return;
+            }
+
+            _modService.InstallArchive(settings, archivePath, metadata, skinSlot);
+
+            if (!settings.DisableAutoDeleteImportedParentFiles) ArchiveImportedFile(archivePath);
+            else DebugLogService.Info($"Kept the imported archive in the download folder: {Path.GetFileName(archivePath)}");
+
+            DebugLogService.Activity("Download import", $"Completed automatic import for {Path.GetFileName(archivePath)}.");
+            ImportCompleted?.Invoke();
         }
-
-        var replacementText = plan.ExistingFilesToReplace.Count == 0
-            ? ""
-            : $"\n\n{plan.ExistingFilesToReplace.Count} existing file(s) matching the new archive will be replaced. BepInEx itself will not be deleted.";
-        if (MessageBox.Show($"{plan.Description}{replacementText}{plan.DependencyPrompt}\n\nInstall '{Path.GetFileName(archivePath)}'?", "Casualties Hub download detected", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-            return (false, null);
-
-        if (!plan.RequiresSkinSlot) return (true, null);
-        var slotDialog = new SkinSlotDialog { Owner = Application.Current.MainWindow };
-        if (slotDialog.ShowDialog() != true) return (false, null);
-        if (slotDialog.SelectedSlotIsOccupied
-            && MessageBox.Show($"The current CustomSprites\\{slotDialog.SelectedSlot} contents will be permanently replaced. Continue?", "Replace sprite slot", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
-            return (false, null);
-        return (true, slotDialog.SelectedSlot);
-    }
-
-    private static void BringHubToFront()
-    {
-        if (Application.Current.MainWindow is not { } window) return;
-        if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
-        window.Activate();
-        window.Topmost = true;
-        window.Topmost = false;
-        window.Focus();
-    }
-
-    private static async Task<bool> WaitForDownloadToFinish(string path)
-    {
-        for (var attempt = 0; attempt < 15; attempt++)
+        catch (Exception exception)
         {
-            await Task.Delay(TimeSpan.FromSeconds(2));
+            DebugLogService.Error($"Automatic import failed for {Path.GetFileName(archivePath)}", exception);
+        }
+        finally
+        {
+            _inProgress.TryRemove(archivePath, out _);
+        }
+    }
+
+    private void ArchiveImportedFile(string archivePath)
+    {
+        try
+        {
+            var importedPath = Path.Combine(
+                _settingsService.AppDataPath, "ImportedDownloads",
+                $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Path.GetFileName(archivePath)}");
+            Directory.CreateDirectory(Path.GetDirectoryName(importedPath)!);
+            File.Move(archivePath, importedPath, overwrite: true);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Failing to tidy up must not undo a successful install.
+            DebugLogService.Error($"Installed {Path.GetFileName(archivePath)} but could not move it out of the download folder", exception);
+        }
+    }
+
+    public static bool IsPartialDownload(string path)
+    {
+        var name = Path.GetFileName(path);
+        return name.StartsWith('.')
+            || PartialSuffixes.Any(suffix => name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static Task<bool> WaitForDownloadToFinishAsync(string path) => OperatingSystem.IsWindows()
+        ? WaitForExclusiveOpenAsync(path, TimeSpan.FromSeconds(2), maxAttempts: 30)
+        : WaitForStableSizeAsync(path, TimeSpan.FromSeconds(1), requiredStableReads: 3, maxAttempts: 60);
+
+    /// <summary>
+    /// Windows: waits until the file can be opened exclusively, which fails for as long as the
+    /// downloader still has it open for writing.
+    /// </summary>
+    /// <remarks>
+    /// Mandatory locking makes this exact: a paused or stalled download keeps its handle and so
+    /// keeps failing the open, where a size check would wrongly call it finished.
+    /// Internal so the timing can be shortened in tests.
+    /// </remarks>
+    internal static async Task<bool> WaitForExclusiveOpenAsync(string path, TimeSpan interval, int maxAttempts)
+    {
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            await Task.Delay(interval);
+
+            if (!File.Exists(path))
+            {
+                // Renamed away or cancelled mid-download; nothing left to import.
+                DebugLogService.Info($"Download vanished before it finished: {Path.GetFileName(path)}");
+                return false;
+            }
+
             try
             {
                 using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
-                return stream.Length > 0;
+                if (stream.Length > 0) return true;
             }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Still being written.
+            }
         }
-        DebugLogService.Info($"Timed out waiting for download to complete: {Path.GetFileName(path)}");
+
+        DebugLogService.Info($"Timed out waiting for the download to finish: {Path.GetFileName(path)}");
+        return false;
+    }
+
+    /// <summary>
+    /// Linux: waits until a file's size stops changing.
+    /// </summary>
+    /// <remarks>
+    /// An exclusive open is not enough here: locking is advisory, so it succeeds mid-download and
+    /// the archive would be installed half-written. Requiring several identical size readings in
+    /// a row costs a few seconds and does not depend on the writer cooperating.
+    /// Internal so the timing can be shortened in tests.
+    /// </remarks>
+    internal static async Task<bool> WaitForStableSizeAsync(
+        string path, TimeSpan interval, int requiredStableReads, int maxAttempts)
+    {
+        long lastSize = -1;
+        var stableReads = 0;
+
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            await Task.Delay(interval);
+
+            long size;
+            try
+            {
+                var info = new FileInfo(path);
+                if (!info.Exists)
+                {
+                    // Renamed away or cancelled mid-download; nothing left to import.
+                    DebugLogService.Info($"Download vanished before it finished: {Path.GetFileName(path)}");
+                    return false;
+                }
+                size = info.Length;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            if (size > 0 && size == lastSize)
+            {
+                if (++stableReads >= requiredStableReads) return true;
+            }
+            else
+            {
+                stableReads = 0;
+            }
+
+            lastSize = size;
+        }
+
+        DebugLogService.Info($"Timed out waiting for the download to finish: {Path.GetFileName(path)}");
         return false;
     }
 

@@ -3,13 +3,11 @@ using System.IO;
 namespace Casualties_Hub.Services;
 
 /// <summary>
-/// Mirrors the standard Steam paths used by CCLScavTemplate vars.targets.
-/// The scan is bounded so a missing or disconnected drive never holds up the UI.
+/// Locates the Casualties Unknown install by asking Steam where its libraries are, rather than
+/// guessing at well-known paths.
 /// </summary>
 public sealed class GameInstallDetector
 {
-    private const string GameFolderName = "Casualties Unknown Demo";
-
     public async Task<string?> FindGameInstallAsync(TimeSpan timeout)
     {
         using var cancellation = new CancellationTokenSource(timeout);
@@ -23,26 +21,61 @@ public sealed class GameInstallDetector
         }
     }
 
+    /// <summary>The full Steam record, which carries the app id needed to launch through steam://.</summary>
+    public async Task<SteamGameInstall?> FindSteamInstallAsync(TimeSpan timeout)
+    {
+        using var cancellation = new CancellationTokenSource(timeout);
+        try
+        {
+            return await Task.Run(SteamLibraryLocator.FindCasualtiesUnknown, cancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
     private static string? FindGameInstall(CancellationToken cancellationToken)
     {
-        foreach (var driveLetter in new[] { 'C', 'D', 'E', 'F', 'G', 'H' })
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var steamInstall = SteamLibraryLocator.FindCasualtiesUnknown();
+        if (steamInstall is not null)
+        {
+            DebugLogService.Activity("Game detection", $"Found via Steam manifest (appid {steamInstall.AppId}): {steamInstall.Path}");
+            return steamInstall.Path;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Steam knows nothing about it. Fall back to a shallow sweep of the common/ folders,
+        // which still catches a hand-copied install that has no manifest.
+        foreach (var library in SteamLibraryLocator.FindLibraries())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var drive = driveLetter + @":\";
-            if (!Directory.Exists(drive)) continue;
 
-            foreach (var steamPath in new[]
+            var common = HubPaths.ResolveChain(library, "steamapps", "common");
+            if (!Directory.Exists(common)) continue;
+
+            try
             {
-                Path.Combine(drive, "Program Files (x86)", "Steam", "steamapps", "common", GameFolderName),
-                Path.Combine(drive, "Program Files", "Steam", "steamapps", "common", GameFolderName),
-                Path.Combine(drive, "SteamLibrary", "steamapps", "common", GameFolderName),
-                Path.Combine(drive, "Steam", "steamapps", "common", GameFolderName)
-            })
+                var match = Directory.EnumerateDirectories(common)
+                    .FirstOrDefault(directory => Path.GetFileName(directory)
+                        .Contains("Casualties", StringComparison.OrdinalIgnoreCase));
+
+                if (match is not null)
+                {
+                    DebugLogService.Activity("Game detection", $"Found by folder name (no Steam manifest): {match}");
+                    return match;
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (Directory.Exists(steamPath)) return steamPath;
+                // Unreadable library; try the next.
             }
         }
+
+        DebugLogService.Info("Game detection found no Casualties Unknown install.");
         return null;
     }
 }

@@ -1,0 +1,101 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        x:Class="Casualties_Hub.MainWindow"
+        Title="Casualties Hub"
+        Width="1280" Height="800" MinWidth="1180" MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1">
+
+  <!-- 248px sidebar, 82px topbar, 28px status bar. -->
+  <Grid ColumnDefinitions="248,*" RowDefinitions="82,*,28">
+
+    <Border x:Name="SidebarBar" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" ZIndex="30"
+            Background="{DynamicResource ChromeBrush}"
+            BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,1,0">
+      <Grid Margin="0,30,0,16" RowDefinitions="Auto,*,Auto">
+
+        <!-- The wordmark is branding, not themed text. Both Runs hard-code their brush so no
+             preset, custom colour, or Animated RGB can repaint it. -->
+        <TextBlock Grid.Row="0" FontSize="22" FontWeight="Bold" Margin="26,0,18,28">
+          <Run Text="Casualties" Foreground="#FFFFFFFF"/><Run Text=" " Foreground="#FFFFFFFF"/><Run Text="Hub" Foreground="#FFC81E3C"/>
+        </TextBlock>
+
+        <StackPanel Grid.Row="1" Spacing="4" Margin="18,0">
+          <Button x:Name="DashboardNav" Classes="nav" Content="Nexus Dashboard"/>
+          <Button x:Name="ModsNav" Classes="nav" Content="Local Mods"/>
+          <Button x:Name="MultiplayerNav" Classes="nav" Content="Multiplayer"
+                  ToolTip.Tip="Server browser preview. Not connected to a live service yet."/>
+          <Button x:Name="SkinsNav" Classes="nav" Content="Skins &amp; Backups"
+                  ToolTip.Tip="Keep copies of files a mod update would overwrite, and preview the character skins installed through CustomSprites."/>
+          <!-- Credits lives inside Hub Home, keeping the sidebar compact. -->
+          <Button x:Name="HomeNav" Classes="nav" Content="Hub Home"/>
+          <Button x:Name="SettingsNav" Classes="nav" Content="Settings"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0">
+          <Grid ColumnDefinitions="*,Auto" Margin="20,12,14,0">
+            <TextBlock x:Name="SidebarFooterText" Grid.Column="0" FontSize="11.5"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource DimTextBrush}" TextWrapping="Wrap"/>
+            <Button x:Name="ReportIssuesButton" Grid.Column="1" Classes="icon"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="Report a bug or issue" ToolTip.ShowOnDisabled="True">
+              <mi:MaterialIcon Kind="BugReport" Width="18" Height="18"
+                               Foreground="{Binding $parent[Button].Foreground}"/>
+            </Button>
+          </Grid>
+        </Border>
+      </Grid>
+    </Border>
+
+    <Border x:Name="SidebarTitleStrip" Grid.Row="0" Grid.Column="0" ZIndex="31"
+            Background="Transparent" VerticalAlignment="Top" Height="34"/>
+
+    <Border x:Name="TitleBar" Grid.Row="0" Grid.Column="1"
+            Background="{DynamicResource WindowBackgroundBrush}" ZIndex="20"
+            BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1">
+      <Grid>
+        <Grid Margin="36,0">
+          <Button x:Name="LaunchGameButton" Content="Launch game" Width="320" Height="44"
+                  HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,8"
+                  HorizontalContentAlignment="Center"
+                  Background="{DynamicResource AccentSoftBrush}"
+                  Foreground="{DynamicResource AccentSoftTextBrush}"
+                  BorderBrush="{DynamicResource AccentSoftTextBrush}"
+                  FontSize="16" FontWeight="Bold"
+                  ToolTip.Tip="Launch Casualties Unknown through Steam"/>
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <Button x:Name="MinimiseButton" Classes="caption" Content="&#xE921;"
+                  ToolTip.Tip="Minimise"/>
+          <Button x:Name="MaximiseButton" Classes="caption" Content="&#xE922;"
+                  ToolTip.Tip="Maximise"/>
+          <Button x:Name="CloseButton" Classes="caption close" Content="&#xE8BB;"
+                  ToolTip.Tip="Close"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource WindowBackgroundBrush}">
+      <ContentControl x:Name="PageHost" Margin="36,20"/>
+    </Border>
+
+    <Border Grid.Row="2" Grid.Column="1" Background="{DynamicResource ChromeBrush}" ZIndex="20" ClipToBounds="True">
+      <TextBlock x:Name="StatusText" Foreground="{DynamicResource MutedTextBrush}" FontSize="12"
+                 VerticalAlignment="Center" Margin="36,0,16,0" TextTrimming="CharacterEllipsis"/>
+    </Border>
+
+    <!-- Optional mascot, off unless easter eggs are enabled in Settings. -->
+    <Image x:Name="PapaZuck" Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" ZIndex="40"
+           Width="150" Height="150" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+           Margin="0,0,0,54" Cursor="Hand" IsVisible="False"
+           RenderTransformOrigin="50%,50%"
+           ToolTip.Tip="PapaZuck, unofficial/official Casualties Hub mascot. Click 3 times to pop; 5 times for a surprise."/>
+
+  </Grid>
+</Window>

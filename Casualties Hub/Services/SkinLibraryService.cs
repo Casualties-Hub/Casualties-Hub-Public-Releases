@@ -18,7 +18,7 @@ public class SkinLibraryService(SettingsService settingsService, ModService modS
     public string GetCustomSpritesRoot()
     {
         var pluginsPath = modService.GetPluginsPath(settingsService.Load());
-        return string.IsNullOrWhiteSpace(pluginsPath) ? "" : Path.Combine(pluginsPath, "CustomSprites");
+        return string.IsNullOrWhiteSpace(pluginsPath) ? "" : HubPaths.ResolveChild(pluginsPath, "CustomSprites");
     }
 
     public List<SkinSlot> DiscoverSlots()
@@ -41,11 +41,13 @@ public class SkinLibraryService(SettingsService settingsService, ModService modS
         Name = Path.GetFileName(path).ToLowerInvariant(),
         Number = number,
         FolderPath = path,
-        HeadSpriteCount = CountPngs(Path.Combine(path, "Head")),
-        BodySpriteCount = CountPngs(Path.Combine(path, "Body")),
-        MissingSprites = SkinPreviewComposer.FindMissingRequiredSprites(path),
+        HeadSpriteCount = CountPngs(HubPaths.ResolveChild(path, "Head")),
+        BodySpriteCount = CountPngs(HubPaths.ResolveChild(path, "Body")),
+        MissingSprites = SkinRig.FindMissingRequiredSprites(path),
     };
 
+    // Case-insensitive: a skin shipping .PNG would otherwise count zero sprites, and DiscoverSlots
+    // drops any slot with SpriteCount == 0, so the whole skin would vanish from the picker.
     private static int CountPngs(string folder) =>
-        Directory.Exists(folder) ? Directory.EnumerateFiles(folder, "*.png").Count() : 0;
+        Directory.Exists(folder) ? Directory.EnumerateFiles(folder, "*.png", HubPaths.CaseInsensitive).Count() : 0;
 }

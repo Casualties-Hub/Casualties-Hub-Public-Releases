@@ -1,7 +1,6 @@
 # Contributing to Casualties Hub
 
-Notes for setting up a local build environment for Casualties Hub on a fresh Windows
-machine.
+Notes for setting up a local build environment for Casualties Hub on a fresh machine.
 
 Casualties Hub is licensed under AGPL-3.0. Contributions are accepted under the same
 licence.
@@ -14,27 +13,27 @@ changes must also follow [`AGENTS.md`](AGENTS.md).
 
 | Requirement | Notes |
 | --- | --- |
-| Windows | The Hub is a WPF desktop application and targets `net10.0-windows`. Linux and macOS are not supported. |
 | .NET SDK 10 | The **SDK**, not just the runtime. See below. |
-| Internet access | The first build restores two packages from nuget.org. |
+| Internet access | The first build restores packages from nuget.org. |
+
+The Hub is an Avalonia desktop application targeting `net10.0`, and builds and runs on
+both Linux and Windows.
 
 Visual Studio is optional. Everything below works with the `dotnet` CLI alone. If you do
-use an IDE, it must understand the `.slnx` solution format and `net10.0-windows`.
+use an IDE, it must understand the `.slnx` solution format.
 
 ## .NET SDK 10
 
-Install it with winget:
+Download it from <https://dotnet.microsoft.com/download/dotnet/10.0>, or install it with
+your package manager. On Windows:
 
 ```bash
 winget install Microsoft.DotNet.SDK.10
 ```
 
-Or download the installer from <https://dotnet.microsoft.com/download/dotnet/10.0>.
-
 > **Runtimes are not enough.** `dotnet --list-runtimes` may show
-> `Microsoft.NETCore.App 10.0.0` and `Microsoft.WindowsDesktop.App 10.0.0` while
-> `dotnet --list-sdks` is empty. Runtimes only execute finished binaries. Compiling needs
-> the SDK, which ships the WPF build targets and `.slnx` support.
+> `Microsoft.NETCore.App 10.0.0` while `dotnet --list-sdks` is empty. Runtimes only execute
+> finished binaries. Compiling needs the SDK, which ships `.slnx` support.
 
 ## Build
 
@@ -42,37 +41,40 @@ Or download the installer from <https://dotnet.microsoft.com/download/dotnet/10.
 dotnet build "Casualties Hub.slnx" -c Release
 ```
 
-This produces two projects:
-
-- `Casualties Hub/bin/Release/net10.0-windows/Casualties Hub.exe`: the Hub itself
-- `Casualties Hub Installer/bin/Release/net10.0-windows/`: the standalone Setup Wizard
-
-Run the Hub directly from its build output:
+Run it:
 
 ```bash
-"Casualties Hub/bin/Release/net10.0-windows/Casualties Hub.exe"
+dotnet run --project "Casualties Hub/Casualties Hub.csproj"
+```
+
+`--selftest` constructs every page and dialog headlessly and reports which ones survived.
+It needs no display, so it works over SSH and in CI.
+
+```bash
+dotnet run --project "Casualties Hub/Casualties Hub.csproj" -- --selftest
 ```
 
 ## Build fails with MSB3027 or MSB3021
 
-The Hub is still running and holding a lock on `Casualties Hub.exe`. Close it and build
-again.
+The Hub is still running and holding a lock on its executable. Close it and build again.
 
 ## Project layout
 
 | Path | Purpose |
 | --- | --- |
-| `Casualties Hub/` | The WPF application. `Services/` holds the logic worth reading first. |
-| `Casualties Hub Installer/` | Standalone Setup Wizard, published separately from the Hub ZIP. |
-| `Release Packaging/` | PowerShell scripts that assemble the release ZIPs. |
+| `Casualties Hub/` | The application. `Services/` holds the logic worth reading first. |
+| `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
+| `Release Packaging/` | PowerShell scripts that assemble the release archives. |
 | `Release Notes/`, `GitHub Release Notes/` | Per-version notes. Some are embedded in the app. |
 
 ## Before opening a pull request
 
-1. `dotnet build "Casualties Hub.slnx" -c Release` reports no warnings and no errors.
-2. Run the Hub and exercise the areas you touched. There is no automated test suite, so
-   manual verification is the only safety net.
-3. Check `%LOCALAPPDATA%\CasualtiesHub\Logs` for new errors.
+1. `dotnet build "Casualties Hub.slnx" -c Release` reports no
+   warnings and no errors.
+2. `dotnet test "Casualties Hub.Tests/Casualties Hub.Tests.csproj"` passes.
+3. Run the Hub and exercise the areas you touched. The tests cover the destructive paths,
+   not the UI.
+4. Check the Hub log folder for new errors.
 4. Test mod install, enable, disable, and delete against a disposable copy of the game
    folder if you changed anything under `Services/`.
 5. Confirm that no API keys, credentials, personal data, game files, decompiled game
@@ -86,9 +88,9 @@ again.
 
 The guide walks through every major area of the Hub, including the Nexus Dashboard, the
 Download Inbox and automatic import, Local Mods, Modlist Share Codes, Protected Assets,
-Delete All Mods, and Settings, and states the expected behaviour for each. Because there
-is no automated test suite, that guide is the reference for whether a change broke
-something.
+Delete All Mods, and Settings, and states the expected behaviour for each. The tests cover
+the destructive and silent-failure paths; that guide is the reference for everything the
+UI does.
 
 Work through the sections covering anything your change touches, and the whole guide for
 wider changes.

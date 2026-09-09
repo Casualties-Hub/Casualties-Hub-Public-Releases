@@ -23,4 +23,14 @@ public class SkinSlot
     public string? StatusTooltip => IsIncomplete
         ? $"Incorrect or missing textures, re-install.\n\nNot found in this slot:\n{string.Join("\n", MissingSprites)}"
         : null;
+
+    // Added for the Avalonia skins list. Avalonia has no DataTriggers, so a template binds
+    // IsVisible to a bool and Text to a ready-made string rather than deriving either in markup.
+    public string SpriteSummary => $"{HeadSpriteCount} head · {BodySpriteCount} body";
+
+    public bool HasMissing => IsIncomplete;
+
+    public string MissingSummary => IsIncomplete
+        ? $"Missing {MissingSprites.Count} required sprites: {string.Join(", ", MissingSprites)}"
+        : "";
 }
