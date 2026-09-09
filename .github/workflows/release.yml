@@ -1,0 +1,332 @@
+name: Release
+
+# Builds the release assets and leaves them on a DRAFT GitHub Release for a maintainer to
+# review and publish. Nothing here makes anything public: creating the tag and announcing the
+# release are both the publish step, which stays a human action.
+#
+# Testing releases differ from full ones in two ways. The release is flagged as a prerelease
+# and is never marked latest, and the version carries a -pre suffix, which the Hub itself reads
+# to pick the prerelease configuration channel.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version, without a leading v (for example 0.0.9 or 0.0.9-pre.1)'
+        required: true
+        type: string
+      release_type:
+        description: 'Testing marks it a prerelease; full marks it the latest release'
+        required: true
+        type: choice
+        options:
+          - testing
+          - full
+        default: testing
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  # Everything that can reject the request without paying for a build. A bad version or a
+  # missing notes file otherwise surfaces ten minutes in, or worse, ships.
+  preflight:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      tag: ${{ steps.check.outputs.tag }}
+      prerelease: ${{ steps.check.outputs.prerelease }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Validate the request
+        id: check
+        env:
+          VERSION: ${{ inputs.version }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          set -euo pipefail
+
+          # Accept a leading v so both spellings work, then normalise it away. The pattern is the
+          # one HubVersion parses; a version it cannot read would leave the Hub reporting 0.0.0.
+          version="${VERSION#v}"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$version' is not a version this project uses, for example 0.0.9 or 0.0.9-pre.1."
+            exit 1
+          fi
+
+          # A prerelease version and a testing release have to agree. Either alone means the
+          # release page and the channel the Hub actually talks to would disagree.
+          case "$version" in
+            *-*) is_prerelease=true ;;
+            *)   is_prerelease=false ;;
+          esac
+
+          if [ "$RELEASE_TYPE" = 'testing' ] && [ "$is_prerelease" = false ]; then
+            echo "::error::A testing release needs a prerelease version such as $version-pre.1, otherwise the Hub reads the stable channel."
+            exit 1
+          fi
+
+          if [ "$RELEASE_TYPE" = 'full' ] && [ "$is_prerelease" = true ]; then
+            echo "::error::'$version' is a prerelease version, so it cannot be a full release. Drop the suffix or choose testing."
+            exit 1
+          fi
+
+          # ReleaseNotesService looks this file up by exact name. Without it the Hub's own What
+          # Changed panel reads "notes are not available for this build" on the shipped release.
+          notes="Release Notes/Version $version.txt"
+          if [ ! -f "$notes" ]; then
+            echo "::error::Missing '$notes'. The Hub reads this file for its What changed panel, so add it before releasing."
+            exit 1
+          fi
+
+          {
+            echo "version=$version"
+            echo "tag=v$version"
+            echo "prerelease=$is_prerelease"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check the tag is free
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $TAG already exists. Releases are never re-pointed; use a new version."
+            exit 1
+          fi
+
+  # Same build and self-test as build.yml, with the version stamped in and the assets packaged
+  # the way the release page carries them.
+  package:
+    needs: preflight
+
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            binary: casualties-hub
+          - os: windows-latest
+            rid: win-x64
+            binary: casualties-hub.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Build (Release)
+        run: dotnet build "Casualties Hub.slnx" -c Release -warnaserror
+
+      - name: Test
+        run: dotnet test "Casualties Hub.Tests/Casualties Hub.Tests.csproj" -c Release --no-build
+
+      # InformationalVersion is what HubVersion.Current reads, and it decides the update channel,
+      # the User-Agent and which bundled notes file is shown. It has to be the released version
+      # rather than whatever the csproj happens to carry.
+      - name: Publish (${{ matrix.rid }})
+        run: >
+          dotnet publish "Casualties Hub/Casualties Hub.csproj"
+          -c Release -r ${{ matrix.rid }} -o publish/${{ matrix.rid }}
+          -p:Version=${{ needs.preflight.outputs.version }}
+          -p:InformationalVersion=${{ needs.preflight.outputs.version }}
+
+      - name: Self-test the Linux binary
+        if: runner.os == 'Linux'
+        run: ./publish/${{ matrix.rid }}/${{ matrix.binary }} --selftest
+
+      # A GUI-subsystem executable: PowerShell does not wait for one and never sees its exit code,
+      # so a plain call would pass whatever the self-test reported.
+      - name: Self-test the Windows binary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "publish/${{ matrix.rid }}/${{ matrix.binary }}").Path
+          $process = Start-Process -FilePath $exe -ArgumentList "--selftest" -Wait -PassThru -NoNewWindow `
+            -RedirectStandardOutput selftest.out -RedirectStandardError selftest.err
+          Get-Content selftest.out, selftest.err -ErrorAction SilentlyContinue
+          exit $process.ExitCode
+
+      # HubVersion.Current is what picks the update channel and the bundled notes file, and
+      # --diagnostics reports exactly that value. A mismatch against the version being released
+      # is invisible until the build is in users' hands, so fail here instead.
+      - name: Verify the stamped version
+        if: runner.os == 'Linux'
+        env:
+          EXPECTED: ${{ needs.preflight.outputs.version }}
+        run: |
+          set -euo pipefail
+          reported="$(./publish/${{ matrix.rid }}/${{ matrix.binary }} --diagnostics | sed -n 's/^version *: *//p' | head -n 1)"
+          echo "Binary reports: '$reported'"
+          if [ "$reported" != "$EXPECTED" ]; then
+            echo "::error::Built binary reports '$reported' but this release is '$EXPECTED'."
+            exit 1
+          fi
+
+      - name: Verify the stamped version
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          EXPECTED: ${{ needs.preflight.outputs.version }}
+        run: |
+          $exe = (Resolve-Path "publish/${{ matrix.rid }}/${{ matrix.binary }}").Path
+          $process = Start-Process -FilePath $exe -ArgumentList "--diagnostics" -Wait -PassThru -NoNewWindow `
+            -RedirectStandardOutput diagnostics.out -RedirectStandardError diagnostics.err
+          if ($process.ExitCode -ne 0) {
+            Get-Content diagnostics.out, diagnostics.err -ErrorAction SilentlyContinue
+            throw "--diagnostics exited with $($process.ExitCode)."
+          }
+          $reported = (Select-String -Path diagnostics.out -Pattern '^version\s*:\s*(.+)$').Matches[0].Groups[1].Value.Trim()
+          Write-Host "Binary reports: '$reported'"
+          if ($reported -ne $env:EXPECTED) {
+            throw "Built binary reports '$reported' but this release is '$env:EXPECTED'."
+          }
+
+      # PublishSingleFile silently leaving an assembly loose has shipped a build before that
+      # started fine and then failed at runtime.
+      - name: Check the build is one file
+        shell: bash
+        run: |
+          set -euo pipefail
+          loose="$(find "publish/${{ matrix.rid }}" -name '*.dll' -print)"
+          if [ -n "$loose" ]; then
+            echo "::error::PublishSingleFile left assemblies unbundled:"
+            printf '%s\n' "$loose"
+            exit 1
+          fi
+          find "publish/${{ matrix.rid }}" -name '*.pdb' -delete
+
+      # Linux travels as a tarball because the executable bit matters and a zip cannot record it.
+      # Built on a real Linux runner, so no WSL detour and no "chmod +x first" caveat.
+      - name: Package the Linux tarball
+        if: runner.os == 'Linux'
+        env:
+          VERSION: ${{ needs.preflight.outputs.version }}
+        run: |
+          set -euo pipefail
+          stage="$(mktemp -d)"
+          cp "publish/${{ matrix.rid }}/${{ matrix.binary }}" "$stage/"
+          cp "Casualties Hub/Packaging/README-linux.txt" "$stage/"
+          cp "Casualties Hub/Packaging/casualties-hub.desktop" "$stage/"
+          cp "Casualties Hub/Packaging/install-desktop-entry.sh" "$stage/"
+          cp "Casualties Hub/Assets/CasualtiesHub.png" "$stage/casualties-hub.png"
+
+          chmod 755 "$stage/casualties-hub" "$stage/install-desktop-entry.sh"
+          chmod 644 "$stage/README-linux.txt" "$stage/casualties-hub.desktop" "$stage/casualties-hub.png"
+
+          mkdir -p assets
+          tar -czf "assets/casualties-hub-v$VERSION-linux-x64.tar.gz" -C "$stage" .
+
+      # Windows ships the single executable as-is, named for the version.
+      - name: Name the Windows executable
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          VERSION: ${{ needs.preflight.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          cp "publish/${{ matrix.rid }}/${{ matrix.binary }}" "assets/casualties-hub-v$VERSION-win-x64.exe"
+
+      - name: Upload the ${{ matrix.rid }} asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.rid }}
+          path: assets/*
+          if-no-files-found: error
+          retention-days: 7
+
+  # Creates the draft with the assets already attached. A draft is not public and fires no
+  # release event, and the tag itself is only written when a maintainer presses Publish, so
+  # nothing here is visible to users and an unwanted draft can just be deleted.
+  draft:
+    needs: [preflight, package]
+    runs-on: ubuntu-latest
+
+    # Gate the release behind a reviewed environment. Configure required reviewers on the
+    # 'release' environment in the repository settings to control who can approve this.
+    environment: release
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Download the built assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: assets
+          merge-multiple: true
+
+      # The release page body, when one was written for this version. It is separate from the
+      # bundled notes the Hub reads, which preflight has already checked for.
+      - name: Assemble the release notes
+        env:
+          VERSION: ${{ needs.preflight.outputs.version }}
+        run: |
+          set -euo pipefail
+          notes="GitHub Release Notes/GitHub Release Notes - v$VERSION.md"
+          if [ -f "$notes" ]; then
+            cp "$notes" release-body.md
+            echo "Using $notes"
+          else
+            # Not fatal: the maintainer is going to review this draft before it is published,
+            # and the release page body can be written or pasted there.
+            printf 'Release notes for %s have not been written yet.\n' "$VERSION" > release-body.md
+            echo "::warning::No '$notes'; the draft gets a placeholder body to fill in before publishing."
+          fi
+
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.preflight.outputs.tag }}
+          VERSION: ${{ needs.preflight.outputs.version }}
+          PRERELEASE: ${{ needs.preflight.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+
+          # --draft keeps this private and unannounced. --target pins the tag to the commit that
+          # was actually built and tested, rather than whatever the branch moves on to.
+          args=(
+            "$TAG"
+            --draft
+            --title "Casualties Hub v$VERSION"
+            --notes-file release-body.md
+            --target "$GITHUB_SHA"
+          )
+
+          if [ "$PRERELEASE" = true ]; then
+            args+=(--prerelease)
+          else
+            args+=(--latest)
+          fi
+
+          gh release create "${args[@]}" assets/*
+
+          echo "Draft release created for $TAG. Review it and publish when it looks right:" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ github.server_url }}/${{ github.repository }}/releases" >> "$GITHUB_STEP_SUMMARY"
