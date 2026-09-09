@@ -17,7 +17,12 @@ public static class DebugLogService
     private static readonly string SessionLogPath = Path.Combine(LogsPath, $"Log {DateTime.Now:yyyy-MM-dd_HH-mm-ss}.log");
     private static readonly List<TimestampedEntry> RecentEntries = [];
 
+    /// <summary>
+    /// Newest first, capped so a chatty code path cannot grow the Debug page without limit. The
+    /// session log file on disk keeps everything.
+    /// </summary>
     public static ObservableCollection<string> Entries { get; } = [];
+    private const int MaxEntries = 500;
     public static string LogDirectory => LogsPath;
     public static string CrashReportDirectory => CrashReportsPath;
     public static string CurrentSessionLogPath => SessionLogPath;
@@ -113,7 +118,11 @@ public static class DebugLogService
             }
         }
         catch { /* Logging must never stop the application. */ }
-        RunOnUi(() => Entries.Insert(0, line));
+        RunOnUi(() =>
+        {
+            Entries.Insert(0, line);
+            while (Entries.Count > MaxEntries) Entries.RemoveAt(Entries.Count - 1);
+        });
     }
 
     private static void AppendGameSnapshot(StringBuilder report)
