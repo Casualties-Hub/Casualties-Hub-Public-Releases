@@ -74,5 +74,7 @@ For a bug report, this writes a diagnostics summary without opening a window:
 
     ./casualties-hub --diagnostics > hub-report.txt 2>&1
 
-It contains your home directory path and your installed mod filenames, and
-nothing else. No account details, no API keys.
+Read it before sharing. It contains your username, your operating system and
+.NET versions, the folders the Hub uses, your Steam library paths, the game's
+install path and up to fifteen installed mod filenames. It never includes your
+Nexus API key, your settings or any account details.
