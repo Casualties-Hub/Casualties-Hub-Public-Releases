@@ -34,6 +34,13 @@ public partial class SettingsPage : UserControl
     private bool _loading = true;
 
     /// <summary>
+    /// The colours being mixed. Sliders, the wheel and the hex box write here and nowhere else;
+    /// only "Apply colours" copies it to disk. Dragging a slider therefore costs no file writes,
+    /// and a half-mixed look never leaks into Settings.json.
+    /// </summary>
+    private Settings _draft = new();
+
+    /// <summary>
     /// For Avalonia's XAML loader and the designer, which can only call a parameterless
     /// constructor. The app always uses the overload below so status messages reach the shell.
     /// </summary>
@@ -129,6 +136,7 @@ public partial class SettingsPage : UserControl
         this.FindControl<CheckBox>("DadipfBox")!.IsChecked = settings.DisableAutoDeleteImportedParentFiles;
         this.FindControl<CheckBox>("EasterEggsBox")!.IsChecked = settings.EasterEggsEnabled;
 
+        _draft = settings;
         ShowSelectedColour();
         UpdateGamePathStatus(settings);
         UpdateApiKeyStatus();
@@ -248,7 +256,7 @@ public partial class SettingsPage : UserControl
         _loading = true;
         try
         {
-            var colour = Read(_settingsService.Load(), SelectedTarget);
+            var colour = Read(_draft, SelectedTarget);
             this.FindControl<Slider>("RedSlider")!.Value = colour.R;
             this.FindControl<Slider>("GreenSlider")!.Value = colour.G;
             this.FindControl<Slider>("BlueSlider")!.Value = colour.B;
@@ -305,18 +313,16 @@ public partial class SettingsPage : UserControl
         ShowSelectedColour();
     }
 
-    /// <summary>Writes a colour into settings and marks the look as hand-mixed.</summary>
+    /// <summary>Writes a colour into the draft and marks the look as hand-mixed. Nothing is saved.</summary>
     private void StoreColour(Color colour)
     {
-        var settings = _settingsService.Load();
-        Write(settings, SelectedTarget, colour);
-        settings.ThemeColoursInitialized = true;
+        Write(_draft, SelectedTarget, colour);
         // Editing by hand means the look is no longer one of the saved slots.
-        settings.ActiveUiPreset = UiPresetIds.CustomColours;
-        _settingsService.Save(settings);
+        _draft.ActiveUiPreset = UiPresetIds.CustomColours;
 
         ShowColour(colour);
-        UpdatePresetLabel(settings);
+        UpdatePresetLabel(_draft);
+        _setStatus("Press Apply colours to keep this look.");
     }
 
     private void OnWheelPressed(object? sender, PointerPressedEventArgs e) => PickFromWheel(e);
@@ -351,14 +357,22 @@ public partial class SettingsPage : UserControl
         StoreColour(colour);
     }
 
+    /// <summary>The one place the mixed colours reach disk.</summary>
     private void ApplyTheme()
     {
+        // Merged into a fresh load rather than saving the draft itself, so a game path or
+        // download folder changed elsewhere since the page opened is not overwritten.
         var settings = _settingsService.Load();
+        UiPreset.Capture(_draft, "draft").ApplyColoursTo(settings);
+        settings.ActiveUiPreset = _draft.ActiveUiPreset;
         settings.TextSize = this.FindControl<Slider>("TextSizeSlider")!.Value;
         settings.ThemeColoursInitialized = true;
         _settingsService.Save(settings);
+        _draft = settings;
+
         ThemeApplier.Apply(settings);
         ThemeApplier.ApplyTextSize(settings);
+        AnimatedRgbDriver.Sync(_settingsService);
         DebugLogService.Activity("Theme", "Applied the saved colour palette.");
         _setStatus("Theme applied.");
     }
@@ -400,6 +414,7 @@ public partial class SettingsPage : UserControl
         preset.ApplyColoursTo(settings);
         settings.ActiveUiPreset = presetId;
         _settingsService.Save(settings);
+        _draft = settings;
 
         ThemeApplier.Apply(settings);
         ThemeApplier.ApplyTextSize(settings);
@@ -418,12 +433,15 @@ public partial class SettingsPage : UserControl
         while (settings.CustomUiPresets.Count < UiPresetIds.CustomSlotCount)
             settings.CustomUiPresets.Add(new UiPreset { Name = $"Slot {settings.CustomUiPresets.Count + 1}" });
 
-        settings.CustomUiPresets[slot - 1] = UiPreset.Capture(settings, $"Slot {slot}");
-        settings.ActiveUiPreset = UiPresetIds.Custom(slot);
+        // The slot takes the colours on screen, applied or not. The slot list is what gets
+        // saved; the draft stays a draft until Apply colours.
+        settings.CustomUiPresets[slot - 1] = UiPreset.Capture(_draft, $"Slot {slot}");
         _settingsService.Save(settings);
+        _draft.CustomUiPresets = settings.CustomUiPresets;
+        _draft.ActiveUiPreset = UiPresetIds.Custom(slot);
 
-        UpdatePresetLabel(settings);
-        _setStatus($"Saved the current colours to slot {slot}.");
+        UpdatePresetLabel(_draft);
+        _setStatus($"Saved the current colours to slot {slot}. Press Apply colours to use them now.");
     }
 
     private void UpdatePresetLabel(Settings settings)
