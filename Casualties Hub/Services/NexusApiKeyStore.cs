@@ -168,8 +168,18 @@ public sealed class NexusApiKeyStore
         var apiKey = Encoding.UTF8.GetString(ProtectedData.Unprotect(payload, null, DataProtectionScope.CurrentUser));
         if (string.IsNullOrWhiteSpace(apiKey)) return null;
 
-        DebugLogService.Activity("Nexus key", "Converted a key saved by an earlier build to the current format.");
-        Save(apiKey);
+        // The rewrite is a courtesy, not a requirement: the legacy blob still reads fine, so a
+        // folder that cannot be written to right now must not turn "key present" into a crash.
+        try
+        {
+            Save(apiKey);
+            DebugLogService.Activity("Nexus key", "Converted a key saved by an earlier build to the current format.");
+        }
+        catch (InvalidOperationException exception)
+        {
+            DebugLogService.Error("Kept the earlier key format; it could not be rewritten", exception);
+        }
+
         return apiKey;
     }
 
@@ -182,7 +192,11 @@ public sealed class NexusApiKeyStore
         return key;
     }
 
-    /// <summary>The encryption key, or null when the file is missing or not usable by this account.</summary>
+    /// <summary>
+    /// The encryption key, or null when the file is missing or not usable by this account. Null
+    /// makes the next save start a fresh key; the old payload then fails to decrypt and the user
+    /// is asked to re-enter it, which is the right outcome for a key file that cannot be read.
+    /// </summary>
     private byte[]? LoadKey()
     {
         if (!File.Exists(_keyPath)) return null;
@@ -192,8 +206,19 @@ public sealed class NexusApiKeyStore
         // A bare key from before DPAPI wrapping is accepted; it is wrapped the next time a key
         // is saved, because that is the only time the file is rewritten.
         if (stored.Length == KeySize) return stored;
-        var unwrapped = ProtectedData.Unprotect(stored, null, DataProtectionScope.CurrentUser);
-        return unwrapped.Length == KeySize ? unwrapped : null;
+
+        try
+        {
+            var unwrapped = ProtectedData.Unprotect(stored, null, DataProtectionScope.CurrentUser);
+            return unwrapped.Length == KeySize ? unwrapped : null;
+        }
+        catch (CryptographicException)
+        {
+            // Written by another Windows account or machine, or damaged. Same outcome as a
+            // missing file rather than an error the user cannot act on.
+            DebugLogService.Info("The Nexus key file was not written by this Windows account; a new one will be created on the next save.");
+            return null;
+        }
     }
 
     /// <summary>On Windows the key file is bound to the current account through DPAPI.</summary>

@@ -69,6 +69,20 @@ public sealed class NexusApiKeyStoreTests : IDisposable
     }
 
     [Fact]
+    public void AnUnreadableKeyFileIsReplacedOnTheNextSave()
+    {
+        // A key file copied from another account or damaged on disk cannot be unwrapped. That
+        // must read as "no key" and let a new one be saved, not block every save with an error.
+        File.WriteAllBytes(Path.Combine(_root, "NexusApiKey.key"), RandomNumberGenerator.GetBytes(40));
+        var store = new NexusApiKeyStore(_root);
+
+        Assert.False(store.HasKey);
+        store.Save("fresh-secret");
+
+        Assert.Equal("fresh-secret", new NexusApiKeyStore(_root).Load());
+    }
+
+    [Fact]
     public void CorruptedEnvelopeFailsClosed()
     {
         var store = new NexusApiKeyStore(_root);
