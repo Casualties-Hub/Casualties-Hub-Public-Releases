@@ -1,8 +1,8 @@
 name: Build
 
-# Builds and tests on both platforms, then produces the single-file binaries and attaches them
-# to the run as artifacts. Nothing here creates a tag or a GitHub Release; releases are a manual
-# maintainer action.
+# Builds, tests, publishes and self-tests on both platforms, then attaches the single-file
+# binaries to the run as artifacts. Each artifact is the exact binary that passed its self-test.
+# Nothing here creates a tag or a GitHub Release; releases are a manual maintainer action.
 
 on:
   pull_request:
@@ -23,11 +23,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            binary: casualties-hub
+          - os: windows-latest
+            rid: win-x64
+            binary: casualties-hub.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -54,55 +60,31 @@ jobs:
       - name: Test
         run: dotnet test "Casualties Hub.Tests/Casualties Hub.Tests.csproj" -c Release --no-build
 
-      # The Windows binary can only be started on Windows, so its self-test lives here.
-      - name: Self-test the Windows binary
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r win-x64 -o publish/windows
-          & "publish/windows/casualties-hub.exe" --selftest
-
-  package:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out
-        uses: actions/checkout@v4
-
-      - name: Set up .NET 10 SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
-          restore-keys: nuget-${{ runner.os }}-
-
-      - name: Publish (linux-x64)
-        run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r linux-x64 -o publish/linux
+      - name: Publish (${{ matrix.rid }})
+        run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r ${{ matrix.rid }} -o publish/${{ matrix.rid }}
 
       # Constructs every page and dialog headlessly; catches XAML and resource breaks a compile
       # cannot. Needs no display.
       - name: Self-test the Linux binary
-        run: ./publish/linux/casualties-hub --selftest
+        if: runner.os == 'Linux'
+        run: ./publish/${{ matrix.rid }}/${{ matrix.binary }} --selftest
 
-      - name: Publish (win-x64)
-        run: dotnet publish "Casualties Hub/Casualties Hub.csproj" -c Release -r win-x64 -o publish/windows
+      # The Hub is a GUI-subsystem executable. PowerShell does not wait for those and never sees
+      # their exit code, so a plain call would pass whatever the self-test reported. Start-Process
+      # waits, captures the output (a GUI process has no console to print to) and returns the code.
+      - name: Self-test the Windows binary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "publish/${{ matrix.rid }}/${{ matrix.binary }}").Path
+          $process = Start-Process -FilePath $exe -ArgumentList "--selftest" -Wait -PassThru -NoNewWindow `
+            -RedirectStandardOutput selftest.out -RedirectStandardError selftest.err
+          Get-Content selftest.out, selftest.err -ErrorAction SilentlyContinue
+          exit $process.ExitCode
 
-      - name: Upload Linux build
+      - name: Upload ${{ matrix.rid }} build
         uses: actions/upload-artifact@v4
         with:
-          name: casualties-hub-linux
-          path: publish/linux/casualties-hub
-          if-no-files-found: error
-
-      - name: Upload Windows build
-        uses: actions/upload-artifact@v4
-        with:
-          name: casualties-hub-windows
-          path: publish/windows/casualties-hub.exe
+          name: casualties-hub-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/${{ matrix.binary }}
           if-no-files-found: error
