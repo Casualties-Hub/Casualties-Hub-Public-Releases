@@ -101,9 +101,12 @@ For bug reports, include:
 
 ## Credits
 
-Casualties Hub is a passion project created and maintained by **MarlyZ89**.
+Casualties Hub is a passion project created by **MarlyZ89**.
+Currently maintained by **Chundelac**.
 
-The application’s Credits page, reached from **Hub Home**, recognises community contributors, testers, metadata support, and resource permissions. JimmyKing has contributed ideas and granted permission for certain project resources; the current coding, implementation, maintenance, and overall project direction are handled by MarlyZ89.
+The application’s Credits page, reached from **Hub Home**, recognises community contributors, testers and metadata support.
+JimmyKing has contributed ideas and granted permission for certain project resources.
+Overall project direction are handled by MarlyZ89.
 
 ## License
 
