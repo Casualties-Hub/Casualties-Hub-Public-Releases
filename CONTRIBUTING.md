@@ -99,6 +99,9 @@ wider changes.
 
 Releases are built by CI. Nothing is uploaded by hand.
 
+Releases are built from `main` only, so merge the version you are releasing first. Starting
+the workflow from any other branch is refused before it builds.
+
 1. Add `Release Notes/Version <version>.txt`. The Hub embeds this file and reads it for its
    What changed panel, so a release without it ships a build that cannot describe itself.
 2. Add `GitHub Release Notes/GitHub Release Notes - v<version>.md` for the release page body.

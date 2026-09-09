@@ -7,6 +7,8 @@ name: Release
 # Testing releases differ from full ones in two ways. The release is flagged as a prerelease
 # and is never marked latest, and the version carries a -pre suffix, which the Hub itself reads
 # to pick the prerelease configuration channel.
+#
+# Both kinds are built from main only, so everything released has been through review.
 
 on:
   workflow_dispatch:
@@ -43,6 +45,18 @@ jobs:
       prerelease: ${{ steps.check.outputs.prerelease }}
 
     steps:
+      # Releases come from main only. Dispatching from a branch would otherwise pin the release
+      # to a commit that never went through review, and the assets would look identical.
+      - name: Check the branch
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$REF" != 'refs/heads/main' ]; then
+            echo "::error::Releases are built from main only; this run was dispatched from '${REF#refs/heads/}'. Merge to main first."
+            exit 1
+          fi
+
       - name: Check out
         uses: actions/checkout@v4
 

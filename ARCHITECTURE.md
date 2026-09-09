@@ -61,9 +61,9 @@ version into the binary, packages the Linux tarball and the Windows executable, 
 them on a draft GitHub Release. The draft is private and announces nothing; a maintainer
 reviews it and presses Publish, which is what creates the tag and makes the release real.
 
-The workflow refuses a request before building when the version is unreadable, when the
-embedded release notes for it are missing, when the tag already exists, or when the version
-and the chosen release type disagree. It also checks the built binary reports the version it
+The workflow refuses a request before building when it was not started from `main`, when the
+version is unreadable, when the embedded release notes for it are missing, when the tag already
+exists, or when the version and the chosen release type disagree. It also checks the built binary reports the version it
 was asked to build, because that string picks the update channel and the notes the Hub shows.
 
 `Release Packaging/Build-CasualtiesHubRelease.ps1` builds the same assets locally. CI is the
