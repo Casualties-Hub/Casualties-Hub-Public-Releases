@@ -117,3 +117,8 @@ the workflow from any other branch is refused before it builds.
 
 Up to step 5 nothing is public and no tag exists, so a draft that looks wrong can simply be
 deleted and the workflow run again.
+
+Building and testing happen first; the draft is only created after an approval on the
+`release` environment, whose reviewers are configured in the repository settings. Testing
+releases are gated the same way as full ones, because a testing build is still published
+and still reaches everyone on the prerelease channel.

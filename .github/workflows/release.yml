@@ -281,6 +281,10 @@ jobs:
 
     # Gate the release behind a reviewed environment. Configure required reviewers on the
     # 'release' environment in the repository settings to control who can approve this.
+    #
+    # Testing releases go through this same gate. A testing build still lands on the public
+    # releases page and still reaches everyone on the prerelease channel, so it is reviewed
+    # on the way out exactly like a full release.
     environment: release
 
     permissions:
