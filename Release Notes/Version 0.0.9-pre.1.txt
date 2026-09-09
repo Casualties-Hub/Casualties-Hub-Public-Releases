@@ -1,0 +1,22 @@
+Release Notes Summary (since v0.0.7)
+
+New
+
+Linux support.
+Skin Preview page with pose/zoom support
+In-app debug window and announcements/community links pulled from the Hub config repo
+
+Improved
+
+UI facelift
+Nexus key file protected with DPAPI on Windows
+Better diagnostics reporting (accurate data folder, accurate report contents)
+Download completion detection made more reliable on both platforms
+Steam detection via Windows registry
+Desktop entry launches correctly from folders with spaces (Linux)
+
+Removed
+
+Old WPF Hub and Setup Wizard (project is now single Casualties Hub app)
+In-app uninstaller
+Retired HubContent.json feed and old Supabase references

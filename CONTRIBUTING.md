@@ -94,3 +94,31 @@ UI does.
 
 Work through the sections covering anything your change touches, and the whole guide for
 wider changes.
+
+## Publishing a release
+
+Releases are built by CI. Nothing is uploaded by hand.
+
+Releases are built from `main` only, so merge the version you are releasing first. Starting
+the workflow from any other branch is refused before it builds.
+
+1. Add `Release Notes/Version <version>.txt`. The Hub embeds this file and reads it for its
+   What changed panel, so a release without it ships a build that cannot describe itself.
+2. Add `GitHub Release Notes/GitHub Release Notes - v<version>.md` for the release page body.
+   This one is optional: without it the draft gets a placeholder to fill in before publishing.
+3. Run the `Release` workflow from the Actions tab. Give it the version without a leading `v`
+   and choose the release type:
+   - `testing` needs a prerelease version such as `0.0.9-pre.1`. It is flagged as a prerelease
+     and never marked latest, and the Hub reads its configuration from the prerelease channel.
+   - `full` needs a plain version such as `0.0.9`, and is marked the latest release.
+4. Review the draft on the Releases page: check the version, the notes, and that both the
+   Linux tarball and the Windows executable are attached.
+5. Press Publish. That creates the tag and makes the release public.
+
+Up to step 5 nothing is public and no tag exists, so a draft that looks wrong can simply be
+deleted and the workflow run again.
+
+Building and testing happen first; the draft is only created after an approval on the
+`release` environment, whose reviewers are configured in the repository settings. Testing
+releases are gated the same way as full ones, because a testing build is still published
+and still reaches everyone on the prerelease channel.
