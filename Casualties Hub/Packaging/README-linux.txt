@@ -44,8 +44,8 @@ WHERE THINGS LIVE
 Settings, logs, backups and the Nexus API key are kept in:
     ~/.local/share/CasualtiesHub/
 
-To remove the Hub by hand, delete the folder you extracted and that directory.
-The in-app uninstaller on the Settings page does the same thing.
+To remove the Hub, delete the executable and that directory. If you ran
+install-desktop-entry.sh, it printed the one file to delete for the menu entry.
 
 
 IF SOMETHING GOES WRONG

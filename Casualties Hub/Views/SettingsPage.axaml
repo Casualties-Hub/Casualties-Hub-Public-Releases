@@ -161,16 +161,6 @@
         </StackPanel>
       </Border>
 
-      <Border Classes="card" BorderBrush="{DynamicResource DangerBrush}">
-        <StackPanel Spacing="10">
-          <TextBlock Classes="heading" Text="Remove Casualties Hub"/>
-          <TextBlock Classes="muted" TextWrapping="Wrap"
-                     Text="Deletes the Hub's own files. You choose exactly what goes, and your mods and game are never touched."/>
-          <Button x:Name="UninstallButton" Classes="danger" Content="Remove Casualties Hub..."
-                  HorizontalAlignment="Left"/>
-        </StackPanel>
-      </Border>
-
     </StackPanel>
   </ScrollViewer>
 

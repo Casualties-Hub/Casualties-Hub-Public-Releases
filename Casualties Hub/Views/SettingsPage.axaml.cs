@@ -85,7 +85,6 @@ public partial class SettingsPage : UserControl
         this.FindControl<Button>("ApplyHexButton")!.Click += (_, _) => ApplyHex();
         this.FindControl<Button>("SaveKeyButton")!.Click += OnSaveKey;
         this.FindControl<Button>("ClearKeyButton")!.Click += OnClearKey;
-        this.FindControl<Button>("UninstallButton")!.Click += async (_, _) => await OpenUninstallAsync();
         this.FindControl<Button>("SavePresetButton")!.Click += (_, _) => SavePreset();
         this.FindControl<Button>("OpenLogsButton")!.Click += (_, _) => DesktopShell.OpenFolder(DebugLogService.LogDirectory);
         this.FindControl<Button>("CopyReportButton")!.Click += async (_, _) => await CopyReportAsync();
@@ -577,26 +576,5 @@ public partial class SettingsPage : UserControl
         _apiKeyStore.Clear();
         UpdateApiKeyStatus();
         _setStatus("Nexus API key removed.");
-    }
-
-    // --- removal -----------------------------------------------------------
-
-    private async Task OpenUninstallAsync()
-    {
-        var owner = Owner;
-        if (owner is null) return;
-
-        var dialog = new UninstallDialog(_settingsService);
-        await dialog.ShowDialog(owner);
-
-        // The helper script waits for this process to exit before deleting anything, so the app
-        // has to close for the removal to actually happen.
-        if (dialog.Confirmed
-            && Application.Current?.ApplicationLifetime
-                is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            DebugLogService.Activity("Uninstall", "Shutting down so the removal helper can run.");
-            desktop.Shutdown();
-        }
     }
 }

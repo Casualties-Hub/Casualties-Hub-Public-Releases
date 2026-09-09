@@ -149,9 +149,6 @@ public sealed class NexusApiKeyStore
         }
     }
 
-    /// <summary>Files the uninstaller must remove. Both, or a stale key file is left behind.</summary>
-    public IReadOnlyList<string> StoredFiles => [_dataPath, _keyPath];
-
     /// <summary>
     /// A .dat with no envelope is the bare DPAPI blob earlier Windows builds wrote. It can only be
     /// unwrapped on Windows by the account that wrote it; on success it is re-saved in the current

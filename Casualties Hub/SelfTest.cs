@@ -62,7 +62,6 @@ public static class SelfTest
                  {
                      ("HubDialog", () => new HubDialog()),
                      ("SkinSlotDialog", () => new SkinSlotDialog()),
-                     ("UninstallDialog", () => new UninstallDialog()),
                      ("GameDetectionDialog", () => new GameDetectionDialog()),
                      ("DebugWindow", () => new DebugWindow()),
                  })
