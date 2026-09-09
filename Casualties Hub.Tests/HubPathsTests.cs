@@ -107,11 +107,14 @@ public sealed class HubPathsTests : IDisposable
     }
 
     [Fact]
-    public void IsInside_is_case_sensitive()
+    public void IsInside_treats_case_the_way_the_platform_does()
     {
         // On ext4 these are two different directories, so treating them as one would let a
-        // containment check pass for a path it should reject.
-        Assert.False(HubPaths.IsInside("/games/Plugins/mod.dll", "/games/plugins"));
+        // containment check pass for a path it should reject. On Windows they are the same
+        // directory, and the registry and the file picker routinely spell it differently.
+        var inside = HubPaths.IsInside("/games/Plugins/mod.dll", "/games/plugins");
+
+        Assert.Equal(OperatingSystem.IsWindows(), inside);
     }
 
     [Fact]

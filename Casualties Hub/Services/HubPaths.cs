@@ -71,19 +71,29 @@ public static class HubPaths
 
     /// <summary>
     /// True when <paramref name="candidate"/> sits inside <paramref name="container"/>.
-    /// Ordinal by design: this backs containment checks, where a case-insensitive comparison on a
-    /// case-sensitive filesystem would let two different directories test as the same one.
     /// </summary>
+    /// <remarks>
+    /// Case matters exactly as much as it does to the platform. On Linux the comparison is
+    /// ordinal, because this backs containment checks and a case-insensitive match on ext4 would
+    /// let two different directories test as the same one. On Windows it ignores case, because
+    /// the same folder arrives spelled differently from different sources: the Steam registry
+    /// value is often all lower case while the file picker returns the on-disk casing.
+    /// </remarks>
     public static bool IsInside(string candidate, string container)
     {
         if (string.IsNullOrWhiteSpace(candidate) || string.IsNullOrWhiteSpace(container)) return false;
 
         var normalizedContainer = Path.GetFullPath(container).TrimEnd(Path.DirectorySeparatorChar);
         var normalizedCandidate = Path.GetFullPath(candidate).TrimEnd(Path.DirectorySeparatorChar);
+        var comparison = PathComparison;
 
-        return normalizedCandidate.Equals(normalizedContainer, StringComparison.Ordinal)
-            || normalizedCandidate.StartsWith(normalizedContainer + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+        return normalizedCandidate.Equals(normalizedContainer, comparison)
+            || normalizedCandidate.StartsWith(normalizedContainer + Path.DirectorySeparatorChar, comparison);
     }
+
+    /// <summary>How two paths are compared for equality on this platform.</summary>
+    public static StringComparison PathComparison =>
+        OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 
     /// <summary>
     /// The Hub's data directory, guaranteed absolute.
