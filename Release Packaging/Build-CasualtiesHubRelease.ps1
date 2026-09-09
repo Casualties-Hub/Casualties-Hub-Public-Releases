@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-    Packages Casualties Hub for release: a tarball for Linux and a zip for Windows.
+    Packages Casualties Hub for release: a tarball for Linux and a bare executable for Windows.
 
 .DESCRIPTION
-    Both archives come from the same project, published once per runtime. The Linux archive is a
-    .tar.gz rather than a .zip on purpose: zip does not record the Unix executable bit, so a
-    zipped build hands every user "permission denied" as their first experience. tar preserves
-    mode 0755, and Windows 10+ ships bsdtar as tar.exe, so no extra tooling is needed.
+    Both come from the same project, published once per runtime as a single self-contained file.
+    Windows ships that file as-is. Linux needs the executable bit set on it, which a zip cannot
+    record and a tar can, so the Linux file travels in a .tar.gz together with the optional
+    desktop entry. Windows 10+ ships bsdtar as tar.exe, so no extra tooling is needed.
 
 .EXAMPLE
     .\Build-CasualtiesHubRelease.ps1 -OutputDirectory "$HOME\Documents\Casualties Hub\Builds"
@@ -141,22 +141,20 @@ tar -czf '$wslTarball' .
 }
 
 function Build-WindowsRelease {
-    $releaseDir = Join-Path $OutputDirectory "Casualties Hub v$normalizedVersion win-x64"
-    $zip = Join-Path $OutputDirectory "casualties-hub-v$normalizedVersion-win-x64.zip"
-    Assert-Fresh @($releaseDir, $zip)
+    $exe = Join-Path $OutputDirectory "casualties-hub-v$normalizedVersion-win-x64.exe"
+    Assert-Fresh @($exe)
 
-    $staging = "$releaseDir - staging"
+    $staging = Join-Path $OutputDirectory "win-x64 - staging"
     Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
 
     try {
         Publish-Hub -Runtime 'win-x64' -Staging $staging -BinaryName 'casualties-hub.exe'
-        Rename-Item $staging $releaseDir
 
-        Write-Host "Creating zip..." -ForegroundColor Cyan
-        Compress-Archive -Path (Join-Path $releaseDir '*') -DestinationPath $zip -CompressionLevel Optimal
+        # No archive: the release is the one executable, so that is what gets uploaded.
+        Move-Item (Join-Path $staging 'casualties-hub.exe') $exe
 
-        $sizeMb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
-        Write-Host "Windows: $zip ($sizeMb MB)" -ForegroundColor Green
+        $sizeMb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
+        Write-Host "Windows: $exe ($sizeMb MB)" -ForegroundColor Green
     }
     finally {
         Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
@@ -169,4 +167,4 @@ if ($Platform -in @('linux', 'both')) { Build-LinuxRelease }
 if ($Platform -in @('windows', 'both')) { Build-WindowsRelease }
 
 Write-Host ''
-Write-Host "Release folders are in $OutputDirectory" -ForegroundColor Yellow
+Write-Host "Release assets are in $OutputDirectory" -ForegroundColor Yellow
