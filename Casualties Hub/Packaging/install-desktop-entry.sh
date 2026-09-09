@@ -25,7 +25,14 @@ if [ -f "$DIR/casualties-hub.png" ]; then
 fi
 
 # Exec must be absolute: the launcher runs from an arbitrary working directory.
-sed "s|^Exec=.*|Exec=$BIN|" "$DIR/casualties-hub.desktop" > "$APPS/casualties-hub.desktop"
+# The path is double-quoted for the Desktop Entry spec, which also requires
+# backslash, double quote, backtick and dollar to be escaped inside the quotes
+# and any percent sign doubled, so a folder like "Casualties Hub" still launches.
+EXEC_PATH=$(printf '%s' "$BIN" | sed 's/[\\"`$]/\\&/g; s/%/%%/g')
+{
+    grep -v '^Exec=' "$DIR/casualties-hub.desktop"
+    printf 'Exec="%s"\n' "$EXEC_PATH"
+} > "$APPS/casualties-hub.desktop"
 chmod 644 "$APPS/casualties-hub.desktop"
 
 if command -v update-desktop-database >/dev/null 2>&1; then
