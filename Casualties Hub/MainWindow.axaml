@@ -72,13 +72,13 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
           <Button x:Name="MinimiseButton" Classes="caption" ToolTip.Tip="Minimise">
-            <mi:MaterialIcon Kind="WindowMinimize" Width="16" Height="16"/>
+            <mi:MaterialIcon Kind="WindowMinimize" Width="16" Height="16" RenderOptions.EdgeMode="Aliased"/>
           </Button>
           <Button x:Name="MaximiseButton" Classes="caption" ToolTip.Tip="Maximise">
-            <mi:MaterialIcon x:Name="MaximiseIcon" Kind="WindowMaximize" Width="16" Height="16"/>
+            <mi:MaterialIcon x:Name="MaximiseIcon" Kind="WindowMaximize" Width="16" Height="16" RenderOptions.EdgeMode="Aliased"/>
           </Button>
           <Button x:Name="CloseButton" Classes="caption close" ToolTip.Tip="Close">
-            <mi:MaterialIcon Kind="WindowClose" Width="16" Height="16"/>
+            <mi:MaterialIcon Kind="WindowClose" Width="16" Height="16" RenderOptions.EdgeMode="Aliased"/>
           </Button>
         </StackPanel>
       </Grid>
