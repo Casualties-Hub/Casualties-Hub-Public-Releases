@@ -51,5 +51,7 @@ public class Settings
     public DateTimeOffset? CachedCompatibilityUpdatedAt { get; set; }
     public bool LocalModsShareColumnCollapsed { get; set; }
     public bool LocalModsShareColumnVisible { get; set; }
+    /// <summary>Show the Nexus dashboard as compact rows instead of tiles.</summary>
+    public bool DashboardListView { get; set; }
     public List<string> IgnoredDependencyNames { get; set; } = [];
 }

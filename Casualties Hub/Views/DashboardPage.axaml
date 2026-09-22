@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="Casualties_Hub.Views.DashboardPage">
 
   <DockPanel>
@@ -28,6 +29,19 @@
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
             <CheckBox x:Name="AdultContentBox" Content="18+"
                       ToolTip.Tip="Include mods flagged as adult content on Nexus."/>
+            <!-- Segmented tiles/list switch. -->
+            <Border Margin="4,0" CornerRadius="6" ClipToBounds="True" BorderThickness="1"
+                    BorderBrush="{DynamicResource ControlBorderBrush}" Background="{DynamicResource InsetBrush}">
+              <StackPanel Orientation="Horizontal">
+                <Button x:Name="TilesViewButton" Classes="segment" ToolTip.Tip="Show as tiles">
+                  <mi:MaterialIcon Kind="ViewGrid" Width="18" Height="18" Foreground="{Binding $parent[Button].Foreground}"/>
+                </Button>
+                <Border Width="1" Background="{DynamicResource ControlBorderBrush}"/>
+                <Button x:Name="ListViewButton" Classes="segment" ToolTip.Tip="Show as a list">
+                  <mi:MaterialIcon Kind="ViewList" Width="18" Height="18" Foreground="{Binding $parent[Button].Foreground}"/>
+                </Button>
+              </StackPanel>
+            </Border>
             <Button x:Name="RefreshButton" Content="Refresh"/>
           </StackPanel>
         </Grid>
@@ -54,6 +68,89 @@
                TextWrapping="Wrap" Margin="2,0,0,10" IsVisible="False"/>
 
     <ScrollViewer x:Name="ModScroller">
+      <StackPanel>
+
+      <!-- List view: one compact row per mod, description folds out beneath on click. -->
+      <ItemsControl x:Name="ModRows" IsVisible="False">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border CornerRadius="10" Margin="0,0,14,6" Padding="8"
+                    Background="{DynamicResource CardBrush}" BorderThickness="1"
+                    BorderBrush="{Binding CardBorderBrush}" Cursor="Hand"
+                    Tag="{Binding}" PointerPressed="OnCardPressed">
+              <StackPanel>
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+
+                  <!-- The small thumbnail gives way to the large image below when the row is open. -->
+                  <Border Grid.Column="0" Width="56" Height="40" CornerRadius="6" ClipToBounds="True"
+                          Margin="0,0,12,0" Background="{DynamicResource ChromeBrush}"
+                          IsVisible="{Binding IsCollapsed}">
+                    <Image Source="{Binding Icon}" Stretch="UniformToFill"/>
+                  </Border>
+
+                  <StackPanel Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Center" Spacing="2">
+                    <!-- Collapsed: name and chip, excerpt beneath. -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsCollapsed}">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                      <Border IsVisible="{Binding HasStatusChip}" CornerRadius="999" Padding="7,1"
+                              Background="{DynamicResource InsetBrush}" BorderThickness="1"
+                              BorderBrush="{Binding StatusBrush}" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StatusChipLabel}" FontSize="11" Foreground="{Binding StatusBrush}"/>
+                      </Border>
+                    </StackPanel>
+                    <TextBlock Text="{Binding RowSubtitle}" Classes="muted" TextTrimming="CharacterEllipsis"
+                               IsVisible="{Binding IsCollapsed}"/>
+                    <!-- Expanded: a larger heading with author and version alongside. -->
+                    <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsDescriptionExpanded}">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="18" TextTrimming="CharacterEllipsis"/>
+                      <TextBlock Text="{Binding AuthorAndVersion}" Classes="muted" VerticalAlignment="Center"
+                                 Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+                      <Border IsVisible="{Binding HasStatusChip}" CornerRadius="999" Padding="7,1"
+                              Background="{DynamicResource InsetBrush}" BorderThickness="1"
+                              BorderBrush="{Binding StatusBrush}" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StatusChipLabel}" FontSize="11" Foreground="{Binding StatusBrush}"/>
+                      </Border>
+                    </StackPanel>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" Margin="12,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="4" ToolTip.Tip="{Binding TotalDownloadsLabel}">
+                      <mi:MaterialIcon Kind="Download" Width="15" Height="15" Foreground="{DynamicResource MutedTextBrush}"/>
+                      <TextBlock Text="{Binding CompactDownloads}" Classes="muted" MinWidth="40"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="4" ToolTip.Tip="{Binding EndorsementsLabel}">
+                      <mi:MaterialIcon Kind="ThumbUp" Width="14" Height="14" Foreground="{DynamicResource MutedTextBrush}"/>
+                      <TextBlock Text="{Binding CompactEndorsements}" Classes="muted" MinWidth="36"/>
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Button Grid.Column="3" Classes="icon" Tag="{Binding}" Click="OnOpenNexus"
+                          VerticalAlignment="Center" ToolTip.Tip="View mod page on Nexus">
+                    <mi:MaterialIcon Kind="OpenInNew" Width="16" Height="16" Foreground="{Binding $parent[Button].Foreground}"/>
+                  </Button>
+                  <Button Grid.Column="4" Content="{Binding DashboardActionLabel}" Tag="{Binding}" Click="OnAction"
+                          Height="30" MinWidth="130" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </Grid>
+
+                <Grid IsVisible="{Binding IsDescriptionExpanded}" ColumnDefinitions="Auto,*" Margin="0,10,8,2">
+                  <Border Grid.Column="0" Width="220" Height="140" CornerRadius="8" ClipToBounds="True"
+                          Margin="0,0,16,0" VerticalAlignment="Top" Background="{DynamicResource ChromeBrush}">
+                    <Panel>
+                      <TextBlock Text="No image" Classes="dim" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      <Image Source="{Binding Icon}" Stretch="UniformToFill"/>
+                    </Panel>
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock Text="{Binding RenderedDescription}" TextWrapping="Wrap" LineHeight="18"/>
+                    <TextBlock Text="{Binding DependenciesLabel}" Foreground="#5DB8FF" IsVisible="{Binding HasDependencies}"/>
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
       <ItemsControl x:Name="ModList">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
@@ -122,6 +219,8 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
+
+      </StackPanel>
     </ScrollViewer>
 
   </DockPanel>

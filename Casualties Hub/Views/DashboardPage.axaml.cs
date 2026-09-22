@@ -34,6 +34,7 @@ public partial class DashboardPage : UserControl
     private List<MetadataMod> _filtered = [];
     private int _currentPage = 1;
     private bool _initialised;
+    private bool _listView;
     private DashboardCard? _expandedCard;
 
     public DashboardPage() : this(_ => { }) { }
@@ -67,6 +68,11 @@ public partial class DashboardPage : UserControl
         this.FindControl<Button>("DetectButton")!.Click += async (_, _) => await DetectAsync();
         this.FindControl<Button>("ChooseFolderButton")!.Click += async (_, _) => await ChooseFolderAsync();
         this.FindControl<Button>("OpenSettingsButton")!.Click += (_, _) => _openSettings?.Invoke();
+        this.FindControl<Button>("TilesViewButton")!.Click += (_, _) => SetViewMode(listView: false);
+        this.FindControl<Button>("ListViewButton")!.Click += (_, _) => SetViewMode(listView: true);
+
+        _listView = _settingsService.Load().DashboardListView;
+        UpdateViewButtons();
 
         // Installing or toggling a mod anywhere in the Hub should be reflected here without the
         // user having to press Refresh.
@@ -263,6 +269,30 @@ public partial class DashboardPage : UserControl
         ShowPage();
     }
 
+    /// <summary>Switches between tiles and rows, remembering the choice for next time.</summary>
+    private void SetViewMode(bool listView)
+    {
+        if (_listView == listView) return;
+        _listView = listView;
+
+        var settings = _settingsService.Load();
+        settings.DashboardListView = listView;
+        _settingsService.Save(settings);
+
+        UpdateViewButtons();
+        ShowPage();
+    }
+
+    private void UpdateViewButtons()
+    {
+        var tiles = this.FindControl<Button>("TilesViewButton")!;
+        var list = this.FindControl<Button>("ListViewButton")!;
+        tiles.Classes.Set("active", !_listView);
+        list.Classes.Set("active", _listView);
+        this.FindControl<ItemsControl>("ModList")!.IsVisible = !_listView;
+        this.FindControl<ItemsControl>("ModRows")!.IsVisible = _listView;
+    }
+
     private void ShowPage()
     {
         var pageCount = Math.Max(1, (int)Math.Ceiling(_filtered.Count / (double)PageSize));
@@ -274,7 +304,9 @@ public partial class DashboardPage : UserControl
             .ToList();
 
         _expandedCard = null;
-        this.FindControl<ItemsControl>("ModList")!.ItemsSource = rows;
+        // Only the visible layout gets the rows; building both would double the layout cost.
+        this.FindControl<ItemsControl>("ModList")!.ItemsSource = _listView ? null : rows;
+        this.FindControl<ItemsControl>("ModRows")!.ItemsSource = _listView ? rows : null;
 
         // Icons load after the cards are on screen, so the page never waits on the network.
         foreach (var card in rows) _ = card.LoadIconAsync();
@@ -305,6 +337,7 @@ public partial class DashboardPage : UserControl
     private void ShowEmpty(string message)
     {
         this.FindControl<ItemsControl>("ModList")!.ItemsSource = Array.Empty<MetadataMod>();
+        this.FindControl<ItemsControl>("ModRows")!.ItemsSource = Array.Empty<MetadataMod>();
         var empty = this.FindControl<TextBlock>("EmptyText")!;
         empty.IsVisible = true;
         empty.Text = message;
