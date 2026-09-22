@@ -34,7 +34,9 @@
                   ToolTip.Tip="Launch Casualties Unknown through Steam"/>
           <Button x:Name="DashboardNav" Classes="nav" Content="Nexus Dashboard"/>
           <Button x:Name="ModsNav" Classes="nav" Content="Local Mods"/>
-          <Button x:Name="MultiplayerNav" Classes="nav" Content="Multiplayer"
+          <!-- Multiplayer is a work-in-progress feature. The page stays wired up but the
+               nav entry is hidden until it is ready. -->
+          <Button x:Name="MultiplayerNav" Classes="nav" Content="Multiplayer" IsVisible="False"
                   ToolTip.Tip="Server browser preview. Not connected to a live service yet."/>
           <Button x:Name="SkinsNav" Classes="nav" Content="Skins &amp; Backups"
                   ToolTip.Tip="Keep copies of files a mod update would overwrite, and preview the character skins installed through CustomSprites."/>
