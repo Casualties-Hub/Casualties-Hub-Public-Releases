@@ -13,17 +13,17 @@
     <WrapPanel Grid.Row="1" Margin="0,18,0,12">
       <CheckBox x:Name="AutoScrollBox" Content="Auto-scroll" IsChecked="True"
                 VerticalAlignment="Center" Margin="0,0,12,8"/>
-      <Button x:Name="RefreshButton" Content="Refresh" Width="100" Margin="0,0,10,8"/>
-      <Button x:Name="ClearButton" Content="Clear view" Width="110" Margin="0,0,10,8"
+      <Button x:Name="RefreshButton" Content="Refresh" MinWidth="100" Margin="0,0,10,8"/>
+      <Button x:Name="ClearButton" Content="Clear view" MinWidth="110" Margin="0,0,10,8"
               ToolTip.Tip="Clears the in-app list; the next Hub activity creates a new entry."/>
-      <Button x:Name="CopyLogButton" Content="Copy log" Width="100" Margin="0,0,10,8"
+      <Button x:Name="CopyLogButton" Content="Copy log" MinWidth="100" Margin="0,0,10,8"
               ToolTip.Tip="Copy the current console text for a support report."/>
-      <Button x:Name="OpenCurrentLogButton" Content="Open current log" Width="145" Margin="0,0,10,8"/>
-      <Button x:Name="OpenCrashLogButton" Content="Open BepInEx crash log" Width="185" Margin="0,0,10,8"
+      <Button x:Name="OpenCurrentLogButton" Content="Open current log" MinWidth="145" Margin="0,0,10,8"/>
+      <Button x:Name="OpenCrashLogButton" Content="Open BepInEx crash log" MinWidth="185" Margin="0,0,10,8"
               ToolTip.Tip="Opens the BepInEx LogOutput.log from your game folder."/>
-      <Button x:Name="CreateCrashReportButton" Content="Create crash report" Width="160" Margin="0,0,10,8"
+      <Button x:Name="CreateCrashReportButton" Content="Create crash report" MinWidth="160" Margin="0,0,10,8"
               ToolTip.Tip="Writes a support-ready report combining this session's log with your install details."/>
-      <Button x:Name="OpenLogsFolderButton" Content="Open logs folder" Width="140" Margin="0,0,10,8"/>
+      <Button x:Name="OpenLogsFolderButton" Content="Open logs folder" MinWidth="140" Margin="0,0,10,8"/>
     </WrapPanel>
 
     <Border Grid.Row="2" Background="{DynamicResource ChromeBrush}" CornerRadius="4">

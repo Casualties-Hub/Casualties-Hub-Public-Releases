@@ -19,8 +19,8 @@
                Text="The Hub looks through the libraries Steam itself lists. If your game lives somewhere Steam does not know about, it will not be found automatically."/>
 
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-      <Button x:Name="IgnoreButton" Content="Ignore" Width="100"/>
-      <Button x:Name="OpenSettingsButton" Classes="accent" Content="Open Settings" Width="140"/>
+      <Button x:Name="IgnoreButton" Content="Ignore" MinWidth="100"/>
+      <Button x:Name="OpenSettingsButton" Classes="accent" Content="Open Settings" MinWidth="140"/>
     </StackPanel>
   </StackPanel>
 

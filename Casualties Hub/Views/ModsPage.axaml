@@ -76,15 +76,15 @@
                 BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="6">
           <WrapPanel VerticalAlignment="Center">
-            <Button x:Name="InstallButton" Content="Install mod" Width="112" Margin="0,0,7,0"
+            <Button x:Name="InstallButton" Content="Install mod" MinWidth="112" Margin="0,0,7,0"
                     ToolTip.Tip="Install a mod archive from disk into BepInEx/plugins."/>
-            <Button x:Name="RefreshButton" Content="Refresh" Width="82" Margin="0,0,7,0"
+            <Button x:Name="RefreshButton" Content="Refresh" MinWidth="82" Margin="0,0,7,0"
                     ToolTip.Tip="Re-scan the plugins folder and re-check every mod against the community metadata."/>
-            <Button x:Name="DeleteAllButton" Content="Delete all" Width="90" Margin="0,0,7,0"
+            <Button x:Name="DeleteAllButton" Content="Delete all" MinWidth="90" Margin="0,0,7,0"
                     ToolTip.Tip="Permanently deletes every mod file. Protected assets and your saved settings are not touched."/>
-            <Button x:Name="DisableAllButton" Content="Disable all" Width="88" Margin="0,0,7,0"
+            <Button x:Name="DisableAllButton" Content="Disable all" MinWidth="88" Margin="0,0,7,0"
                     ToolTip.Tip="Renames every enabled mod to .dll.disabled. Nothing is deleted and Enable all puts them back."/>
-            <Button x:Name="EnableAllButton" Content="Enable all" Width="88" Margin="0,0,9,0"
+            <Button x:Name="EnableAllButton" Content="Enable all" MinWidth="88" Margin="0,0,9,0"
                     ToolTip.Tip="Restores every .dll.disabled mod back to an active .dll."/>
             <TextBox x:Name="LocalSearchBox" Width="190" Height="28" Watermark="Search Mods"
                      VerticalContentAlignment="Center"/>
@@ -96,11 +96,11 @@
                 CornerRadius="4" Padding="6" Margin="10,0,0,0"
                 ToolTip.Tip="Create or import a compact list of enabled mods.">
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <Button x:Name="ShareCodeButton" Content="Share code" Width="92" Height="28" Margin="0,0,6,0"
+            <Button x:Name="ShareCodeButton" Content="Share code" MinWidth="92" Height="28" Margin="0,0,6,0"
                     ToolTip.Tip="A share code is a compact text list of your enabled mods and their versions. This copies yours to the clipboard."/>
             <TextBox x:Name="ModlistCodeBox" Width="190" Height="28" Watermark="Paste share code"
                      VerticalContentAlignment="Center"/>
-            <Button x:Name="ImportButton" Content="Import" Width="72" Height="28" Margin="6,0,6,0"
+            <Button x:Name="ImportButton" Content="Import" MinWidth="72" Height="28" Margin="6,0,6,0"
                     ToolTip.Tip="Reads the pasted share code and lists the mods it asks for. Nothing is downloaded automatically."/>
             <Button x:Name="ShareColumnToggleButton" MinWidth="118" Height="28" Margin="6,0,0,0"
                     Content="Add column &gt;"/>
