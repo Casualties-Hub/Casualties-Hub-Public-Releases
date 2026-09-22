@@ -10,10 +10,10 @@ public static class NexusBbCodeParser
     {
         if (string.IsNullOrWhiteSpace(description)) return "No description was supplied by the mod author.";
 
-        var value = description.Replace("[br]", "\n", StringComparison.OrdinalIgnoreCase)
-            .Replace("[br/]", "\n", StringComparison.OrdinalIgnoreCase)
-            .Replace("[br /]", "\n", StringComparison.OrdinalIgnoreCase);
-        value = Regex.Replace(value, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
+        // Nexus writes each break as a source newline followed by a break tag. Both mean the same
+        // single break, so any whitespace hugging the tag folds into it, or every line would be
+        // followed by a blank one.
+        var value = Regex.Replace(description, @"[ \t]*\r?\n?[ \t]*(?:<br\s*/?>|\[br\s*/?\])[ \t]*\r?\n?", "\n", RegexOptions.IgnoreCase);
         value = Regex.Replace(value, @"\[url=(?<url>[^\]]+)\](?<text>.*?)\[/url\]", "${text}", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         value = Regex.Replace(value, @"\[url\](?<url>.*?)\[/url\]", "${url}", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         value = Regex.Replace(value, @"\[/?(b|i|u|s|center|left|right|quote|code|list|\*|color(?:=[^\]]+)?|size(?:=[^\]]+)?)\]", "", RegexOptions.IgnoreCase);

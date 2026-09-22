@@ -13,7 +13,8 @@
     <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="CornerRadius" Value="4"/>
-    <Setter Property="Padding" Value="14,7"/>
+    <Setter Property="Padding" Value="12,4"/>
+    <Setter Property="MinHeight" Value="30"/>
     <Setter Property="HorizontalContentAlignment" Value="Center"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="Cursor" Value="Hand"/>
@@ -154,6 +155,32 @@
   </Style>
   <Style Selector="Button.icon:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ControlPressedBrush}"/>
+  </Style>
+
+  <!-- One half of a segmented switch: square, borderless, filled when active. -->
+  <Style Selector="Button.segment">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="0"/>
+    <Setter Property="Width" Value="34"/>
+    <Setter Property="Height" Value="30"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.segment /template/ ContentPresenter">
+    <Setter Property="CornerRadius" Value="0"/>
+  </Style>
+  <Style Selector="Button.segment:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ControlHoverBrush}"/>
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+  </Style>
+  <Style Selector="Button.segment.active">
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+  </Style>
+  <Style Selector="Button.segment.active /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ControlSurfaceBrush}"/>
   </Style>
 
   <Style Selector="Button.caption">

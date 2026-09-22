@@ -21,11 +21,14 @@ Expected behavior:
 - Search filters by mod name and author.
 - Sort works for total downloads, unique downloads, endorsements, date, and name.
 - The **Show 18+ mods** checkbox is off by default. The manually marked adult-content entries should only appear when it is enabled.
-- Clicking a mod card opens its description inside that card. The description is manually scrollable with the mouse wheel.
-- Installed cards receive a subtle green tint.
-- Cards show installed, disabled, up-to-date, or out-of-date information where the Hub can identify a local mod.
-- **Open Download** opens Nexus’s Files/download page in your browser.
-- **View Modpage** opens the normal Nexus mod page.
+- The two buttons beside the **18+** checkbox switch between **tiles** and a **list**. The choice is remembered between launches.
+- Tiles show the mod artwork with the name, author, and download count along the bottom. Clicking a tile opens a detail panel over the grid with the full description, image, stats, and actions. Close it with the X, by clicking the same tile again, or by clicking outside the panel. The grid keeps its scroll position.
+- List rows show a small thumbnail, the name, author, a one-line excerpt, downloads, and endorsements. Clicking a row folds the full description out beneath it with a larger image.
+- Right-clicking a tile or row opens a menu with the mod's action, show or hide details, the Nexus mod page, and copy the Nexus link.
+- Installed mods show an **Installed**, **Update available**, or **Disabled** badge, and a green or amber outline.
+- Descriptions should read with single line spacing, with blank lines only where the author left a paragraph gap.
+- **Open Download** opens Nexus’s Files/download page in your browser. It reads **Open Update** when the installed copy is out of date.
+- The external-link icon button and the menu's **View mod page on Nexus** open the normal Nexus mod page.
 
 Premium Nexus users may save their own API key in Settings. When a key is saved, **Open Download** becomes **Download** and attempts a direct Nexus download. Do not share your API key with anyone.
 
@@ -34,7 +37,9 @@ Things to look for:
 - Wrong mod title, image, description, version, dependency, or update status.
 - A card marked installed when it is not, or not installed when it is.
 - The wrong Nexus page opening.
-- A description that cannot be scrolled or a card that does not close.
+- A description that cannot be scrolled, a detail panel that does not close, or a description showing doubled blank lines.
+- More than one row expanded at a time, or a detail panel left open after changing page, filter, or view.
+- The tiles/list choice not surviving a restart.
 
 ### 2. Download Inbox and Automatic Import
 

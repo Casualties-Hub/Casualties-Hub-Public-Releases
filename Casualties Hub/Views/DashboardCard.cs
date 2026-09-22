@@ -43,6 +43,44 @@ public sealed class DashboardCard : INotifyPropertyChanged
     public string RenderedDescription => Mod.RenderedDescription;
     public string DashboardActionLabel => Mod.DashboardActionLabel;
 
+    // Compact forms for the row and tile layouts, where a full "53,728 total downloads" line
+    // would not fit.
+    public string AuthorAndVersion => $"{Mod.Author} · v{Mod.Version}";
+    public string CompactDownloads => Compact(Mod.TotalDownloads);
+    public string CompactUniqueDownloads => Compact(Mod.UniqueDownloads);
+    public string CompactEndorsements => Compact(Mod.Endorsements);
+    public bool HasDependencies => Mod.DependenciesLabel.StartsWith("Requires", StringComparison.Ordinal);
+
+    /// <summary>The first sentence or so of the description, flattened to one line.</summary>
+    public string Excerpt
+    {
+        get
+        {
+            var text = Mod.RenderedDescription.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            while (text.Contains("  ", StringComparison.Ordinal)) text = text.Replace("  ", " ", StringComparison.Ordinal);
+            return text.Length > 160 ? text[..157].TrimEnd() + "..." : text;
+        }
+    }
+
+    public string RowSubtitle => $"{Mod.Author} · {Excerpt}";
+
+    public string TileSubtitle => $"{Mod.Author} · {CompactDownloads} downloads";
+
+    public bool HasStatusChip => Mod.IsLocallyInstalled;
+
+    public string DetailsMenuLabel => _isDescriptionExpanded ? "Hide details" : "Show details";
+
+    public string StatusChipLabel => Mod.IsLocallyDisabled
+        ? "Disabled"
+        : Mod.IsLocallyOutOfDate ? "Update available" : "Installed";
+
+    private static string Compact(int value) => value switch
+    {
+        >= 1_000_000 => $"{value / 1_000_000d:0.#}M",
+        >= 1_000 => $"{value / 1_000d:0.#}k",
+        _ => value.ToString(),
+    };
+
     // Out-of-date is checked first so it wins over plain "installed".
     public IBrush CardBorderBrush =>
         Mod.IsLocallyOutOfDate ? OutOfDate : Mod.IsLocallyInstalled ? Installed : NeutralBorder;
@@ -59,8 +97,11 @@ public sealed class DashboardCard : INotifyPropertyChanged
     public bool IsDescriptionExpanded
     {
         get => _isDescriptionExpanded;
-        set { _isDescriptionExpanded = value; Raise(); }
+        set { _isDescriptionExpanded = value; Raise(); Raise(nameof(IsCollapsed)); Raise(nameof(DetailsMenuLabel)); }
     }
+
+    /// <summary>Inverse of <see cref="IsDescriptionExpanded"/>, for parts that hide when open.</summary>
+    public bool IsCollapsed => !_isDescriptionExpanded;
 
     /// <summary>Fetches the mod icon in the background; a failure just leaves the placeholder.</summary>
     public async Task LoadIconAsync() => Icon = await RemoteImageCache.GetAsync(Mod.ImageUrl);

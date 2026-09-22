@@ -34,6 +34,7 @@ public partial class DashboardPage : UserControl
     private List<MetadataMod> _filtered = [];
     private int _currentPage = 1;
     private bool _initialised;
+    private bool _listView;
     private DashboardCard? _expandedCard;
 
     public DashboardPage() : this(_ => { }) { }
@@ -67,13 +68,19 @@ public partial class DashboardPage : UserControl
         this.FindControl<Button>("DetectButton")!.Click += async (_, _) => await DetectAsync();
         this.FindControl<Button>("ChooseFolderButton")!.Click += async (_, _) => await ChooseFolderAsync();
         this.FindControl<Button>("OpenSettingsButton")!.Click += (_, _) => _openSettings?.Invoke();
+        this.FindControl<Button>("TilesViewButton")!.Click += (_, _) => SetViewMode(listView: false);
+        this.FindControl<Button>("ListViewButton")!.Click += (_, _) => SetViewMode(listView: true);
+        this.FindControl<Button>("TileDetailCloseButton")!.Click += (_, _) => CloseTileDetail();
+
+        _listView = _settingsService.Load().DashboardListView;
+        UpdateViewButtons();
 
         // Installing or toggling a mod anywhere in the Hub should be reflected here without the
         // user having to press Refresh.
         ModService.PluginFilesChanged += OnPluginFilesChanged;
         DetachedFromVisualTree += (_, _) => ModService.PluginFilesChanged -= OnPluginFilesChanged;
 
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         _ = LoadAsync(force: false);
     }
 
@@ -86,7 +93,7 @@ public partial class DashboardPage : UserControl
             return;
         }
 
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         if (_allMods.Count > 0)
         {
             MarkLocalStatus();
@@ -113,7 +120,7 @@ public partial class DashboardPage : UserControl
         settings.GamePath = path;
         _settingsService.Save(settings);
 
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         MarkLocalStatus();
         ApplyFilters();
         _setStatus("Game folder set.");
@@ -121,24 +128,11 @@ public partial class DashboardPage : UserControl
 
     private Window? Owner => TopLevel.GetTopLevel(this) as Window;
 
-    /// <summary>Updates the installed count, the game path, and the "no folder set" prompt.</summary>
-    private void RefreshLocalCounts()
+    /// <summary>Shows or hides the "no folder set" prompt.</summary>
+    private void RefreshGameFolderPrompt()
     {
         var settings = _settingsService.Load();
-        var configured = _modService.HasConfiguredGameFolder(settings);
-
-        this.FindControl<Border>("GameFolderCard")!.IsVisible = !configured;
-        this.FindControl<TextBlock>("GamePathText")!.Text =
-            string.IsNullOrWhiteSpace(settings.GamePath) ? "Not configured" : settings.GamePath;
-
-        var count = 0;
-        try { if (configured) count = _modService.GetInstalledMods(settings).Count; }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            DebugLogService.Info($"Could not count installed mods: {exception.Message}");
-        }
-
-        this.FindControl<TextBlock>("ModCountText")!.Text = count.ToString();
+        this.FindControl<Border>("GameFolderCard")!.IsVisible = !_modService.HasConfiguredGameFolder(settings);
     }
 
     private async Task DetectAsync()
@@ -154,7 +148,7 @@ public partial class DashboardPage : UserControl
         var settings = _settingsService.Load();
         settings.GamePath = found;
         _settingsService.Save(settings);
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         MarkLocalStatus();
         ApplyFilters();
         _setStatus("Game folder detected.");
@@ -163,10 +157,21 @@ public partial class DashboardPage : UserControl
     private async Task LoadAsync(bool force)
     {
         _setStatus(force ? "Refreshing the mod list..." : "Loading the mod list...");
+        if (_allMods.Count == 0) ShowEmpty("Loading the community mod list...");
         try
         {
-            _allMods = await _metadataService.GetModsAsync(force);
-            MarkLocalStatus();
+            // Reading the cached catalogue, inspecting plugin DLLs, and stripping BBCode all add
+            // up to a noticeable stall, so they run off the UI thread. The list is freshly
+            // deserialised each time, so nothing on screen shares these objects until they are
+            // handed over below.
+            var mods = await Task.Run(async () =>
+            {
+                var loaded = await _metadataService.GetModsAsync(force);
+                MarkLocalStatus(loaded);
+                return loaded;
+            });
+
+            _allMods = mods;
             _currentPage = 1;
             ApplyFilters();
             _setStatus($"{_allMods.Count} mods in the community catalogue.");
@@ -180,7 +185,10 @@ public partial class DashboardPage : UserControl
     }
 
     /// <summary>Cross-references the catalogue against the plugins folder.</summary>
-    private void MarkLocalStatus()
+    /// <remarks>Touches no UI, so it is safe to call from a background thread.</remarks>
+    private void MarkLocalStatus() => MarkLocalStatus(_allMods);
+
+    private void MarkLocalStatus(IReadOnlyList<MetadataMod> mods)
     {
         var settings = _settingsService.Load();
         var hasPremiumKey = _apiKeyStore.HasKey;
@@ -189,14 +197,14 @@ public partial class DashboardPage : UserControl
         try
         {
             if (_modService.HasConfiguredPluginsFolder(settings))
-                installed = _modService.GetInstalledModsWithMetadata(settings, _allMods);
+                installed = _modService.GetInstalledModsWithMetadata(settings, mods);
         }
         catch (Exception exception)
         {
             DebugLogService.Error("Could not read installed mods for the dashboard", exception);
         }
 
-        foreach (var mod in _allMods)
+        foreach (var mod in mods)
         {
             var match = installed.FirstOrDefault(local =>
                 string.Equals(local.MetadataId, mod.Id, StringComparison.Ordinal));
@@ -262,6 +270,30 @@ public partial class DashboardPage : UserControl
         ShowPage();
     }
 
+    /// <summary>Switches between tiles and rows, remembering the choice for next time.</summary>
+    private void SetViewMode(bool listView)
+    {
+        if (_listView == listView) return;
+        _listView = listView;
+
+        var settings = _settingsService.Load();
+        settings.DashboardListView = listView;
+        _settingsService.Save(settings);
+
+        UpdateViewButtons();
+        ShowPage();
+    }
+
+    private void UpdateViewButtons()
+    {
+        var tiles = this.FindControl<Button>("TilesViewButton")!;
+        var list = this.FindControl<Button>("ListViewButton")!;
+        tiles.Classes.Set("active", !_listView);
+        list.Classes.Set("active", _listView);
+        this.FindControl<ItemsControl>("ModList")!.IsVisible = !_listView;
+        this.FindControl<ItemsControl>("ModRows")!.IsVisible = _listView;
+    }
+
     private void ShowPage()
     {
         var pageCount = Math.Max(1, (int)Math.Ceiling(_filtered.Count / (double)PageSize));
@@ -273,7 +305,10 @@ public partial class DashboardPage : UserControl
             .ToList();
 
         _expandedCard = null;
-        this.FindControl<ItemsControl>("ModList")!.ItemsSource = rows;
+        CloseTileDetail();
+        // Only the visible layout gets the rows; building both would double the layout cost.
+        this.FindControl<ItemsControl>("ModList")!.ItemsSource = _listView ? null : rows;
+        this.FindControl<ItemsControl>("ModRows")!.ItemsSource = _listView ? rows : null;
 
         // Icons load after the cards are on screen, so the page never waits on the network.
         foreach (var card in rows) _ = card.LoadIconAsync();
@@ -304,6 +339,7 @@ public partial class DashboardPage : UserControl
     private void ShowEmpty(string message)
     {
         this.FindControl<ItemsControl>("ModList")!.ItemsSource = Array.Empty<MetadataMod>();
+        this.FindControl<ItemsControl>("ModRows")!.ItemsSource = Array.Empty<MetadataMod>();
         var empty = this.FindControl<TextBlock>("EmptyText")!;
         empty.IsVisible = true;
         empty.Text = message;
@@ -315,24 +351,86 @@ public partial class DashboardPage : UserControl
         ShowPage();
     }
 
-    /// <summary>Clicking a card flips its description overlay, one at a time.</summary>
+    /// <summary>
+    /// Clicking a list row folds its description out beneath it; clicking a tile opens the detail
+    /// panel above the grid. Either way, one mod at a time.
+    /// </summary>
     private void OnCardPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if ((sender as Control)?.Tag is not DashboardCard card) return;
+        if (sender is not Control control || control.Tag is not DashboardCard card) return;
+
+        // Right-click belongs to the context menu.
+        if (!e.GetCurrentPoint(control).Properties.IsLeftButtonPressed) return;
 
         // Buttons inside the card raise this too; ignore the press when it landed on one, or
         // Download would also toggle the description over the top of itself.
         if (e.Source is Control source && source.FindAncestorOfType<Button>(includeSelf: true) is not null) return;
 
-        var wasExpanded = card.IsDescriptionExpanded;
+        ToggleDetails(card);
+    }
+
+    private void OnToggleDetails(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.Tag is DashboardCard card) ToggleDetails(card);
+    }
+
+    private void ToggleDetails(DashboardCard card)
+    {
+        if (!_listView)
+        {
+            if (ReferenceEquals(_expandedCard, card)) CloseTileDetail();
+            else ShowTileDetail(card);
+            return;
+        }
+
+        var wasExpanded = ReferenceEquals(_expandedCard, card);
         if (_expandedCard is not null) _expandedCard.IsDescriptionExpanded = false;
         card.IsDescriptionExpanded = !wasExpanded;
-        _expandedCard = card.IsDescriptionExpanded ? card : null;
+        _expandedCard = wasExpanded ? null : card;
+    }
+
+    private void ShowTileDetail(DashboardCard card)
+    {
+        _expandedCard = card;
+        var detail = this.FindControl<Border>("TileDetail")!;
+        detail.DataContext = card;
+        detail.IsVisible = true;
+        this.FindControl<Border>("TileDetailBackdrop")!.IsVisible = true;
+        // Each mod's description starts from the top, not wherever the last one was left.
+        this.FindControl<ScrollViewer>("TileDetailScroller")!.Offset = default;
+    }
+
+    private void OnTileDetailBackdropPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e) => CloseTileDetail();
+
+    private void CloseTileDetail()
+    {
+        var detail = this.FindControl<Border>("TileDetail")!;
+        detail.IsVisible = false;
+        detail.DataContext = null;
+        this.FindControl<Border>("TileDetailBackdrop")!.IsVisible = false;
+        if (!_listView) _expandedCard = null;
+    }
+
+    private async void OnCopyNexusLink(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.Tag is not DashboardCard { Mod: var mod }) return;
+        if (string.IsNullOrWhiteSpace(mod.NexusUrl))
+        {
+            _setStatus($"{mod.Name} has no Nexus link in the catalogue.");
+            return;
+        }
+        if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+        {
+            _setStatus("The clipboard is not available.");
+            return;
+        }
+        await clipboard.SetTextAsync(mod.NexusUrl);
+        _setStatus($"Copied the Nexus link for {mod.Name}.");
     }
 
     private void OnOpenNexus(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not DashboardCard { Mod: var mod }) return;
+        if ((sender as Control)?.Tag is not DashboardCard { Mod: var mod }) return;
         if (string.IsNullOrWhiteSpace(mod.NexusUrl))
         {
             _setStatus($"{mod.Name} has no Nexus link in the catalogue.");
@@ -343,7 +441,7 @@ public partial class DashboardPage : UserControl
 
     private async void OnAction(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not DashboardCard { Mod: var mod } || Owner is null) return;
+        if ((sender as Control)?.Tag is not DashboardCard { Mod: var mod } || Owner is null) return;
 
         if (mod.IsLocallyDisabled)
         {

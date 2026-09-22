@@ -10,8 +10,8 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
 
-  <!-- 248px sidebar, 82px topbar, 28px status bar. -->
-  <Grid ColumnDefinitions="248,*" RowDefinitions="82,*,28">
+  <!-- 248px sidebar, 40px topbar (just the window controls), 28px status bar. -->
+  <Grid ColumnDefinitions="248,*" RowDefinitions="40,*,28">
 
     <Border x:Name="SidebarBar" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" ZIndex="30"
             Background="{DynamicResource ChromeBrush}"
@@ -25,9 +25,18 @@
         </TextBlock>
 
         <StackPanel Grid.Row="1" Spacing="4" Margin="18,0">
+          <Button x:Name="LaunchGameButton" Content="Launch game" Height="44" Margin="0,0,0,12"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  Background="{DynamicResource AccentSoftBrush}"
+                  Foreground="{DynamicResource AccentSoftTextBrush}"
+                  BorderBrush="{DynamicResource AccentSoftTextBrush}"
+                  FontSize="16" FontWeight="Bold"
+                  ToolTip.Tip="Launch Casualties Unknown through Steam"/>
           <Button x:Name="DashboardNav" Classes="nav" Content="Nexus Dashboard"/>
           <Button x:Name="ModsNav" Classes="nav" Content="Local Mods"/>
-          <Button x:Name="MultiplayerNav" Classes="nav" Content="Multiplayer"
+          <!-- Multiplayer is a work-in-progress feature. The page stays wired up but the
+               nav entry is hidden until it is ready. -->
+          <Button x:Name="MultiplayerNav" Classes="nav" Content="Multiplayer" IsVisible="False"
                   ToolTip.Tip="Server browser preview. Not connected to a live service yet."/>
           <Button x:Name="SkinsNav" Classes="nav" Content="Skins &amp; Backups"
                   ToolTip.Tip="Keep copies of files a mod update would overwrite, and preview the character skins installed through CustomSprites."/>
@@ -59,17 +68,6 @@
             Background="{DynamicResource WindowBackgroundBrush}" ZIndex="20"
             BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1">
       <Grid>
-        <Grid Margin="36,0">
-          <Button x:Name="LaunchGameButton" Content="Launch game" Width="320" Height="44"
-                  HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,8"
-                  HorizontalContentAlignment="Center"
-                  Background="{DynamicResource AccentSoftBrush}"
-                  Foreground="{DynamicResource AccentSoftTextBrush}"
-                  BorderBrush="{DynamicResource AccentSoftTextBrush}"
-                  FontSize="16" FontWeight="Bold"
-                  ToolTip.Tip="Launch Casualties Unknown through Steam"/>
-        </Grid>
-
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
           <Button x:Name="MinimiseButton" Classes="caption" ToolTip.Tip="Minimise">
             <mi:MaterialIcon Kind="WindowMinimize" Width="16" Height="16" RenderOptions.EdgeMode="Aliased"/>
