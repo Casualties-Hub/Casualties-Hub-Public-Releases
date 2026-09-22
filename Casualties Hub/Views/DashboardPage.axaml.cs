@@ -357,12 +357,25 @@ public partial class DashboardPage : UserControl
     /// </summary>
     private void OnCardPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if ((sender as Control)?.Tag is not DashboardCard card) return;
+        if (sender is not Control control || control.Tag is not DashboardCard card) return;
+
+        // Right-click belongs to the context menu.
+        if (!e.GetCurrentPoint(control).Properties.IsLeftButtonPressed) return;
 
         // Buttons inside the card raise this too; ignore the press when it landed on one, or
         // Download would also toggle the description over the top of itself.
         if (e.Source is Control source && source.FindAncestorOfType<Button>(includeSelf: true) is not null) return;
 
+        ToggleDetails(card);
+    }
+
+    private void OnToggleDetails(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.Tag is DashboardCard card) ToggleDetails(card);
+    }
+
+    private void ToggleDetails(DashboardCard card)
+    {
         if (!_listView)
         {
             if (ReferenceEquals(_expandedCard, card)) CloseTileDetail();
@@ -398,9 +411,26 @@ public partial class DashboardPage : UserControl
         if (!_listView) _expandedCard = null;
     }
 
+    private async void OnCopyNexusLink(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.Tag is not DashboardCard { Mod: var mod }) return;
+        if (string.IsNullOrWhiteSpace(mod.NexusUrl))
+        {
+            _setStatus($"{mod.Name} has no Nexus link in the catalogue.");
+            return;
+        }
+        if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+        {
+            _setStatus("The clipboard is not available.");
+            return;
+        }
+        await clipboard.SetTextAsync(mod.NexusUrl);
+        _setStatus($"Copied the Nexus link for {mod.Name}.");
+    }
+
     private void OnOpenNexus(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not DashboardCard { Mod: var mod }) return;
+        if ((sender as Control)?.Tag is not DashboardCard { Mod: var mod }) return;
         if (string.IsNullOrWhiteSpace(mod.NexusUrl))
         {
             _setStatus($"{mod.Name} has no Nexus link in the catalogue.");
@@ -411,7 +441,7 @@ public partial class DashboardPage : UserControl
 
     private async void OnAction(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not DashboardCard { Mod: var mod } || Owner is null) return;
+        if ((sender as Control)?.Tag is not DashboardCard { Mod: var mod } || Owner is null) return;
 
         if (mod.IsLocallyDisabled)
         {

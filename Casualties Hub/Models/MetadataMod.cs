@@ -31,7 +31,9 @@ public sealed class MetadataMod
     // Everyone else is sent to Nexus's own files/download page in their browser.
     public string DashboardActionLabel => IsLocallyDisabled
         ? "Re-enable in Local Mods"
-        : HasPremiumDownload ? "Download" : "Open Download";
+        : IsLocallyOutOfDate
+            ? HasPremiumDownload ? "Update" : "Open Update"
+            : HasPremiumDownload ? "Download" : "Open Download";
     public string RenderedDescription { get; set; } = "No description was supplied by the mod author.";
     public bool IsDescriptionExpanded { get; set; }
     public bool IsLocallyInstalled { get; set; }

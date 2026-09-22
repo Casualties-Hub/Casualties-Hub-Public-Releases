@@ -79,6 +79,15 @@
                     Background="{DynamicResource CardBrush}" BorderThickness="1"
                     BorderBrush="{Binding CardBorderBrush}" Cursor="Hand"
                     Tag="{Binding}" PointerPressed="OnCardPressed">
+              <Border.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="{Binding DashboardActionLabel}" Tag="{Binding}" Click="OnAction"/>
+                  <MenuItem Header="{Binding DetailsMenuLabel}" Tag="{Binding}" Click="OnToggleDetails"/>
+                  <Separator/>
+                  <MenuItem Header="View mod page on Nexus" Tag="{Binding}" Click="OnOpenNexus"/>
+                  <MenuItem Header="Copy Nexus link" Tag="{Binding}" Click="OnCopyNexusLink"/>
+                </ContextMenu>
+              </Border.ContextMenu>
               <StackPanel>
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
 
@@ -165,6 +174,15 @@
                     Background="{DynamicResource ChromeBrush}" BorderThickness="1"
                     BorderBrush="{Binding CardBorderBrush}" Cursor="Hand"
                     Tag="{Binding}" PointerPressed="OnCardPressed">
+              <Border.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="{Binding DashboardActionLabel}" Tag="{Binding}" Click="OnAction"/>
+                  <MenuItem Header="{Binding DetailsMenuLabel}" Tag="{Binding}" Click="OnToggleDetails"/>
+                  <Separator/>
+                  <MenuItem Header="View mod page on Nexus" Tag="{Binding}" Click="OnOpenNexus"/>
+                  <MenuItem Header="Copy Nexus link" Tag="{Binding}" Click="OnCopyNexusLink"/>
+                </ContextMenu>
+              </Border.ContextMenu>
               <!-- Clip to the rounded inner edge, or the square artwork paints over the corners. -->
               <Panel>
                 <Panel.Clip>

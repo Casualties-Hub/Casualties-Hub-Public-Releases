@@ -68,6 +68,8 @@ public sealed class DashboardCard : INotifyPropertyChanged
 
     public bool HasStatusChip => Mod.IsLocallyInstalled;
 
+    public string DetailsMenuLabel => _isDescriptionExpanded ? "Hide details" : "Show details";
+
     public string StatusChipLabel => Mod.IsLocallyDisabled
         ? "Disabled"
         : Mod.IsLocallyOutOfDate ? "Update available" : "Installed";
@@ -95,7 +97,7 @@ public sealed class DashboardCard : INotifyPropertyChanged
     public bool IsDescriptionExpanded
     {
         get => _isDescriptionExpanded;
-        set { _isDescriptionExpanded = value; Raise(); Raise(nameof(IsCollapsed)); }
+        set { _isDescriptionExpanded = value; Raise(); Raise(nameof(IsCollapsed)); Raise(nameof(DetailsMenuLabel)); }
     }
 
     /// <summary>Inverse of <see cref="IsDescriptionExpanded"/>, for parts that hide when open.</summary>
