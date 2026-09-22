@@ -64,6 +64,8 @@ public sealed class DashboardCard : INotifyPropertyChanged
 
     public string RowSubtitle => $"{Mod.Author} · {Excerpt}";
 
+    public string TileSubtitle => $"{Mod.Author} · {CompactDownloads} downloads";
+
     public bool HasStatusChip => Mod.IsLocallyInstalled;
 
     public string StatusChipLabel => Mod.IsLocallyDisabled

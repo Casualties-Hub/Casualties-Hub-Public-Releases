@@ -70,6 +70,7 @@ public partial class DashboardPage : UserControl
         this.FindControl<Button>("OpenSettingsButton")!.Click += (_, _) => _openSettings?.Invoke();
         this.FindControl<Button>("TilesViewButton")!.Click += (_, _) => SetViewMode(listView: false);
         this.FindControl<Button>("ListViewButton")!.Click += (_, _) => SetViewMode(listView: true);
+        this.FindControl<Button>("TileDetailCloseButton")!.Click += (_, _) => CloseTileDetail();
 
         _listView = _settingsService.Load().DashboardListView;
         UpdateViewButtons();
@@ -304,6 +305,7 @@ public partial class DashboardPage : UserControl
             .ToList();
 
         _expandedCard = null;
+        CloseTileDetail();
         // Only the visible layout gets the rows; building both would double the layout cost.
         this.FindControl<ItemsControl>("ModList")!.ItemsSource = _listView ? null : rows;
         this.FindControl<ItemsControl>("ModRows")!.ItemsSource = _listView ? rows : null;
@@ -349,7 +351,10 @@ public partial class DashboardPage : UserControl
         ShowPage();
     }
 
-    /// <summary>Clicking a card flips its description overlay, one at a time.</summary>
+    /// <summary>
+    /// Clicking a list row folds its description out beneath it; clicking a tile opens the detail
+    /// panel above the grid. Either way, one mod at a time.
+    /// </summary>
     private void OnCardPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if ((sender as Control)?.Tag is not DashboardCard card) return;
@@ -358,10 +363,39 @@ public partial class DashboardPage : UserControl
         // Download would also toggle the description over the top of itself.
         if (e.Source is Control source && source.FindAncestorOfType<Button>(includeSelf: true) is not null) return;
 
-        var wasExpanded = card.IsDescriptionExpanded;
+        if (!_listView)
+        {
+            if (ReferenceEquals(_expandedCard, card)) CloseTileDetail();
+            else ShowTileDetail(card);
+            return;
+        }
+
+        var wasExpanded = ReferenceEquals(_expandedCard, card);
         if (_expandedCard is not null) _expandedCard.IsDescriptionExpanded = false;
         card.IsDescriptionExpanded = !wasExpanded;
-        _expandedCard = card.IsDescriptionExpanded ? card : null;
+        _expandedCard = wasExpanded ? null : card;
+    }
+
+    private void ShowTileDetail(DashboardCard card)
+    {
+        _expandedCard = card;
+        var detail = this.FindControl<Border>("TileDetail")!;
+        detail.DataContext = card;
+        detail.IsVisible = true;
+        this.FindControl<Border>("TileDetailBackdrop")!.IsVisible = true;
+        // Each mod's description starts from the top, not wherever the last one was left.
+        this.FindControl<ScrollViewer>("TileDetailScroller")!.Offset = default;
+    }
+
+    private void OnTileDetailBackdropPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e) => CloseTileDetail();
+
+    private void CloseTileDetail()
+    {
+        var detail = this.FindControl<Border>("TileDetail")!;
+        detail.IsVisible = false;
+        detail.DataContext = null;
+        this.FindControl<Border>("TileDetailBackdrop")!.IsVisible = false;
+        if (!_listView) _expandedCard = null;
     }
 
     private void OnOpenNexus(object? sender, RoutedEventArgs e)
