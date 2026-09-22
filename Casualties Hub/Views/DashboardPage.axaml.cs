@@ -150,10 +150,21 @@ public partial class DashboardPage : UserControl
     private async Task LoadAsync(bool force)
     {
         _setStatus(force ? "Refreshing the mod list..." : "Loading the mod list...");
+        if (_allMods.Count == 0) ShowEmpty("Loading the community mod list...");
         try
         {
-            _allMods = await _metadataService.GetModsAsync(force);
-            MarkLocalStatus();
+            // Reading the cached catalogue, inspecting plugin DLLs, and stripping BBCode all add
+            // up to a noticeable stall, so they run off the UI thread. The list is freshly
+            // deserialised each time, so nothing on screen shares these objects until they are
+            // handed over below.
+            var mods = await Task.Run(async () =>
+            {
+                var loaded = await _metadataService.GetModsAsync(force);
+                MarkLocalStatus(loaded);
+                return loaded;
+            });
+
+            _allMods = mods;
             _currentPage = 1;
             ApplyFilters();
             _setStatus($"{_allMods.Count} mods in the community catalogue.");
@@ -167,7 +178,10 @@ public partial class DashboardPage : UserControl
     }
 
     /// <summary>Cross-references the catalogue against the plugins folder.</summary>
-    private void MarkLocalStatus()
+    /// <remarks>Touches no UI, so it is safe to call from a background thread.</remarks>
+    private void MarkLocalStatus() => MarkLocalStatus(_allMods);
+
+    private void MarkLocalStatus(IReadOnlyList<MetadataMod> mods)
     {
         var settings = _settingsService.Load();
         var hasPremiumKey = _apiKeyStore.HasKey;
@@ -176,14 +190,14 @@ public partial class DashboardPage : UserControl
         try
         {
             if (_modService.HasConfiguredPluginsFolder(settings))
-                installed = _modService.GetInstalledModsWithMetadata(settings, _allMods);
+                installed = _modService.GetInstalledModsWithMetadata(settings, mods);
         }
         catch (Exception exception)
         {
             DebugLogService.Error("Could not read installed mods for the dashboard", exception);
         }
 
-        foreach (var mod in _allMods)
+        foreach (var mod in mods)
         {
             var match = installed.FirstOrDefault(local =>
                 string.Equals(local.MetadataId, mod.Id, StringComparison.Ordinal));
