@@ -1,0 +1,6 @@
+Custom toolbar icons use material icons to be consistent across OS
+Moved launch game button to make more space in main area
+Improved loading speed of nexus dashboard tab
+Overworked layout of the nexus dashboard mods, now has 2 display modes list and grid.
+ - smaller tiles to be easier to skim and bigger detail so it can be read easier
+Linux - removed system toolbar
