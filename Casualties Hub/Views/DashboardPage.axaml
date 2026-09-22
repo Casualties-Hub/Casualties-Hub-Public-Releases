@@ -19,19 +19,6 @@
     </Border>
 
     <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,14">
-      <Grid ColumnDefinitions="Auto,*">
-        <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,20,0">
-          <TextBlock Text="Installed" Classes="dim"/>
-          <TextBlock x:Name="ModCountText" FontSize="22" FontWeight="SemiBold"/>
-        </StackPanel>
-        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-          <TextBlock Text="Game folder" Classes="dim"/>
-          <TextBlock x:Name="GamePathText" TextTrimming="CharacterEllipsis"/>
-        </StackPanel>
-      </Grid>
-    </Border>
-
-    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,14">
       <StackPanel Spacing="10">
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" Spacing="2">

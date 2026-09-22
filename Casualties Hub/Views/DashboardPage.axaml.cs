@@ -73,7 +73,7 @@ public partial class DashboardPage : UserControl
         ModService.PluginFilesChanged += OnPluginFilesChanged;
         DetachedFromVisualTree += (_, _) => ModService.PluginFilesChanged -= OnPluginFilesChanged;
 
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         _ = LoadAsync(force: false);
     }
 
@@ -86,7 +86,7 @@ public partial class DashboardPage : UserControl
             return;
         }
 
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         if (_allMods.Count > 0)
         {
             MarkLocalStatus();
@@ -113,7 +113,7 @@ public partial class DashboardPage : UserControl
         settings.GamePath = path;
         _settingsService.Save(settings);
 
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         MarkLocalStatus();
         ApplyFilters();
         _setStatus("Game folder set.");
@@ -121,24 +121,11 @@ public partial class DashboardPage : UserControl
 
     private Window? Owner => TopLevel.GetTopLevel(this) as Window;
 
-    /// <summary>Updates the installed count, the game path, and the "no folder set" prompt.</summary>
-    private void RefreshLocalCounts()
+    /// <summary>Shows or hides the "no folder set" prompt.</summary>
+    private void RefreshGameFolderPrompt()
     {
         var settings = _settingsService.Load();
-        var configured = _modService.HasConfiguredGameFolder(settings);
-
-        this.FindControl<Border>("GameFolderCard")!.IsVisible = !configured;
-        this.FindControl<TextBlock>("GamePathText")!.Text =
-            string.IsNullOrWhiteSpace(settings.GamePath) ? "Not configured" : settings.GamePath;
-
-        var count = 0;
-        try { if (configured) count = _modService.GetInstalledMods(settings).Count; }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            DebugLogService.Info($"Could not count installed mods: {exception.Message}");
-        }
-
-        this.FindControl<TextBlock>("ModCountText")!.Text = count.ToString();
+        this.FindControl<Border>("GameFolderCard")!.IsVisible = !_modService.HasConfiguredGameFolder(settings);
     }
 
     private async Task DetectAsync()
@@ -154,7 +141,7 @@ public partial class DashboardPage : UserControl
         var settings = _settingsService.Load();
         settings.GamePath = found;
         _settingsService.Save(settings);
-        RefreshLocalCounts();
+        RefreshGameFolderPrompt();
         MarkLocalStatus();
         ApplyFilters();
         _setStatus("Game folder detected.");
