@@ -34,10 +34,12 @@ public static class RemoteImageCache
             return null;
         }
 
+        // Decoding happens on a worker thread: the dashboard kicks off fifty of these at once,
+        // and doing them inline would stall the UI thread before the first card is drawn.
         var diskPath = CachePath(url);
         if (File.Exists(diskPath))
         {
-            var fromDisk = TryLoad(diskPath);
+            var fromDisk = await Task.Run(() => TryLoad(diskPath));
             Memory[url] = fromDisk;
             if (fromDisk is not null) return fromDisk;
         }
@@ -51,7 +53,7 @@ public static class RemoteImageCache
             Directory.CreateDirectory(Path.GetDirectoryName(diskPath)!);
             await File.WriteAllBytesAsync(diskPath, bytes);
 
-            var bitmap = TryLoad(diskPath);
+            var bitmap = await Task.Run(() => TryLoad(diskPath));
             Memory[url] = bitmap;
             return bitmap;
         }
