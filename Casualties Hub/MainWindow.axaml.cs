@@ -42,6 +42,7 @@ public partial class MainWindow : Window
         _hubConfigService = new HubConfigService(_settingsService);
         SetUpWindowIcon();
         SetUpTitleBar();
+        SetUpLinuxDecorations();
 
         var settings = _settingsService.Load();
         ThemeApplier.Apply(settings);
@@ -281,6 +282,38 @@ public partial class MainWindow : Window
         PropertyChanged += (_, e) =>
         {
             if (e.Property == WindowStateProperty) SyncMaximiseGlyph();
+        };
+    }
+
+    /// <summary>
+    /// Linux compositors (KDE Plasma on Wayland in particular) ignore the extend-client-area hint
+    /// and keep drawing a native frame above the custom title bar. Turning system decorations off
+    /// removes that frame, but also the native resize border, so thin edge grips take its place.
+    /// </summary>
+    private void SetUpLinuxDecorations()
+    {
+        if (!OperatingSystem.IsLinux()) return;
+
+        SystemDecorations = SystemDecorations.None;
+
+        var grips = this.FindControl<Grid>("ResizeGrips")!;
+        foreach (var grip in grips.Children.OfType<Border>())
+        {
+            var edge = Enum.Parse<WindowEdge>((string)grip.Tag!);
+            grip.PointerPressed += (_, e) =>
+            {
+                if (!e.GetCurrentPoint(grip).Properties.IsLeftButtonPressed) return;
+                BeginResizeDrag(edge, e);
+                e.Handled = true;
+            };
+        }
+
+        void SyncGrips() => grips.IsVisible = WindowState == WindowState.Normal;
+
+        SyncGrips();
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowStateProperty) SyncGrips();
         };
     }
 

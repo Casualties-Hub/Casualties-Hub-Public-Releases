@@ -100,5 +100,19 @@
            RenderTransformOrigin="50%,50%"
            ToolTip.Tip="PapaZuck, unofficial/official Casualties Hub mascot. Click 3 times to pop; 5 times for a surprise."/>
 
+    <!-- Resize grips for Linux, where the window runs without system decorations and so
+         has no native resize border. Enabled from code-behind; hidden everywhere else. -->
+    <Grid x:Name="ResizeGrips" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="2"
+          ZIndex="100" IsVisible="False" Background="{x:Null}">
+      <Border Tag="North" Height="5" VerticalAlignment="Top" Margin="8,0" Background="Transparent" Cursor="SizeNorthSouth"/>
+      <Border Tag="South" Height="5" VerticalAlignment="Bottom" Margin="8,0" Background="Transparent" Cursor="SizeNorthSouth"/>
+      <Border Tag="West" Width="5" HorizontalAlignment="Left" Margin="0,8" Background="Transparent" Cursor="SizeWestEast"/>
+      <Border Tag="East" Width="5" HorizontalAlignment="Right" Margin="0,8" Background="Transparent" Cursor="SizeWestEast"/>
+      <Border Tag="NorthWest" Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Cursor="TopLeftCorner"/>
+      <Border Tag="NorthEast" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Cursor="TopRightCorner"/>
+      <Border Tag="SouthWest" Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" Cursor="BottomLeftCorner"/>
+      <Border Tag="SouthEast" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" Cursor="BottomRightCorner"/>
+    </Grid>
+
   </Grid>
 </Window>
