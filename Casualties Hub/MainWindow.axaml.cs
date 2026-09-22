@@ -10,6 +10,8 @@ using Avalonia.Threading;
 using Casualties_Hub.Models;
 using Casualties_Hub.Services;
 using Casualties_Hub.Views;
+using Material.Icons;
+using Material.Icons.Avalonia;
 
 namespace Casualties_Hub;
 
@@ -248,6 +250,7 @@ public partial class MainWindow : Window
     private void SetUpTitleBar()
     {
         var maximiseButton = this.FindControl<Button>("MaximiseButton")!;
+        var maximiseIcon = this.FindControl<MaterialIcon>("MaximiseIcon")!;
 
         foreach (var bar in (Border[])
                  [this.FindControl<Border>("TitleBar")!, this.FindControl<Border>("SidebarTitleStrip")!])
@@ -270,7 +273,7 @@ public partial class MainWindow : Window
         void SyncMaximiseGlyph()
         {
             var maximised = WindowState == WindowState.Maximized;
-            maximiseButton.Content = maximised ? "" : "";
+            maximiseIcon.Kind = maximised ? MaterialIconKind.WindowRestore : MaterialIconKind.WindowMaximize;
             ToolTip.SetTip(maximiseButton, maximised ? "Restore" : "Maximise");
         }
 
