@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Do not open a public issue for a vulnerability that could expose credentials, execute
-untrusted code, overwrite/delete arbitrary files, compromise the update path, or reveal
+untrusted code, overwrite/delete arbitrary files, tamper with release builds, or reveal
 private user data. Contact the maintainer through the Casualties Hub Discord listed in
 `README.md` and request a private reporting channel. Do not include secrets or working
 exploits in the initial public message.
@@ -15,8 +15,8 @@ when possible. Test only against systems, accounts, and files you are authorized
 
 - Nexus API-key storage and authorized download behavior.
 - Archive inspection, extraction, and installation paths.
-- File deletion, replacement, protected-asset restoration, and uninstallation.
-- Update discovery, download, validation, and process launching.
+- File deletion, replacement, protected-asset restoration, and plugin backups.
+- Release packaging and process launching (Steam links and opening files or URLs).
 - GitHub content, remote metadata, and other network responses.
 - Diagnostic logs and settings that may contain local paths or user information.
 

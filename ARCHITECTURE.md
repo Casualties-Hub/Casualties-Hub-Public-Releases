@@ -27,7 +27,8 @@ or sent to Casualties Hub services.
 
 - **Nexus Mods:** metadata/pages for mods and an opt-in authorized API flow. The normal
   fallback is the original Nexus browser page. See `PROJECT_RULES.md`.
-- **GitHub:** source, release metadata, and approved application updates.
+- **GitHub:** source, published releases, and the community mod metadata the Nexus Dashboard
+  reads. The Hub does not update itself; new builds are downloaded from the Releases page.
 - **Hub configuration:** public announcements and community links from the
   [Casualties Hub Config](https://github.com/Casualties-Hub/Casualties-Hub-Config) repository,
   published to `casualties-hub.github.io`. A prerelease build reads the `prerelease` channel and
@@ -40,8 +41,8 @@ management usable wherever practical.
 ## Sensitive boundaries
 
 The highest-risk code is archive extraction, filesystem deletion/replacement, Nexus
-credentials and downloads, remote metadata parsing, updates, installer/uninstaller
-operations, and process launching. Changes to these areas require focused review and
+credentials and downloads, remote metadata parsing, backup and restore of the plugins
+folder, and process launching. Changes to these areas require focused review and
 testing with disposable data.
 
 ## Build and release flow
@@ -63,7 +64,7 @@ reviews it and presses Publish, which is what creates the tag and makes the rele
 The workflow refuses a request before building when it was not started from `main`, when the
 version is unreadable, when the embedded release notes for it are missing, when the tag already
 exists, or when the version and the chosen release type disagree. It also checks the built binary reports the version it
-was asked to build, because that string picks the update channel and the notes the Hub shows.
+was asked to build, because that string picks the configuration channel and the notes the Hub shows.
 
 `Release Packaging/Build-CasualtiesHubRelease.ps1` builds the same assets locally. CI is the
 route for anything published; the script remains useful for testing a package by hand.
