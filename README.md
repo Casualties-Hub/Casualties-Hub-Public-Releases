@@ -2,13 +2,14 @@
 
 Casualties Hub is a launcher and mod manager for **Casualties Unknown**, running on Linux and Windows. It helps players browse community mod metadata, manage local BepInEx plugins, preserve custom assets, share mod setups, and identify common dependency or compatibility problems.
 
-**Current public build:** `v0.0.7`
-**Project status:** early public release; actively developed.
+**Project status:** early public release; actively developed. The current version is always
+on the [Releases page](../../releases): the release marked **Latest** is the current public
+build, and releases marked **Pre-release** are testing builds.
 
 ## Download and install
 
 1. Open the [Releases page](../../releases).
-2. Download the version you want from **Assets**.
+2. Download the version you want from **Assets**. Pick the release marked **Latest** unless you want to help test.
 3. On Windows, download the `.exe` and run it from any folder outside `Program Files`.
 4. On Linux, download the `.tar.gz`, extract it, and run `casualties-hub`. The included
    `README-linux.txt` covers the one-time `chmod` and optional desktop entry.
@@ -20,19 +21,24 @@ Older releases remain available on GitHub for testing and rollback.
 
 ## What the Hub can do
 
-- Browse Casualties Unknown community metadata in the **Nexus Dashboard**.
-- Filter, search, sort, hide installed mods, and show adult-tagged mods only when the 18+ option is enabled.
+- Browse Casualties Unknown community metadata in the **Nexus Dashboard**, as tiles or as a list.
+- Search, filter (installed, not installed, updates available), sort, and show adult-tagged mods only when the **18+** option is ticked.
 - Open a mod’s Nexus Files/download page, or use direct downloads with a player’s own Nexus Premium API key.
-- Detect and install supported archives from a chosen download inbox.
+- Detect and install supported archives (`.zip`, `.7z`, `.rar`) from a watched downloads folder, or install an archive from disk.
 - Manage local BepInEx plugins: enable, disable, delete, refresh, and check version information.
-- Highlight known dependency, update, incompatibility, and known-bug information where metadata is available.
+- Highlight known dependency, update, incompatibility, and known-bug information where metadata is available, with column views such as **Needs Attention** and **Missing Dependencies**.
 - Create and import concise **Modlist Share Codes** for enabled local mods.
 - Show missing share-code mods with an **Open Download** action for their specific Nexus Files page.
-- Protect custom sprites, skins, sounds, character folders, and other assets locally, then restore them after a mod reinstall.
+- Use **Skins & Backups** to:
+  - preview installed CustomSprites character skins in **Skin Preview**,
+  - protect custom sprites, skins, sounds, character folders, and other assets locally, then restore them after a mod reinstall,
+  - take and restore full backups of the plugins folder.
 - Launch Casualties Unknown through Steam.
-- Create local diagnostic logs and retain recent crash reports for troubleshooting.
-- Use **Hub Home** for announcements, prior announcements, release and update information, credits, and eligible GitHub update information.
-- Adjust text size, theme colours, file paths, and other local preferences in **Settings**, including UI presets and four saveable custom looks.
+- Create local diagnostic logs, retain recent crash reports, and copy a diagnostics report from **Settings**.
+- Use **Hub Home** for announcements, previous announcements, what changed in the current build, links to the release history, Nexus page and Discord, and credits.
+- Adjust text size, theme colours, and folder paths in **Settings**, save up to four custom looks, turn on Animated RGB, and enable optional easter eggs under **Extras**.
+
+On Linux, see the `README-linux.txt` included in the download for requirements and troubleshooting.
 
 ## Nexus and mod installation
 
@@ -46,30 +52,21 @@ Protected Assets are saved **only on your PC**. Use them for things you do not w
 
 Choose either a file or the complete folder you want to preserve. **Restore All** puts the saved copies back into their remembered locations after a mod is installed or replaced.
 
-## Online Services
+## Network access
 
-Hub Online Services are **optional** and are disabled by default on a fresh install. They are controlled from **Hub Home**; local mod management, Protected Assets, and most launcher functions still work when they are off.
+The Hub has no account and no online services to sign up for. Local mod management, Protected Assets, Backups, and Skin Preview work offline. It connects to:
 
-When enabled, the Hub may retrieve:
+- **The Casualties Hub Config site** (`casualties-hub.github.io`, published from the public [Casualties Hub Config](https://github.com/Casualties-Hub/Casualties-Hub-Config) repository) for the announcements and community links shown in **Hub Home**. Testing builds read a separate prerelease channel.
+- **GitHub**, for the community mod metadata shown in the **Nexus Dashboard**.
+- **Nexus Mods**, for mod images, and for direct downloads only when you have saved your own API key.
 
-- GitHub-hosted announcements. The three most recent announcements this PC has received are kept locally so they stay readable afterwards.
-- Community compatibility and known-bug notices.
-- Eligible GitHub update information.
+Steam is started through a local `steam://` link. The Hub does not update itself; new builds are downloaded from the Releases page.
 
 ### What is sent
 
-Casualties Hub does not create or send an installation ID and does not collect community activity metrics. It requests public JSON and release information from GitHub and community metadata from its documented source. Like any internet request, network and hosting providers process normal connection information independently.
+Casualties Hub does not create or send an installation ID, does not collect activity metrics, and does not send your settings anywhere. Your Nexus API key is only ever sent to Nexus Mods. Like any internet request, network and hosting providers process normal connection information independently.
 
-Automatic checks occur no more than once every 30 minutes and are deferred while the Hub is focused. Responses are cached locally and use HTTP change validators, so unchanged files are not downloaded again.
-
-## Relevant build history
-
-| Version range | Notable additions |
-| --- | --- |
-| `v0.0.7` | Official public release; compact Accessibility-based Easter Eggs preference, refreshed documentation, and current packaging. |
-| `v0.0.8-pre` | Replaces the previous hosted backend and anonymous activity metrics with cached GitHub-hosted announcements and coordinated conditional refreshes. |
-| `v0.0.6-pre` series | Hub Center, optional Online Services, announcements, Community Activity, compatibility feed, local-mod column views, UI colour controls, credits, and diagnostic improvements. |
-| `v0.0.5` and earlier | Core Nexus metadata browser, archive/import workflows, Protected Assets, local BepInEx scanning, dependency checks, version checks, and Modlist Share Codes. |
+Announcements are checked when the Hub starts and when Hub Home opens, no more than once every 30 minutes unless you press **Check now**. Community metadata is reused for up to six hours. Responses are cached locally and use HTTP change validators, so unchanged files are not downloaded again, and the cached copies are used when you are offline.
 
 ## Known limitations
 

@@ -301,23 +301,16 @@ jobs:
           path: assets
           merge-multiple: true
 
-      # The release page body, when one was written for this version. It is separate from the
-      # bundled notes the Hub reads, which preflight has already checked for.
+      # The release page body is the same notes file the Hub bundles, which preflight has
+      # already checked for. The maintainer can still edit it on the draft before publishing.
       - name: Assemble the release notes
         env:
           VERSION: ${{ needs.preflight.outputs.version }}
         run: |
           set -euo pipefail
-          notes="GitHub Release Notes/GitHub Release Notes - v$VERSION.md"
-          if [ -f "$notes" ]; then
-            cp "$notes" release-body.md
-            echo "Using $notes"
-          else
-            # Not fatal: the maintainer is going to review this draft before it is published,
-            # and the release page body can be written or pasted there.
-            printf 'Release notes for %s have not been written yet.\n' "$VERSION" > release-body.md
-            echo "::warning::No '$notes'; the draft gets a placeholder body to fill in before publishing."
-          fi
+          notes="Release Notes/Version $VERSION.txt"
+          cp "$notes" release-body.md
+          echo "Using $notes"
 
       - name: Create the draft release
         env:

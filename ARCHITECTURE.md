@@ -7,12 +7,12 @@
 | `Casualties Hub/` | The Hub: an Avalonia launcher and mod manager. |
 | `Casualties Hub/Views/` | UI pages and their event-handling code. |
 | `Casualties Hub/Models/` | Settings, metadata, mod, and installation models. |
-| `Casualties Hub/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
-| `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
+| `Casualties Hub/Services/` | File, network, catalog, installation, skin preview, and diagnostic logic. |
+| `Casualties Hub.Tests/` | Tests for the destructive, security, and silent-failure paths. |
 | `Nexus Mod Package/` | Nexus package marker project. |
-| `Release Packaging/` | Scripts and inputs used to assemble releases. |
-| `Release Notes/` | In-application version history. |
-| `GitHub Release Notes/` | Public release-page copy. |
+| `Release Packaging/` | Script for building release assets locally for testing. |
+| `.github/` | CI build and release workflows, issue and pull request templates, and CODEOWNERS. |
+| `Release Notes/` | Per-version notes, shown in the app and used as the release page body. |
 
 `Casualties Hub.slnx` includes the Hub and its tests. One project targets Linux and Windows;
 platform differences are handled inside the services, not by separate applications.
@@ -28,7 +28,8 @@ or sent to Casualties Hub services.
 
 - **Nexus Mods:** metadata/pages for mods and an opt-in authorized API flow. The normal
   fallback is the original Nexus browser page. See `PROJECT_RULES.md`.
-- **GitHub:** source, release metadata, and approved application updates.
+- **GitHub:** source, published releases, and the community mod metadata the Nexus Dashboard
+  reads. The Hub does not update itself; new builds are downloaded from the Releases page.
 - **Hub configuration:** public announcements and community links from the
   [Casualties Hub Config](https://github.com/Casualties-Hub/Casualties-Hub-Config) repository,
   published to `casualties-hub.github.io`. A prerelease build reads the `prerelease` channel and
@@ -41,8 +42,8 @@ management usable wherever practical.
 ## Sensitive boundaries
 
 The highest-risk code is archive extraction, filesystem deletion/replacement, Nexus
-credentials and downloads, remote metadata parsing, updates, installer/uninstaller
-operations, and process launching. Changes to these areas require focused review and
+credentials and downloads, remote metadata parsing, backup and restore of the plugins
+folder, and process launching. Changes to these areas require focused review and
 testing with disposable data.
 
 ## Build and release flow
@@ -64,7 +65,7 @@ reviews it and presses Publish, which is what creates the tag and makes the rele
 The workflow refuses a request before building when it was not started from `main`, when the
 version is unreadable, when the embedded release notes for it are missing, when the tag already
 exists, or when the version and the chosen release type disagree. It also checks the built binary reports the version it
-was asked to build, because that string picks the update channel and the notes the Hub shows.
+was asked to build, because that string picks the configuration channel and the notes the Hub shows.
 
 `Release Packaging/Build-CasualtiesHubRelease.ps1` builds the same assets locally. CI is the
 route for anything published; the script remains useful for testing a package by hand.
