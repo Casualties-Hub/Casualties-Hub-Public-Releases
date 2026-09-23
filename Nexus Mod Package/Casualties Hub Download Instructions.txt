@@ -8,9 +8,9 @@ To download it:
 
 • Open the GitHub repository.
 • Look on the RIGHT side of the page for "Releases."
-• Click the newest release (the highest version number).
-• Under "Assets", download casualties-hub-...-win-x64.exe (Windows) or the
-  .tar.gz (Linux).
+• Click the release marked "Latest". Releases marked "Pre-release" are testing builds.
+• Under "Assets", download casualties-hub-v<version>-win-x64.exe (Windows) or
+  casualties-hub-v<version>-linux-x64.tar.gz (Linux).
 • Windows: run the .exe. Linux: extract the archive and run casualties-hub.
 
 GitHub:
