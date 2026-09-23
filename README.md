@@ -2,8 +2,7 @@
 
 Casualties Hub is a launcher and mod manager for **Casualties Unknown**, running on Linux and Windows. It helps players browse community mod metadata, manage local BepInEx plugins, preserve custom assets, share mod setups, and identify common dependency or compatibility problems.
 
-**Current public build:** `v0.0.7`
-**Project status:** early public release; actively developed.
+**Project status:** early public release, actively developed.
 
 ## Download and install
 
