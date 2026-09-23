@@ -37,7 +37,8 @@ registered with or approved by Nexus Mods when their policies require it.
 
 ## Official releases and branding
 
-Only releases published by MarlyZ89 through the project's declared official channels
+Only releases published on the project's
+[GitHub Releases page](https://github.com/Casualties-Hub/Casualties-Hub-Public-Releases/releases)
 are official Casualties Hub builds. Modified forks must not claim endorsement or use
 official update services in a way that confuses users about their origin.
 
