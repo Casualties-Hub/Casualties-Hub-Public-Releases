@@ -7,10 +7,11 @@
 | `Casualties Hub/` | The Hub: an Avalonia launcher and mod manager. |
 | `Casualties Hub/Views/` | UI pages and their event-handling code. |
 | `Casualties Hub/Models/` | Settings, metadata, mod, and installation models. |
-| `Casualties Hub/Services/` | File, network, update, catalog, installation, and diagnostic logic. |
-| `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
+| `Casualties Hub/Services/` | File, network, catalog, installation, skin preview, and diagnostic logic. |
+| `Casualties Hub.Tests/` | Tests for the destructive, security, and silent-failure paths. |
 | `Nexus Mod Package/` | Nexus package marker project. |
-| `Release Packaging/` | Scripts and inputs used to assemble releases. |
+| `Release Packaging/` | Script for building release assets locally for testing. |
+| `.github/` | CI build and release workflows, issue and pull request templates, and CODEOWNERS. |
 | `Release Notes/` | Per-version notes, shown in the app and used as the release page body. |
 
 `Casualties Hub.slnx` includes the Hub and its tests. One project targets Linux and Windows;
