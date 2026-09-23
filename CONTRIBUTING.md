@@ -65,7 +65,7 @@ The Hub is still running and holding a lock on its executable. Close it and buil
 | `Casualties Hub/` | The application. `Services/` holds the logic worth reading first. |
 | `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
 | `Release Packaging/` | PowerShell scripts that assemble the release archives. |
-| `Release Notes/`, `GitHub Release Notes/` | Per-version notes. Some are embedded in the app. |
+| `Release Notes/` | Per-version notes, embedded in the app and used as the release page body. |
 
 ## Before opening a pull request
 
@@ -103,19 +103,18 @@ Releases are built from `main` only, so merge the version you are releasing firs
 the workflow from any other branch is refused before it builds.
 
 1. Add `Release Notes/Version <version>.txt`. The Hub embeds this file and reads it for its
-   What changed panel, so a release without it ships a build that cannot describe itself.
-2. Add `GitHub Release Notes/GitHub Release Notes - v<version>.md` for the release page body.
-   This one is optional: without it the draft gets a placeholder to fill in before publishing.
-3. Run the `Release` workflow from the Actions tab. Give it the version without a leading `v`
+   What changed panel, and the workflow uses it as the release page body, so a release
+   without it is refused before it builds.
+2. Run the `Release` workflow from the Actions tab. Give it the version without a leading `v`
    and choose the release type:
    - `testing` needs a prerelease version such as `0.0.9-pre.1`. It is flagged as a prerelease
      and never marked latest, and the Hub reads its configuration from the prerelease channel.
    - `full` needs a plain version such as `0.0.9`, and is marked the latest release.
-4. Review the draft on the Releases page: check the version, the notes, and that both the
+3. Review the draft on the Releases page: check the version, the notes, and that both the
    Linux tarball and the Windows executable are attached.
-5. Press Publish. That creates the tag and makes the release public.
+4. Press Publish. That creates the tag and makes the release public.
 
-Up to step 5 nothing is public and no tag exists, so a draft that looks wrong can simply be
+Up to step 4 nothing is public and no tag exists, so a draft that looks wrong can simply be
 deleted and the workflow run again.
 
 Building and testing happen first; the draft is only created after an approval on the

@@ -11,8 +11,7 @@
 | `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
 | `Nexus Mod Package/` | Nexus package marker project. |
 | `Release Packaging/` | Scripts and inputs used to assemble releases. |
-| `Release Notes/` | In-application version history. |
-| `GitHub Release Notes/` | Public release-page copy. |
+| `Release Notes/` | Per-version notes, shown in the app and used as the release page body. |
 
 `Casualties Hub.slnx` includes the Hub and its tests. One project targets Linux and Windows;
 platform differences are handled inside the services, not by separate applications.
