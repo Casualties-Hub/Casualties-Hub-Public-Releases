@@ -63,8 +63,8 @@ The Hub is still running and holding a lock on its executable. Close it and buil
 | Path | Purpose |
 | --- | --- |
 | `Casualties Hub/` | The application. `Services/` holds the logic worth reading first. |
-| `Casualties Hub.Tests/` | Tests for the destructive and silent-failure paths. |
-| `Release Packaging/` | PowerShell scripts that assemble the release archives. |
+| `Casualties Hub.Tests/` | Tests for the destructive, security, and silent-failure paths. |
+| `Release Packaging/` | A Windows PowerShell script that builds release assets locally for testing. |
 | `Release Notes/` | Per-version notes, embedded in the app and used as the release page body. |
 
 ## Before opening a pull request
@@ -75,11 +75,11 @@ The Hub is still running and holding a lock on its executable. Close it and buil
 3. Run the Hub and exercise the areas you touched. The tests cover the destructive paths,
    not the UI.
 4. Check the Hub log folder for new errors.
-4. Test mod install, enable, disable, and delete against a disposable copy of the game
+5. Test mod install, enable, disable, and delete against a disposable copy of the game
    folder if you changed anything under `Services/`.
-5. Confirm that no API keys, credentials, personal data, game files, decompiled game
+6. Confirm that no API keys, credentials, personal data, game files, decompiled game
    code, third-party mods, local builds, or release archives are included.
-6. Nexus, credentials, downloads, updates, installers, archive extraction, telemetry,
+7. Nexus, credentials, downloads, updates, installers, archive extraction, telemetry,
    process launching, and deletion changes require focused maintainer review.
 
 ## Testing your changes
@@ -87,10 +87,10 @@ The Hub is still running and holding a lock on its executable. Close it and buil
 **Read [`PRE_ALPHA_TESTER_GUIDE.md`](PRE_ALPHA_TESTER_GUIDE.md).**
 
 The guide walks through every major area of the Hub, including the Nexus Dashboard, the
-Download Inbox and automatic import, Local Mods, Modlist Share Codes, Protected Assets,
-Delete All Mods, and Settings, and states the expected behaviour for each. The tests cover
-the destructive and silent-failure paths; that guide is the reference for everything the
-UI does.
+Download Inbox and automatic import, Local Mods, Modlist Share Codes, Skins & Backups,
+Delete all, Hub Home, and Settings, and states the expected behaviour for each. The tests
+cover the destructive, security, and silent-failure paths; that guide is the reference for
+everything the UI does.
 
 Work through the sections covering anything your change touches, and the whole guide for
 wider changes.
