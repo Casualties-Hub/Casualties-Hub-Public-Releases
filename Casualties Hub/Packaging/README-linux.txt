@@ -21,7 +21,7 @@ does not appear, install these:
   Fedora
       sudo dnf install libICE libSM fontconfig xdg-utils
 
-  Arch / Manjaro / SteamOS
+  Arch / Manjaro
       sudo pacman -S libice libsm fontconfig xdg-utils
 
 
@@ -45,7 +45,9 @@ Settings, logs, backups and the Nexus API key are kept in:
     ~/.local/share/CasualtiesHub/
 
 To remove the Hub, delete the executable and that directory. If you ran
-install-desktop-entry.sh, it printed the one file to delete for the menu entry.
+install-desktop-entry.sh, also delete the menu entry and its icon:
+    ~/.local/share/applications/casualties-hub.desktop
+    ~/.local/share/icons/hicolor/256x256/apps/casualties-hub.png
 
 
 IF SOMETHING GOES WRONG
